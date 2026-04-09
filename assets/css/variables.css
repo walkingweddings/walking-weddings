@@ -1,0 +1,57 @@
+:root {
+  /* Colors — Cinematic Dark */
+  --color-primary: #131B1B;
+  --color-primary-light: #2A2F30;
+  --color-text-light: #F7F7F5;
+  --color-text-dark: #2A2F30;
+  --color-secondary: #6B7374;
+  --color-accent: #B8A88A;
+  --color-accent-hover: #C9BC9F;
+  --color-bg-dark: #131B1B;
+  --color-bg-light: #F7F7F5;
+  --color-bg-white: #FFFFFF;
+  --color-overlay: rgba(19, 27, 27, 0.6);
+  --color-overlay-heavy: rgba(19, 27, 27, 0.8);
+  --color-border: rgba(183, 168, 138, 0.2);
+  --color-border-light: rgba(255, 255, 255, 0.1);
+
+  /* Typography */
+  --font-display: 'Italiana', serif;
+  --font-body: 'PT Sans', sans-serif;
+  --font-accent: 'Cormorant Garamond', serif;
+
+  /* Font Sizes — fluid with clamp */
+  --text-xs: clamp(0.7rem, 0.65rem + 0.25vw, 0.8rem);
+  --text-sm: clamp(0.8rem, 0.75rem + 0.25vw, 0.875rem);
+  --text-base: clamp(0.95rem, 0.9rem + 0.25vw, 1.1rem);
+  --text-lg: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
+  --text-xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.75rem);
+  --text-2xl: clamp(1.5rem, 1.2rem + 1.5vw, 2.5rem);
+  --text-3xl: clamp(2rem, 1.5rem + 2.5vw, 3.5rem);
+  --text-4xl: clamp(2.5rem, 1.8rem + 3.5vw, 5rem);
+
+  /* Spacing */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 2rem;
+  --space-lg: 4rem;
+  --space-xl: 6rem;
+  --space-2xl: 8rem;
+  --section-padding: 6%;
+
+  /* Layout */
+  --max-width: 1400px;
+  --nav-height: 80px;
+  --nav-height-mobile: 60px;
+
+  /* Transitions */
+  --transition-fast: 0.3s ease;
+  --transition-medium: 0.5s ease;
+  --transition-slow: 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  /* Z-index scale */
+  --z-base: 1;
+  --z-nav: 100;
+  --z-overlay: 200;
+  --z-modal: 300;
+}

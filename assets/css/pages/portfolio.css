@@ -1,0 +1,15 @@
+/* Page header for inner pages */
+.page-header {
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--color-bg-dark);
+  padding: calc(var(--nav-height) + var(--space-xl)) var(--section-padding) var(--space-xl);
+}
+
+.page-header__content h1 {
+  margin-top: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}

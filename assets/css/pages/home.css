@@ -1,0 +1,21 @@
+/* Homepage-specific styles */
+
+/* About teaser on light background */
+.about-teaser__image {
+  overflow: hidden;
+}
+
+.about-teaser__image img {
+  transition: transform var(--transition-slow);
+}
+
+.about-teaser__image:hover img {
+  transform: scale(1.02);
+}
+
+/* Testimonials fixed background on desktop */
+@media (min-width: 768px) {
+  .testimonials__bg {
+    background-attachment: fixed;
+  }
+}
