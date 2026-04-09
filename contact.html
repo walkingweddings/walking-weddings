@@ -26,7 +26,8 @@
     </a>
     <div class="nav__links">
       <a href="index.html" class="nav__link">Home</a>
-      <a href="portfolio.html" class="nav__link">Portfolio</a>
+      <a href="portfolio.html" class="nav__link">Galerie</a>
+      <a href="filme.html" class="nav__link">Filme</a>
       <a href="blog.html" class="nav__link">Blog</a>
       <a href="about.html" class="nav__link">Über Uns</a>
       <a href="packages.html" class="nav__link">Pakete</a>
@@ -38,7 +39,8 @@
   </nav>
   <div class="mobile-menu" id="mobileMenu">
     <a href="index.html" class="mobile-menu__link">Home</a>
-    <a href="portfolio.html" class="mobile-menu__link">Portfolio</a>
+    <a href="portfolio.html" class="mobile-menu__link">Galerie</a>
+    <a href="filme.html" class="mobile-menu__link">Filme</a>
     <a href="blog.html" class="mobile-menu__link">Blog</a>
     <a href="about.html" class="mobile-menu__link">Über Uns</a>
     <a href="packages.html" class="mobile-menu__link">Pakete</a>
@@ -60,53 +62,120 @@
       <div class="contact-grid reveal">
 
         <!-- Form -->
-        <div class="contact-form">
-          <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
-            <div class="form-row">
+        <div class="contact-form" id="contactFormWrapper">
+          <form id="contactForm" novalidate>
+
+            <!-- 1. Kontaktdaten -->
+            <div class="form-section">
+              <h2 class="form-section__title">Kontaktdaten</h2>
               <div class="form__group">
-                <label class="form__label" for="firstName">Vorname</label>
-                <input class="form__input" type="text" id="firstName" name="firstName" required>
+                <label class="form__label" for="name">Name *</label>
+                <input class="form__input" type="text" id="name" name="name" required>
               </div>
-              <div class="form__group">
-                <label class="form__label" for="lastName">Nachname</label>
-                <input class="form__input" type="text" id="lastName" name="lastName" required>
+              <div class="form-row">
+                <div class="form__group">
+                  <label class="form__label" for="phone">Telefon *</label>
+                  <input class="form__input" type="tel" id="phone" name="phone" placeholder="0660 1234567" required>
+                </div>
+                <div class="form__group">
+                  <label class="form__label" for="email">E-Mail *</label>
+                  <input class="form__input" type="email" id="email" name="email" placeholder="email@beispiel.at" required>
+                </div>
               </div>
             </div>
 
-            <div class="form-row">
-              <div class="form__group">
-                <label class="form__label" for="email">E-Mail</label>
-                <input class="form__input" type="email" id="email" name="email" required>
+            <!-- 2. Hochzeitsdatum -->
+            <div class="form-section">
+              <h2 class="form-section__title">Hochzeitsdatum</h2>
+              <div class="form-check">
+                <input type="checkbox" id="noDate" name="noDate">
+                <label for="noDate">Wir haben noch kein fixes Datum</label>
               </div>
-              <div class="form__group">
-                <label class="form__label" for="phone">Telefon</label>
-                <input class="form__input" type="tel" id="phone" name="phone">
+              <div class="form-dynamic-fields" id="dateFields">
+                <div class="form__group">
+                  <input class="form__input" type="date" name="date1">
+                </div>
+              </div>
+              <button type="button" class="form-add-btn" id="addDate">+ Weiteres Datum</button>
+            </div>
+
+            <!-- 3. Location -->
+            <div class="form-section">
+              <h2 class="form-section__title">Location</h2>
+              <div class="form-check">
+                <input type="checkbox" id="noLocation" name="noLocation">
+                <label for="noLocation">Wir haben noch keine Location</label>
+              </div>
+              <div class="form-dynamic-fields" id="locationFields">
+                <div class="form__group">
+                  <input class="form__input" type="text" name="location1" placeholder="z.B. Schloss Schoenbrunn">
+                </div>
+              </div>
+              <button type="button" class="form-add-btn" id="addLocation">+ Weitere Location</button>
+            </div>
+
+            <!-- 4. Interesse -->
+            <div class="form-section">
+              <h2 class="form-section__title">Interesse *</h2>
+              <div class="form-toggles">
+                <input type="checkbox" id="intFoto" name="interesse" value="Foto" class="form-toggle">
+                <label for="intFoto" class="form-toggle-label">Foto</label>
+                <input type="checkbox" id="intFilm" name="interesse" value="Film" class="form-toggle">
+                <label for="intFilm" class="form-toggle-label">Film</label>
+                <input type="checkbox" id="intHybrid" name="interesse" value="Hybrid" class="form-toggle">
+                <label for="intHybrid" class="form-toggle-label">Hybrid</label>
+                <input type="checkbox" id="intOffen" name="interesse" value="Noch offen" class="form-toggle">
+                <label for="intOffen" class="form-toggle-label">Noch offen</label>
               </div>
             </div>
 
-            <div class="form-row">
-              <div class="form__group">
-                <label class="form__label" for="date">Hochzeitsdatum</label>
-                <input class="form__input" type="date" id="date" name="weddingDate">
+            <!-- 5. Zusatzprodukte -->
+            <div class="form-section">
+              <h2 class="form-section__title">Zusatzprodukte</h2>
+              <div class="form-toggles">
+                <input type="checkbox" id="zpFotobox" name="zusatz" value="Fotobox" class="form-toggle">
+                <label for="zpFotobox" class="form-toggle-label">Fotobox</label>
+                <input type="checkbox" id="zpAlbum" name="zusatz" value="Album" class="form-toggle">
+                <label for="zpAlbum" class="form-toggle-label">Album</label>
+                <input type="checkbox" id="zpPortrait" name="zusatz" value="Portrait Lounge" class="form-toggle">
+                <label for="zpPortrait" class="form-toggle-label">Portrait Lounge</label>
+                <input type="checkbox" id="zpSocial" name="zusatz" value="Social Media Paket" class="form-toggle">
+                <label for="zpSocial" class="form-toggle-label">Social Media Paket</label>
+                <input type="checkbox" id="zpPre" name="zusatz" value="Pre Wedding Shoot" class="form-toggle">
+                <label for="zpPre" class="form-toggle-label">Pre Wedding Shoot</label>
+              </div>
+            </div>
+
+            <!-- 6. Details -->
+            <div class="form-section">
+              <h2 class="form-section__title">Details</h2>
+              <div class="form-row">
+                <div class="form__group">
+                  <label class="form__label" for="hours">Gewünschte Stundenzahl</label>
+                  <input class="form__input" type="text" id="hours" name="hours" placeholder="z.B. 8-10 Stunden">
+                </div>
+                <div class="form__group">
+                  <label class="form__label" for="budget">Budgetvorstellung</label>
+                  <input class="form__input" type="text" id="budget" name="budget" placeholder="z.B. 3.000 - 4.000 EUR">
+                </div>
               </div>
               <div class="form__group">
-                <label class="form__label" for="guests">Gästeanzahl (ca.)</label>
-                <input class="form__input" type="number" id="guests" name="guestCount" placeholder="z.B. 80">
+                <label class="form__label" for="message">Anmerkungen</label>
+                <textarea class="form__textarea" id="message" name="message" rows="4" placeholder="Erzählt uns von eurem Tag..."></textarea>
               </div>
             </div>
 
-            <div class="form__group">
-              <label class="form__label" for="venue">Venue / Location</label>
-              <input class="form__input" type="text" id="venue" name="venue" placeholder="z.B. Palais Niederösterreich, Wien">
-            </div>
-
-            <div class="form__group">
-              <label class="form__label" for="message">Eure Nachricht</label>
-              <textarea class="form__textarea" id="message" name="message" rows="5" placeholder="Erzählt uns von eurem Tag..."></textarea>
-            </div>
-
-            <button type="submit" class="btn mt-md">Nachricht Senden</button>
+            <button type="submit" class="btn mt-md" id="submitBtn">Anfrage Senden</button>
           </form>
+        </div>
+
+        <!-- Thank You (hidden by default) -->
+        <div class="contact-thankyou" id="thankYou" style="display: none;">
+          <h2>Danke!</h2>
+          <div style="width: 60px; height: 1px; background: var(--color-accent); margin: var(--space-md) auto;"></div>
+          <p>Wir freuen uns auf eure Hochzeit und melden uns in Kürze bei euch.</p>
+          <p>In der Zwischenzeit haben wir euch unseren <strong style="color: var(--color-accent);">Hochzeitsguide</strong> per E-Mail geschickt — mit den wichtigsten Tipps für eure Planung.</p>
+          <a href="contact.html" class="btn mt-md">Neue Anfrage</a>
         </div>
 
         <!-- Sidebar -->
@@ -172,12 +241,13 @@
     <div class="footer__inner">
       <div class="footer__top">
         <div class="footer__brand">
-          <img src="assets/images/logo/ww_brandmarkWhite.svg" alt="Walking Weddings" style="height: 36px;">
+          <img src="assets/images/logo/ww_logoWhite.svg" alt="Walking Weddings" style="width: 200px; height: auto;">
           <p>Euer Hochzeits-Foto & Video Team aus Wien.</p>
         </div>
         <div class="footer__nav">
           <p class="footer__heading">Navigation</p>
-          <a href="portfolio.html" class="footer__link">Portfolio</a>
+          <a href="portfolio.html" class="footer__link">Galerie</a>
+          <a href="filme.html" class="footer__link">Filme</a>
           <a href="blog.html" class="footer__link">Blog</a>
           <a href="about.html" class="footer__link">Über Uns</a>
           <a href="packages.html" class="footer__link">Pakete</a>
@@ -212,5 +282,146 @@
 
   <script src="assets/js/main.js"></script>
   <script src="assets/js/animations.js"></script>
+  <script>
+    // Dynamic date fields (max 3)
+    let dateCount = 1;
+    document.getElementById('addDate').addEventListener('click', function() {
+      if (dateCount >= 3) return;
+      dateCount++;
+      const group = document.createElement('div');
+      group.className = 'form__group';
+      group.innerHTML = '<input class="form__input" type="date" name="date' + dateCount + '">';
+      document.getElementById('dateFields').appendChild(group);
+      if (dateCount >= 3) this.style.display = 'none';
+    });
+
+    // Dynamic location fields (max 3)
+    let locCount = 1;
+    document.getElementById('addLocation').addEventListener('click', function() {
+      if (locCount >= 3) return;
+      locCount++;
+      const group = document.createElement('div');
+      group.className = 'form__group';
+      group.innerHTML = '<input class="form__input" type="text" name="location' + locCount + '" placeholder="z.B. Palais Coburg, Wien">';
+      document.getElementById('locationFields').appendChild(group);
+      if (locCount >= 3) this.style.display = 'none';
+    });
+
+    // Toggle date/location fields visibility
+    document.getElementById('noDate').addEventListener('change', function() {
+      const container = document.getElementById('dateFields');
+      const btn = document.getElementById('addDate');
+      container.style.display = this.checked ? 'none' : 'flex';
+      btn.style.display = this.checked ? 'none' : 'block';
+    });
+
+    document.getElementById('noLocation').addEventListener('change', function() {
+      const container = document.getElementById('locationFields');
+      const btn = document.getElementById('addLocation');
+      container.style.display = this.checked ? 'none' : 'flex';
+      btn.style.display = this.checked ? 'none' : 'block';
+    });
+
+    // Form submission
+    document.getElementById('contactForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      // Validate required fields
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const interesse = document.querySelectorAll('input[name="interesse"]:checked');
+
+      if (!name || !phone || !email) {
+        alert('Bitte füllt alle Pflichtfelder aus (Name, Telefon, E-Mail).');
+        return;
+      }
+
+      if (interesse.length === 0) {
+        alert('Bitte wählt mindestens ein Interesse aus.');
+        return;
+      }
+
+      // Collect form data
+      const formData = new FormData(this);
+      const data = {};
+      data.name = name;
+      data.phone = phone;
+      data.email = email;
+      data.noDate = document.getElementById('noDate').checked;
+      data.noLocation = document.getElementById('noLocation').checked;
+
+      // Collect dates
+      data.dates = [];
+      document.querySelectorAll('#dateFields input').forEach(function(input) {
+        if (input.value) data.dates.push(input.value);
+      });
+
+      // Collect locations
+      data.locations = [];
+      document.querySelectorAll('#locationFields input').forEach(function(input) {
+        if (input.value.trim()) data.locations.push(input.value.trim());
+      });
+
+      // Collect interesse
+      data.interesse = [];
+      interesse.forEach(function(cb) { data.interesse.push(cb.value); });
+
+      // Collect zusatzprodukte
+      data.zusatz = [];
+      document.querySelectorAll('input[name="zusatz"]:checked').forEach(function(cb) {
+        data.zusatz.push(cb.value);
+      });
+
+      data.hours = document.getElementById('hours').value.trim();
+      data.budget = document.getElementById('budget').value.trim();
+      data.message = document.getElementById('message').value.trim();
+
+      // Build mailto link
+      var subject = 'Anfrage von ' + data.name + ' — Walking Weddings';
+      var body = 'NEUE ANFRAGE\n';
+      body += '====================\n\n';
+      body += 'Name: ' + data.name + '\n';
+      body += 'Telefon: ' + data.phone + '\n';
+      body += 'E-Mail: ' + data.email + '\n\n';
+
+      body += 'HOCHZEITSDATUM\n';
+      if (data.noDate) {
+        body += 'Noch kein fixes Datum\n';
+      } else if (data.dates.length > 0) {
+        data.dates.forEach(function(d) { body += '• ' + d + '\n'; });
+      } else {
+        body += 'Nicht angegeben\n';
+      }
+      body += '\n';
+
+      body += 'LOCATION\n';
+      if (data.noLocation) {
+        body += 'Noch keine Location\n';
+      } else if (data.locations.length > 0) {
+        data.locations.forEach(function(l) { body += '• ' + l + '\n'; });
+      } else {
+        body += 'Nicht angegeben\n';
+      }
+      body += '\n';
+
+      body += 'INTERESSE: ' + (data.interesse.length > 0 ? data.interesse.join(', ') : 'Nicht angegeben') + '\n';
+      body += 'ZUSATZPRODUKTE: ' + (data.zusatz.length > 0 ? data.zusatz.join(', ') : 'Keine') + '\n\n';
+
+      if (data.hours) body += 'Gewünschte Stundenzahl: ' + data.hours + '\n';
+      if (data.budget) body += 'Budgetvorstellung: ' + data.budget + '\n';
+      if (data.message) body += '\nAnmerkungen:\n' + data.message + '\n';
+
+      // Open mailto
+      var mailto = 'mailto:contact@walkingweddings.com'
+        + '?subject=' + encodeURIComponent(subject)
+        + '&body=' + encodeURIComponent(body);
+      window.location.href = mailto;
+
+      // Show thank you
+      document.getElementById('contactFormWrapper').style.display = 'none';
+      document.getElementById('thankYou').style.display = 'block';
+    });
+  </script>
 </body>
 </html>

@@ -11,6 +11,22 @@
   }
 }
 
+/* Form sections */
+.form-section {
+  margin-bottom: var(--space-lg);
+}
+
+.form-section__title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-xs);
+  border-bottom: 1px solid var(--color-border);
+}
+
 /* Form rows */
 .form-row {
   display: grid;
@@ -27,6 +43,84 @@
 /* Date input styling */
 .form__input[type="date"] {
   color-scheme: dark;
+}
+
+/* Checkbox toggle items */
+.form-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.form-toggle {
+  display: none;
+}
+
+.form-toggle-label {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  color: var(--color-secondary);
+  border: 1px solid var(--color-border-light);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.form-toggle-label:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text-light);
+}
+
+.form-toggle:checked + .form-toggle-label {
+  background: var(--color-accent);
+  color: var(--color-bg-dark);
+  border-color: var(--color-accent);
+}
+
+/* Inline checkbox (for "kein fixes Datum" etc.) */
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+.form-check input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.form-check label {
+  font-size: var(--text-sm);
+  color: var(--color-secondary);
+  cursor: pointer;
+}
+
+/* Dynamic add-field button */
+.form-add-btn {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  padding: var(--space-xs) 0;
+  transition: color var(--transition-fast);
+}
+
+.form-add-btn:hover {
+  color: var(--color-accent-hover);
+}
+
+/* Dynamic fields container */
+.form-dynamic-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
 }
 
 /* Contact sidebar */
@@ -73,4 +167,48 @@
 
 .contact-social a:hover {
   color: var(--color-accent);
+}
+
+/* Thank you screen */
+.contact-thankyou {
+  text-align: center;
+  padding: var(--space-xl) 0;
+}
+
+.contact-thankyou h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+  margin-bottom: var(--space-sm);
+}
+
+.contact-thankyou p {
+  font-family: var(--font-accent);
+  font-size: var(--text-lg);
+  color: var(--color-secondary);
+  line-height: 1.7;
+  max-width: 500px;
+  margin: 0 auto var(--space-sm);
+}
+
+.contact-thankyou .btn {
+  margin-top: var(--space-md);
+}
+
+/* Form error */
+.form__error {
+  color: #c0392b;
+  font-size: var(--text-xs);
+  margin-top: 4px;
+  display: none;
+}
+
+.form__group--error .form__error {
+  display: block;
+}
+
+.form__group--error .form__input {
+  border-bottom-color: #c0392b;
 }

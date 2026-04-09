@@ -212,10 +212,14 @@
   }
 }
 
+.footer__brand img {
+  filter: brightness(0) saturate(100%) invert(73%) sepia(11%) saturate(735%) hue-rotate(8deg) brightness(91%) contrast(87%);
+}
+
 .footer__brand p {
   color: var(--color-secondary);
   font-size: var(--text-sm);
-  margin-top: var(--space-sm);
+  margin-top: var(--space-md);
   max-width: 320px;
 }
 
@@ -967,9 +971,21 @@
   transition: opacity var(--transition-slow), transform var(--transition-slow);
 }
 
+.reveal--left {
+  opacity: 0;
+  transform: translateX(-80px);
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal--right {
+  opacity: 0;
+  transform: translateX(80px);
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .reveal--visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translate(0);
 }
 
 /* Stagger children */
