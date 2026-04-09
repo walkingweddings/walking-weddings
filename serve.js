@@ -2,7 +2,7 @@ const { createServer } = require('http');
 const { readFileSync, existsSync, statSync } = require('fs');
 const { join, extname } = require('path');
 
-const PORT = 8082;
+const PORT = process.env.PORT || 8082;
 const ROOT = __dirname;
 
 const MIME = {
