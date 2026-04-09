@@ -38,6 +38,26 @@ if (slides.length > 0) {
     });
   });
 
+  // Arrow navigation
+  const prevBtn = document.querySelector('.testimonials__arrow--prev');
+  const nextBtn = document.querySelector('.testimonials__arrow--next');
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      stopAutoplay();
+      goToSlide((current - 1 + slides.length) % slides.length);
+      startAutoplay();
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      stopAutoplay();
+      nextSlide();
+      startAutoplay();
+    });
+  }
+
   // Pause on hover
   const testimonialSection = document.querySelector('.testimonials');
   if (testimonialSection) {
