@@ -323,14 +323,15 @@
     });
 
     // Form submission
-    document.getElementById('contactForm').addEventListener('submit', function(e) {
+    document.getElementById('contactForm').addEventListener('submit', async function(e) {
       e.preventDefault();
+      var btn = document.getElementById('submitBtn');
 
       // Validate required fields
-      const name = document.getElementById('name').value.trim();
-      const phone = document.getElementById('phone').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const interesse = document.querySelectorAll('input[name="interesse"]:checked');
+      var name = document.getElementById('name').value.trim();
+      var phone = document.getElementById('phone').value.trim();
+      var email = document.getElementById('email').value.trim();
+      var interesse = document.querySelectorAll('input[name="interesse"]:checked');
 
       if (!name || !phone || !email) {
         alert('Bitte füllt alle Pflichtfelder aus (Name, Telefon, E-Mail).');
@@ -343,31 +344,26 @@
       }
 
       // Collect form data
-      const formData = new FormData(this);
-      const data = {};
+      var data = {};
       data.name = name;
       data.phone = phone;
       data.email = email;
       data.noDate = document.getElementById('noDate').checked;
       data.noLocation = document.getElementById('noLocation').checked;
 
-      // Collect dates
       data.dates = [];
       document.querySelectorAll('#dateFields input').forEach(function(input) {
         if (input.value) data.dates.push(input.value);
       });
 
-      // Collect locations
       data.locations = [];
       document.querySelectorAll('#locationFields input').forEach(function(input) {
         if (input.value.trim()) data.locations.push(input.value.trim());
       });
 
-      // Collect interesse
       data.interesse = [];
       interesse.forEach(function(cb) { data.interesse.push(cb.value); });
 
-      // Collect zusatzprodukte
       data.zusatz = [];
       document.querySelectorAll('input[name="zusatz"]:checked').forEach(function(cb) {
         data.zusatz.push(cb.value);
@@ -377,50 +373,31 @@
       data.budget = document.getElementById('budget').value.trim();
       data.message = document.getElementById('message').value.trim();
 
-      // Build mailto link
-      var subject = 'Anfrage von ' + data.name + ' — Walking Weddings';
-      var body = 'NEUE ANFRAGE\n';
-      body += '====================\n\n';
-      body += 'Name: ' + data.name + '\n';
-      body += 'Telefon: ' + data.phone + '\n';
-      body += 'E-Mail: ' + data.email + '\n\n';
+      // Send to API
+      btn.textContent = 'Wird gesendet...';
+      btn.disabled = true;
 
-      body += 'HOCHZEITSDATUM\n';
-      if (data.noDate) {
-        body += 'Noch kein fixes Datum\n';
-      } else if (data.dates.length > 0) {
-        data.dates.forEach(function(d) { body += '• ' + d + '\n'; });
-      } else {
-        body += 'Nicht angegeben\n';
+      try {
+        var res = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        var result = await res.json();
+
+        if (result.ok) {
+          document.getElementById('contactFormWrapper').style.display = 'none';
+          document.getElementById('thankYou').style.display = 'block';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          throw new Error(result.error || 'Server error');
+        }
+      } catch (err) {
+        console.error('Submit error:', err);
+        alert('Es gab ein Problem beim Senden. Bitte versucht es erneut oder schreibt uns direkt an contact@walkingweddings.com');
+        btn.textContent = 'Anfrage Senden';
+        btn.disabled = false;
       }
-      body += '\n';
-
-      body += 'LOCATION\n';
-      if (data.noLocation) {
-        body += 'Noch keine Location\n';
-      } else if (data.locations.length > 0) {
-        data.locations.forEach(function(l) { body += '• ' + l + '\n'; });
-      } else {
-        body += 'Nicht angegeben\n';
-      }
-      body += '\n';
-
-      body += 'INTERESSE: ' + (data.interesse.length > 0 ? data.interesse.join(', ') : 'Nicht angegeben') + '\n';
-      body += 'ZUSATZPRODUKTE: ' + (data.zusatz.length > 0 ? data.zusatz.join(', ') : 'Keine') + '\n\n';
-
-      if (data.hours) body += 'Gewünschte Stundenzahl: ' + data.hours + '\n';
-      if (data.budget) body += 'Budgetvorstellung: ' + data.budget + '\n';
-      if (data.message) body += '\nAnmerkungen:\n' + data.message + '\n';
-
-      // Open mailto
-      var mailto = 'mailto:contact@walkingweddings.com'
-        + '?subject=' + encodeURIComponent(subject)
-        + '&body=' + encodeURIComponent(body);
-      window.location.href = mailto;
-
-      // Show thank you
-      document.getElementById('contactFormWrapper').style.display = 'none';
-      document.getElementById('thankYou').style.display = 'block';
     });
   </script>
 </body>
