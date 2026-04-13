@@ -282,6 +282,8 @@
 
   <script src="assets/js/main.js"></script>
   <script src="assets/js/animations.js"></script>
+  <!-- Attribution capture (UTM + Meta cookies) for ad tracking -->
+  <script src="assets/js/lp-instagram.js"></script>
   <script>
     // Dynamic date fields (max 3)
     let dateCount = 1;
@@ -372,6 +374,17 @@
       data.hours = document.getElementById('hours').value.trim();
       data.budget = document.getElementById('budget').value.trim();
       data.message = document.getElementById('message').value.trim();
+
+      // Attribution (UTM + Meta Pixel cookies) — populated by lp-instagram.js
+      if (window.WWAttribution) {
+        data.utm = window.WWAttribution.get();
+        var _meta = window.WWAttribution.getMetaCookies();
+        data.fbp = _meta.fbp;
+        data.fbc = _meta.fbc;
+        data.event_id = window.WWAttribution.newEventId();
+      }
+      data.landing_page = window.location.href.split('#')[0];
+      data.referrer = document.referrer || '';
 
       // Send to API
       btn.textContent = 'Wird gesendet...';
