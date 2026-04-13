@@ -7,7 +7,23 @@ const PORT = process.env.PORT || 8082;
 const ROOT = __dirname;
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 const FROM_EMAIL = process.env.FROM_EMAIL || 'Walking Weddings <onboarding@resend.dev>';
-const SITE_URL = process.env.SITE_URL || 'https://walkingweddings.com';
+// If SITE_URL is unset we derive it per-request from the Host header so the
+// same build works on Railway preview, staging and the custom domain.
+const SITE_URL_ENV = process.env.SITE_URL || '';
+const SITE_URL_FALLBACK = 'https://walkingweddings.com';
+
+function resolveSiteUrl(req) {
+  if (SITE_URL_ENV) return SITE_URL_ENV;
+  if (req) {
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    if (host) {
+      const proto = (req.headers['x-forwarded-proto'] || '').split(',')[0].trim()
+        || (req.socket && req.socket.encrypted ? 'https' : 'http');
+      return `${proto}://${host}`;
+    }
+  }
+  return SITE_URL_FALLBACK;
+}
 
 // Meta Conversions API config (optional — server-side events for Instagram Ads tracking)
 const META_PIXEL_ID = process.env.META_PIXEL_ID || '';
@@ -72,7 +88,7 @@ function renderAttributionRows(lead) {
             ${row('Referrer', lead.referrer)}`;
 }
 
-async function sendTeamEmail(lead) {
+async function sendTeamEmail(lead, siteUrl) {
   const dateStr = lead.noDate ? 'Noch kein fixes Datum' : (lead.dates?.join(', ') || 'Nicht angegeben');
   const locStr = lead.noLocation ? 'Noch keine Location' : (lead.locations?.join(', ') || 'Nicht angegeben');
 
@@ -82,7 +98,7 @@ async function sendTeamEmail(lead) {
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#393e3f;">
         <div style="text-align:center;padding:30px 0;background:#393e3f;">
-          <img src="${SITE_URL}/assets/images/logo/ww_logoWhite.svg" alt="Walking Weddings" style="width:180px;height:auto;" />
+          <img src="${siteUrl}/assets/images/logo/ww_logoWhite.svg" alt="Walking Weddings" style="width:180px;height:auto;" />
         </div>
         <div style="padding:30px 20px;">
           <h2 style="font-family:Georgia,serif;color:#393e3f;margin:0 0 20px;">Neue Anfrage über die Website</h2>
@@ -105,7 +121,7 @@ async function sendTeamEmail(lead) {
   });
 }
 
-async function sendLeadMagnetGuideEmail(lead) {
+async function sendLeadMagnetGuideEmail(lead, siteUrl) {
   return sendEmail({
     to: lead.email,
     replyTo: 'contact@walkingweddings.com',
@@ -113,20 +129,20 @@ async function sendLeadMagnetGuideEmail(lead) {
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#393e3f;">
         <div style="text-align:center;padding:30px 0;background:#131B1B;">
-          <img src="${SITE_URL}/assets/images/logo/ww_logoWhite.svg" alt="Walking Weddings" style="width:220px;height:auto;margin:0 auto;" />
+          <img src="${siteUrl}/assets/images/logo/ww_logoWhite.svg" alt="Walking Weddings" style="width:220px;height:auto;margin:0 auto;" />
         </div>
         <div style="padding:30px 20px;">
           <p style="font-size:16px;">Hallo ${esc(lead.name || 'ihr Lieben')},</p>
           <p>vielen Dank für euer Interesse an Walking Weddings! Wie versprochen hier euer kostenloser <strong>Hochzeitsguide</strong> — mit unseren wichtigsten Tipps, Checklisten und Inspiration für eure Planung:</p>
 
           <p style="text-align:center;margin:32px 0;">
-            <a href="${SITE_URL}/hochzeitsguide.html" style="display:inline-block;padding:16px 36px;background:#B8A88A;color:#131B1B;text-decoration:none;letter-spacing:2px;font-size:14px;text-transform:uppercase;font-weight:bold;">Hochzeitsguide öffnen</a>
+            <a href="${siteUrl}/hochzeitsguide.html" style="display:inline-block;padding:16px 36px;background:#B8A88A;color:#131B1B;text-decoration:none;letter-spacing:2px;font-size:14px;text-transform:uppercase;font-weight:bold;">Hochzeitsguide öffnen</a>
           </p>
 
           <p>Wir hoffen, der Guide hilft euch weiter. Falls ihr konkrete Fragen zu Foto &amp; Film für eure Hochzeit habt oder ein unverbindliches Kennenlerngespräch möchtet — meldet euch jederzeit. Wir antworten meistens innerhalb von 24 Stunden.</p>
 
           <p style="text-align:center;margin:24px 0;">
-            <a href="${SITE_URL}/contact.html" style="display:inline-block;padding:12px 28px;background:#131B1B;color:#fff;text-decoration:none;letter-spacing:2px;font-size:13px;text-transform:uppercase;">Beratung Vereinbaren</a>
+            <a href="${siteUrl}/contact.html" style="display:inline-block;padding:12px 28px;background:#131B1B;color:#fff;text-decoration:none;letter-spacing:2px;font-size:13px;text-transform:uppercase;">Beratung Vereinbaren</a>
           </p>
 
           <p>Viel Freude beim Lesen &mdash; und viel Vorfreude auf euren großen Tag!</p>
@@ -143,14 +159,14 @@ async function sendLeadMagnetGuideEmail(lead) {
   });
 }
 
-async function sendLeadMagnetTeamNotification(lead) {
+async function sendLeadMagnetTeamNotification(lead, siteUrl) {
   return sendEmail({
     to: 'contact@walkingweddings.com',
     subject: `Neuer Guide-Download: ${lead.name || lead.email}`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#393e3f;">
         <div style="text-align:center;padding:24px 0;background:#131B1B;">
-          <img src="${SITE_URL}/assets/images/logo/ww_logoWhite.svg" alt="Walking Weddings" style="width:160px;height:auto;" />
+          <img src="${siteUrl}/assets/images/logo/ww_logoWhite.svg" alt="Walking Weddings" style="width:160px;height:auto;" />
         </div>
         <div style="padding:24px 20px;">
           <h2 style="font-family:Georgia,serif;color:#393e3f;margin:0 0 16px;">Neuer Hochzeitsguide-Download</h2>
@@ -173,7 +189,7 @@ function sha256Lower(value) {
   return createHash('sha256').update(String(value).trim().toLowerCase()).digest('hex');
 }
 
-async function sendCapiEvent({ eventName, eventId, email, phone, firstName, lastName, clientIp, userAgent, fbp, fbc, sourceUrl, utm }) {
+async function sendCapiEvent({ eventName, eventId, email, phone, firstName, lastName, clientIp, userAgent, fbp, fbc, sourceUrl, siteUrl, utm }) {
   if (!META_PIXEL_ID || !META_CAPI_TOKEN) return;
   try {
     const userData = {
@@ -193,7 +209,7 @@ async function sendCapiEvent({ eventName, eventId, email, phone, firstName, last
         event_time: Math.floor(Date.now() / 1000),
         event_id: eventId || undefined,
         action_source: 'website',
-        event_source_url: sourceUrl || `${SITE_URL}/lp/instagram`,
+        event_source_url: sourceUrl || `${siteUrl || SITE_URL_FALLBACK}/lp/instagram`,
         user_data: userData,
         custom_data: {
           utm_source: utm?.utm_source || undefined,
@@ -232,7 +248,7 @@ function isValidEmail(email) {
   return typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-async function sendCoupleEmail(lead) {
+async function sendCoupleEmail(lead, siteUrl) {
   const dateStr = lead.noDate ? 'Noch kein fixes Datum' : (lead.dates?.join(', ') || '-');
   const locStr = lead.noLocation ? 'Noch keine Location' : (lead.locations?.join(', ') || '-');
 
@@ -243,7 +259,7 @@ async function sendCoupleEmail(lead) {
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#393e3f;">
         <div style="text-align:center;padding:30px 0;background:#393e3f;">
-          <img src="${SITE_URL}/assets/images/logo/ww_logoWhite.svg" alt="Walking Weddings" style="width:220px;height:auto;margin:0 auto;" />
+          <img src="${siteUrl}/assets/images/logo/ww_logoWhite.svg" alt="Walking Weddings" style="width:220px;height:auto;margin:0 auto;" />
         </div>
         <div style="padding:30px 20px;">
           <p style="font-size:16px;">Liebe/r ${esc(lead.name)},</p>
@@ -265,12 +281,12 @@ async function sendCoupleEmail(lead) {
 
           <p>In der Zwischenzeit haben wir etwas Besonderes für euch vorbereitet — unseren <strong>Hochzeitsguide</strong> mit Tipps, Inspiration und allem, was ihr für eure Planung braucht:</p>
           <p style="text-align:center;margin:24px 0;">
-            <a href="${SITE_URL}/hochzeitsguide.html" style="display:inline-block;padding:14px 32px;background:#B8A88A;color:#131B1B;text-decoration:none;letter-spacing:2px;font-size:14px;text-transform:uppercase;font-weight:bold;">Euer Hochzeitsguide</a>
+            <a href="${siteUrl}/hochzeitsguide.html" style="display:inline-block;padding:14px 32px;background:#B8A88A;color:#131B1B;text-decoration:none;letter-spacing:2px;font-size:14px;text-transform:uppercase;font-weight:bold;">Euer Hochzeitsguide</a>
           </p>
 
           <p>Schaut euch auch gerne auf unserer Website um oder folgt uns auf Instagram:</p>
           <p style="text-align:center;margin:24px 0;">
-            <a href="${SITE_URL}" style="display:inline-block;padding:12px 28px;background:#131B1B;color:#fff;text-decoration:none;letter-spacing:2px;font-size:13px;text-transform:uppercase;">Unsere Website</a>
+            <a href="${siteUrl}" style="display:inline-block;padding:12px 28px;background:#131B1B;color:#fff;text-decoration:none;letter-spacing:2px;font-size:13px;text-transform:uppercase;">Unsere Website</a>
           </p>
           <p style="text-align:center;">
             <a href="https://www.instagram.com/walkingweddings" style="color:#6B7374;text-decoration:none;">@walkingweddings auf Instagram</a>
@@ -308,12 +324,13 @@ createServer(async (req, res) => {
   if (req.method === 'POST' && url === '/api/contact') {
     try {
       const lead = await parseBody(req);
+      const siteUrl = resolveSiteUrl(req);
       console.log(`New contact: ${lead.name} (${lead.email})`);
 
       const results = { team: false, couple: false };
 
       try {
-        await sendTeamEmail(lead);
+        await sendTeamEmail(lead, siteUrl);
         results.team = true;
         console.log(`Team email sent for: ${lead.name}`);
       } catch (err) {
@@ -322,7 +339,7 @@ createServer(async (req, res) => {
 
       if (lead.email) {
         try {
-          await sendCoupleEmail(lead);
+          await sendCoupleEmail(lead, siteUrl);
           results.couple = true;
           console.log(`Couple email sent to: ${lead.email}`);
         } catch (err) {
@@ -342,7 +359,8 @@ createServer(async (req, res) => {
         userAgent: req.headers['user-agent'],
         fbp: lead.fbp,
         fbc: lead.fbc,
-        sourceUrl: lead.landing_page || `${SITE_URL}/contact.html`,
+        sourceUrl: lead.landing_page || `${siteUrl}/contact.html`,
+        siteUrl: siteUrl,
         utm: lead.utm
       });
 
@@ -360,6 +378,7 @@ createServer(async (req, res) => {
   if (req.method === 'POST' && url === '/api/lead-magnet') {
     try {
       const lead = await parseBody(req);
+      const siteUrl = resolveSiteUrl(req);
 
       if (!isValidEmail(lead.email)) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -372,7 +391,7 @@ createServer(async (req, res) => {
       const results = { guide: false, team: false };
 
       try {
-        await sendLeadMagnetGuideEmail(lead);
+        await sendLeadMagnetGuideEmail(lead, siteUrl);
         results.guide = true;
         console.log(`Guide email sent to: ${lead.email}`);
       } catch (err) {
@@ -380,7 +399,7 @@ createServer(async (req, res) => {
       }
 
       try {
-        await sendLeadMagnetTeamNotification(lead);
+        await sendLeadMagnetTeamNotification(lead, siteUrl);
         results.team = true;
       } catch (err) {
         console.error('Guide team notification failed:', err.message);
@@ -397,7 +416,8 @@ createServer(async (req, res) => {
         userAgent: req.headers['user-agent'],
         fbp: lead.fbp,
         fbc: lead.fbc,
-        sourceUrl: lead.landing_page || `${SITE_URL}/lp/instagram`,
+        sourceUrl: lead.landing_page || `${siteUrl}/lp/instagram`,
+        siteUrl: siteUrl,
         utm: lead.utm
       });
 
