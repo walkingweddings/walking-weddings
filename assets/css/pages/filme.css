@@ -10,8 +10,8 @@
 .film-showcase {
   position: relative;
   height: 220vh;
-  background: var(--color-bg-dark);
-  color: var(--color-text-light);
+  background: var(--color-bg-light);
+  color: var(--color-text-dark);
 }
 
 .film-showcase__stage {
@@ -34,7 +34,7 @@
   letter-spacing: 0.02em;
   line-height: 1;
   white-space: nowrap;
-  color: var(--color-text-light);
+  color: var(--color-text-dark);
   text-transform: none;
   margin: 0;
 }
@@ -46,7 +46,6 @@
   top: 50%;
   transform: translateY(-50%);
   margin: 0;
-  color: var(--color-text-light);
 }
 
 .film-showcase__location {
@@ -58,7 +57,7 @@
   text-transform: uppercase;
   line-height: 1.8;
   text-align: left;
-  opacity: 0.85;
+  color: var(--color-secondary);
 }
 
 .film-showcase__caption {
@@ -66,10 +65,10 @@
   max-width: 26vw;
   font-family: var(--font-accent);
   font-style: italic;
-  font-size: var(--text-base);
+  font-size: var(--text-lg);
   line-height: 1.7;
   text-align: right;
-  color: rgba(247, 247, 245, 0.8);
+  color: var(--color-secondary);
 }
 
 /* Video frame — cinematic 21:9 container that grows with scroll progress.

@@ -17,7 +17,13 @@
 .about-hero__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, var(--color-overlay) 0%, rgba(19, 27, 27, 0.2) 40%, rgba(19, 27, 27, 0.7) 80%, var(--color-primary) 100%);
+  background: linear-gradient(to bottom, rgba(19, 27, 27, 0.35) 0%, rgba(19, 27, 27, 0.1) 35%, rgba(247, 247, 245, 0.2) 75%, var(--color-bg-light) 100%);
+}
+
+.about-hero__content h1,
+.about-hero__content .text-caption {
+  color: var(--color-text-light);
+  text-shadow: 0 2px 20px rgba(19, 27, 27, 0.4);
 }
 
 .about-hero__content {
@@ -46,10 +52,21 @@
 
 .about-stat__number {
   font-family: var(--font-display);
-  font-size: var(--text-3xl);
-  letter-spacing: 0.05em;
-  color: var(--color-accent);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--color-text-dark);
+  text-transform: none;
   margin-bottom: var(--space-xs);
+}
+
+.about-stat .text-caption {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: var(--text-base);
+  letter-spacing: 0.08em;
+  text-transform: none;
+  color: var(--color-secondary);
 }
 
 @media (max-width: 767px) {
