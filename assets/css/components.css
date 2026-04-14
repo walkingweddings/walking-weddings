@@ -842,18 +842,19 @@
     margin-top: calc(var(--space-xl) * -0.4);
   }
   .gallery__grid > :nth-child(4) {
-    /* Quote — left side of a side-by-side pair with the next image */
-    width: 38%;
-    margin-left: 2%;
-    margin-right: auto;
-    margin-top: var(--space-lg);
+    /* Quote — right side of a pair with the previous image (child 3) */
+    width: 42%;
+    margin-left: auto;
+    margin-right: 4%;
+    margin-top: calc(var(--space-2xl) * -1);
     padding: var(--space-xl) var(--space-md);
+    z-index: 2;
   }
   .gallery__grid > :nth-child(5) {
     width: 50%;
     margin-left: auto;
     margin-right: 2%;
-    margin-top: calc(var(--space-2xl) * -1);
+    margin-top: var(--space-lg);
     z-index: 2;
   }
   .gallery__grid > :nth-child(6) {
@@ -874,8 +875,8 @@
   .gallery__grid > :nth-child(3) {
     margin-top: calc(var(--space-xl) * -0.4);
   }
-  .gallery__grid > :nth-child(5) {
-    margin-top: calc(var(--space-2xl) * -1.1);
+  .gallery__grid > :nth-child(4) {
+    margin-top: calc(var(--space-2xl) * -1.2);
   }
   .gallery__grid > :nth-child(6) {
     margin-top: calc(var(--space-2xl) * -0.6);
