@@ -1,0 +1,133 @@
+/* ========================================
+   MOTION — Cinematic Film Showcase
+   ======================================== */
+
+.film-showcase {
+  position: relative;
+  height: 220vh;
+  background: var(--color-bg-light);
+  color: var(--color-text-dark);
+}
+
+.film-showcase__stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  --progress: 0;
+}
+
+/* Couple name — large, centered, top */
+.film-showcase__name {
+  position: absolute;
+  top: 12vh;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 11vw, 10rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--color-text-dark);
+  text-transform: none;
+  margin: 0;
+}
+
+/* Venue (left) + Location (right) — small caps at the edges */
+.film-showcase__venue,
+.film-showcase__location {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-dark);
+  margin: 0;
+  max-width: 22vw;
+  line-height: 1.5;
+}
+
+.film-showcase__venue {
+  left: 3vw;
+  text-align: left;
+}
+
+.film-showcase__location {
+  right: 3vw;
+  text-align: right;
+}
+
+/* Video frame — grows with scroll progress */
+.film-showcase__frame {
+  position: absolute;
+  top: 55vh;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(28vw + 44vw * var(--progress));
+  height: calc(38vh + 22vh * var(--progress));
+  overflow: hidden;
+  background: #111;
+  will-change: width, height;
+}
+
+.film-showcase__frame iframe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100vw, 178vh);
+  height: max(56.25vw, 100vh);
+  transform: translate(-50%, -50%);
+  border: 0;
+}
+
+/* Mobile fallback — static stacked layout, no scroll pin */
+@media (max-width: 767px) {
+  .film-showcase {
+    height: auto;
+  }
+
+  .film-showcase__stage {
+    position: static;
+    height: auto;
+    padding: var(--space-lg) 0;
+  }
+
+  .film-showcase__name {
+    position: static;
+    transform: none;
+    font-size: clamp(2rem, 9vw, 4rem);
+    white-space: normal;
+    text-align: center;
+    margin-bottom: var(--space-md);
+    padding: 0 var(--space-sm);
+  }
+
+  .film-showcase__venue,
+  .film-showcase__location {
+    position: static;
+    transform: none;
+    text-align: center;
+    max-width: none;
+    margin: var(--space-xs) auto;
+    padding: 0 var(--space-sm);
+  }
+
+  .film-showcase__frame {
+    position: static;
+    transform: none;
+    width: 92vw;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    margin: var(--space-md) auto;
+  }
+
+  .film-showcase__frame iframe {
+    position: static;
+    width: 100%;
+    height: 100%;
+    transform: none;
+  }
+}

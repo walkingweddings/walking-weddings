@@ -19,79 +19,8 @@
   <link rel="stylesheet" href="assets/css/layout.css">
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/pages/portfolio.css">
+  <link rel="stylesheet" href="assets/css/pages/filme.css">
   <link rel="icon" href="assets/images/logo/favicon.svg" type="image/svg+xml">
-
-  <style>
-    .filme-grid {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-xl);
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .film-card {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-md);
-    }
-
-    .film-card__video {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      overflow: hidden;
-      background: #000;
-    }
-
-    .film-card__video iframe {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
-    .film-card__info {
-      text-align: center;
-    }
-
-    .film-card__title {
-      font-family: var(--font-display);
-      font-size: var(--text-2xl);
-      font-weight: 400;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--color-text-light);
-      margin-bottom: var(--space-xs);
-    }
-
-    .film-card__venue {
-      font-size: var(--text-sm);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--color-secondary);
-      margin-bottom: var(--space-sm);
-    }
-
-    .film-card__description {
-      font-family: var(--font-accent);
-      font-style: italic;
-      font-size: var(--text-base);
-      color: rgba(247, 247, 245, 0.75);
-      max-width: 700px;
-      margin: 0 auto;
-      line-height: 1.7;
-    }
-
-    .film-card__divider {
-      width: 60px;
-      height: 1px;
-      background: var(--color-accent);
-      margin: var(--space-sm) auto 0;
-    }
-  </style>
 </head>
 <body>
 
@@ -130,63 +59,47 @@
     </div>
   </header>
 
-  <!-- FILMS -->
-  <section class="section section--dark">
-    <div class="container--wide" style="padding: 0 4%;">
-      <div class="filme-grid">
+  <!-- FILM SHOWCASES -->
+  <section class="film-showcase" aria-label="Jia Min und Anthony">
+    <div class="film-showcase__stage">
+      <h2 class="film-showcase__name">Jia Min &amp; Anthony</h2>
+      <p class="film-showcase__venue">Palais Niederösterreich</p>
+      <p class="film-showcase__location">Wien, Österreich</p>
+      <div class="film-showcase__frame">
+        <iframe src="https://walkingweddings.pic-time.com/-jiaminanthonyswedding/featuredvideo/550334?videoview=AAAAAMYAAABgyY_nZwFMb_7rMcRGXudyL0UYoj2NJpoRttmMjE0,&transparentbg=true" title="Hochzeitsfilm Jia Min und Anthony" allowfullscreen="true" allowtransparency="true" loading="lazy"></iframe>
+      </div>
+    </div>
+  </section>
 
-        <!-- Jia Min & Anthony -->
-        <article class="film-card reveal">
-          <div class="film-card__video">
-            <iframe src="https://walkingweddings.pic-time.com/-jiaminanthonyswedding/featuredvideo/550334?videoview=AAAAAMYAAABgyY_nZwFMb_7rMcRGXudyL0UYoj2NJpoRttmMjE0,&transparentbg=true" allowfullscreen="true" allowtransparency="true"></iframe>
-          </div>
-          <div class="film-card__info">
-            <h2 class="film-card__title">Jia Min & Anthony</h2>
-            <p class="film-card__venue">Palais Niederösterreich | Wien | Österreich</p>
-            <p class="film-card__description">Von den liebevollen Momenten beim Getting Ready über den berührenden First Look bis hin zur emotionalen Zeremonie — ein Film voller Intimität, Emotion und Feier.</p>
-            <div class="film-card__divider"></div>
-          </div>
-        </article>
+  <section class="film-showcase" aria-label="Jennise und Florian">
+    <div class="film-showcase__stage">
+      <h2 class="film-showcase__name">Jennise &amp; Florian</h2>
+      <p class="film-showcase__venue">Ristorante Trattoria Tre Merli</p>
+      <p class="film-showcase__location">Triest, Italien</p>
+      <div class="film-showcase__frame">
+        <iframe src="https://walkingweddings.pic-time.com/-jenniseflorianswedding/featuredvideo/455308?videoview=AAAAABgBAAAZHGvzYz7WeEig6asSI7-NUuZ7uUrzSV72_uBAvNc,&transparentbg=true" title="Hochzeitsfilm Jennise und Florian" allowfullscreen="true" allowtransparency="true" loading="lazy"></iframe>
+      </div>
+    </div>
+  </section>
 
-        <!-- Jennise & Florian -->
-        <article class="film-card reveal">
-          <div class="film-card__video">
-            <iframe src="https://walkingweddings.pic-time.com/-jenniseflorianswedding/featuredvideo/455308?videoview=AAAAABgBAAAZHGvzYz7WeEig6asSI7-NUuZ7uUrzSV72_uBAvNc,&transparentbg=true" allowfullscreen="true" allowtransparency="true"></iframe>
-          </div>
-          <div class="film-card__info">
-            <h2 class="film-card__title">Jennise & Florian</h2>
-            <p class="film-card__venue">Ristorante Trattoria Tre Merli | Triest | Italien</p>
-            <p class="film-card__description">Von der berührenden christlichen Zeremonie in der Kirche San Bartolomeo in Barcola bis zur Feier am Meer — jeder Moment durchdrungen von Romantik an der Adriaküste.</p>
-            <div class="film-card__divider"></div>
-          </div>
-        </article>
+  <section class="film-showcase" aria-label="Savitha und Tony">
+    <div class="film-showcase__stage">
+      <h2 class="film-showcase__name">Savitha &amp; Tony</h2>
+      <p class="film-showcase__venue">Hilton Vienna Park</p>
+      <p class="film-showcase__location">Wien, Österreich</p>
+      <div class="film-showcase__frame">
+        <iframe src="https://walkingweddings.pic-time.com/-weddingsavithatony/featuredvideo/542639?videoview=AAAAAEEAAAAvm5TtPJQY86lEfvcMRJ1pqAHMsbURhvHtLpZsVmE,&transparentbg=true" title="Hochzeitsfilm Savitha und Tony" allowfullscreen="true" allowtransparency="true" loading="lazy"></iframe>
+      </div>
+    </div>
+  </section>
 
-        <!-- Savitha & Tony -->
-        <article class="film-card reveal">
-          <div class="film-card__video">
-            <iframe src="https://walkingweddings.pic-time.com/-weddingsavithatony/featuredvideo/542639?videoview=AAAAAEEAAAAvm5TtPJQY86lEfvcMRJ1pqAHMsbURhvHtLpZsVmE,&transparentbg=true" allowfullscreen="true" allowtransparency="true"></iframe>
-          </div>
-          <div class="film-card__info">
-            <h2 class="film-card__title">Savitha & Tony</h2>
-            <p class="film-card__venue">Hilton Vienna Park | Wien | Österreich</p>
-            <p class="film-card__description">Westliche Eleganz trifft auf indische Traditionen — vom Getting Ready über die christliche Zeremonie in der Jesuitenkirche bis zu farbenfrohen Details einer multikulturellen Feier.</p>
-            <div class="film-card__divider"></div>
-          </div>
-        </article>
-
-        <!-- Anna & Martin -->
-        <article class="film-card reveal">
-          <div class="film-card__video">
-            <iframe src="https://walkingweddings.pic-time.com/-annamartinwedding/featuredvideo/370216?videoview=AAAAABwBAAAaWr6B8_1qxzqbP5laNzJ1PSJVlyHyKcQ8IAKHj1M,&transparentbg=true" allowfullscreen="true" allowtransparency="true"></iframe>
-          </div>
-          <div class="film-card__info">
-            <h2 class="film-card__title">Anna & Martin</h2>
-            <p class="film-card__venue">Witzelsdorf | Niederösterreich | Österreich</p>
-            <p class="film-card__description">Eine intime Kirchenhochzeit in der Pfarrkirche Witzelsdorf — eine kleine Familienfeier mit persönlicher Atmosphäre und emotionaler Zeremonie.</p>
-            <div class="film-card__divider"></div>
-          </div>
-        </article>
-
+  <section class="film-showcase" aria-label="Anna und Martin">
+    <div class="film-showcase__stage">
+      <h2 class="film-showcase__name">Anna &amp; Martin</h2>
+      <p class="film-showcase__venue">Pfarrkirche Witzelsdorf</p>
+      <p class="film-showcase__location">Niederösterreich</p>
+      <div class="film-showcase__frame">
+        <iframe src="https://walkingweddings.pic-time.com/-annamartinwedding/featuredvideo/370216?videoview=AAAAABwBAAAaWr6B8_1qxzqbP5laNzJ1PSJVlyHyKcQ8IAKHj1M,&transparentbg=true" title="Hochzeitsfilm Anna und Martin" allowfullscreen="true" allowtransparency="true" loading="lazy"></iframe>
       </div>
     </div>
   </section>
