@@ -96,13 +96,13 @@
             <!-- 2. Art der Veranstaltung -->
             <div class="form-section">
               <h2 class="form-section__title">Art der Veranstaltung *</h2>
-              <div class="form__group">
-                <select class="form__input form__select" id="eventType" name="eventType" required>
-                  <option value="" disabled selected>Bitte wählen</option>
-                  <option value="Hochzeit">Hochzeit</option>
-                  <option value="Destination Wedding">Destination Wedding</option>
-                  <option value="Elopement">Elopement</option>
-                </select>
+              <div class="form-toggles">
+                <input type="radio" id="etHochzeit" name="eventType" value="Hochzeit" class="form-toggle">
+                <label for="etHochzeit" class="form-toggle-label">Hochzeit</label>
+                <input type="radio" id="etDestination" name="eventType" value="Destination Wedding" class="form-toggle">
+                <label for="etDestination" class="form-toggle-label">Destination Wedding</label>
+                <input type="radio" id="etElopement" name="eventType" value="Elopement" class="form-toggle">
+                <label for="etElopement" class="form-toggle-label">Elopement</label>
               </div>
             </div>
 
@@ -433,7 +433,8 @@
       var company = document.getElementById('company').value.trim();
       var phone = document.getElementById('phone').value.trim();
       var email = document.getElementById('email').value.trim();
-      var eventType = document.getElementById('eventType').value;
+      var eventTypeEl = document.querySelector('input[name="eventType"]:checked');
+      var eventType = eventTypeEl ? eventTypeEl.value : '';
       var interesse = document.querySelectorAll('input[name="interesse"]:checked');
 
       if (!name || !phone || !email) {
