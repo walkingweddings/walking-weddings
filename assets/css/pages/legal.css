@@ -1,0 +1,123 @@
+/* ========================================
+   LEGAL PAGES — Privacy, AGB, Impressum
+   Shared editorial cream layout
+   ======================================== */
+
+.legal {
+  background: var(--color-bg-light);
+  color: var(--color-text-dark);
+  padding: var(--space-2xl) 0 var(--space-xl);
+}
+
+.legal__inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 var(--section-padding);
+}
+
+.legal__section {
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid rgba(42, 47, 48, 0.1);
+}
+
+.legal__section:last-child {
+  border-bottom: 0;
+  margin-bottom: 0;
+}
+
+.legal__heading {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--color-text-dark);
+  margin: 0 0 var(--space-md);
+  line-height: 1.2;
+}
+
+.legal__subheading {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: var(--text-lg);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-accent);
+  margin: var(--space-md) 0 var(--space-xs);
+}
+
+.legal__section p {
+  font-family: var(--font-accent);
+  font-size: var(--text-lg);
+  line-height: 1.7;
+  color: var(--color-text-dark);
+  margin: 0 0 var(--space-sm);
+}
+
+.legal__section p em {
+  font-style: italic;
+  color: var(--color-secondary);
+}
+
+.legal__section p strong {
+  font-weight: 700;
+}
+
+.legal__section a {
+  color: var(--color-accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--transition-fast);
+}
+
+.legal__section a:hover {
+  border-bottom-color: var(--color-accent);
+}
+
+.legal__section ol,
+.legal__section ul {
+  padding-left: 1.25em;
+  margin: var(--space-xs) 0 var(--space-sm);
+  font-family: var(--font-accent);
+  font-size: var(--text-lg);
+  line-height: 1.7;
+  color: var(--color-text-dark);
+}
+
+.legal__section li {
+  margin-bottom: var(--space-xs);
+}
+
+.legal__address {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: var(--text-lg);
+  line-height: 1.7;
+  color: var(--color-secondary);
+  padding: var(--space-sm) 0 var(--space-sm) var(--space-md);
+  border-left: 1px solid rgba(184, 168, 138, 0.4);
+  margin: var(--space-sm) 0;
+}
+
+.legal__clause {
+  display: block;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  letter-spacing: 0.05em;
+  color: var(--color-secondary);
+  margin-top: var(--space-sm);
+}
+
+@media (max-width: 767px) {
+  .legal {
+    padding: var(--space-xl) 0 var(--space-lg);
+  }
+
+  .legal__section p,
+  .legal__section ol,
+  .legal__section ul {
+    font-size: var(--text-base);
+  }
+}
