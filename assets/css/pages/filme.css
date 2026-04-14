@@ -2,6 +2,11 @@
    MOTION — Cinematic Film Showcase
    ======================================== */
 
+/* Landing header fills the first screen so films only reveal on scroll */
+.page-header {
+  min-height: 100vh;
+}
+
 .film-showcase {
   position: relative;
   height: 220vh;
