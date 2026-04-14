@@ -842,18 +842,18 @@
     margin-top: calc(var(--space-xl) * -0.4);
   }
   .gallery__grid > :nth-child(4) {
-    /* Quote breathing-room break */
-    width: 48%;
-    margin-left: auto;
+    /* Quote — left side of a side-by-side pair with the next image */
+    width: 38%;
+    margin-left: 2%;
     margin-right: auto;
     margin-top: var(--space-lg);
-    padding: var(--space-xl) var(--space-lg);
+    padding: var(--space-xl) var(--space-md);
   }
   .gallery__grid > :nth-child(5) {
-    width: 52%;
+    width: 50%;
     margin-left: auto;
-    margin-right: 1%;
-    margin-top: calc(var(--space-xl) * -0.3);
+    margin-right: 2%;
+    margin-top: calc(var(--space-2xl) * -1);
     z-index: 2;
   }
   .gallery__grid > :nth-child(6) {
@@ -873,6 +873,9 @@
   }
   .gallery__grid > :nth-child(3) {
     margin-top: calc(var(--space-xl) * -0.4);
+  }
+  .gallery__grid > :nth-child(5) {
+    margin-top: calc(var(--space-2xl) * -1.1);
   }
   .gallery__grid > :nth-child(6) {
     margin-top: calc(var(--space-2xl) * -0.6);
