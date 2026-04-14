@@ -52,18 +52,20 @@
   gap: 0;
   align-items: center;
   padding: var(--space-xs) var(--space-md);
-  background: rgba(19, 27, 27, 0.28);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: transparent;
   border-radius: 999px;
   z-index: var(--z-nav);
   pointer-events: auto;
+  mix-blend-mode: difference;
 }
 
 .nav__link {
-  font-size: var(--text-sm);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: 400;
+  font-size: calc(var(--text-sm) * 1.5);
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--color-text-light);
   position: relative;
   padding: 0 var(--space-sm);
