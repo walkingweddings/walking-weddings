@@ -330,17 +330,16 @@
   margin: 0 auto var(--space-md);
 }
 
-/* Big W brandmark — centered in the hero */
+/* W brandmark — anchored bottom-left over the hero video */
 .hero__brandmark {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  height: 80vh;
+  bottom: var(--space-md);
+  left: var(--space-md);
+  height: 28vh;
   width: auto;
   pointer-events: none;
   z-index: 2;
-  opacity: 0.9;
+  opacity: 0.95;
   mix-blend-mode: screen;
 }
 
@@ -358,8 +357,10 @@
   }
 
   .hero__brandmark {
-    height: 55vh;
-    opacity: 0.55;
+    height: 16vh;
+    bottom: var(--space-sm);
+    left: var(--space-sm);
+    opacity: 0.85;
   }
 }
 
