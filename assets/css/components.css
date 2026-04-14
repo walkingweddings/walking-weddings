@@ -790,8 +790,6 @@
   display: block;
   overflow: hidden;
   position: relative;
-  width: 92%;
-  margin: var(--space-md) auto;
 }
 
 .gallery__item img {
@@ -814,92 +812,65 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-lg);
-  width: 92%;
-  margin: var(--space-md) auto;
+  padding: clamp(var(--space-sm), 4vw, var(--space-xl)) clamp(var(--space-xs), 2vw, var(--space-md));
 }
 
 .gallery__quote p {
   font-family: var(--font-accent);
   font-style: italic;
-  font-size: var(--text-2xl);
+  font-size: clamp(1rem, 2.6vw, var(--text-2xl));
   line-height: 1.5;
   color: var(--color-text-dark);
   max-width: 500px;
   text-align: center;
 }
 
-/* Staggered asymmetric placement with overlapping rows — tablet+ */
-@media (min-width: 768px) {
-  .gallery__grid {
-    padding: var(--space-lg) 0;
-  }
-
-  .gallery__item,
-  .gallery__quote {
-    width: auto;
-    margin: 0;
-  }
-
-  /* 6-child rhythm: img, img, img, quote, img, img — edges used */
-  .gallery__grid > :nth-child(1) {
-    width: 55%;
-    margin-left: 1%;
-    margin-right: auto;
-    margin-top: var(--space-md);
-  }
-  .gallery__grid > :nth-child(2) {
-    width: 42%;
-    margin-left: auto;
-    margin-right: 1%;
-    margin-top: calc(var(--space-2xl) * -0.7);
-    z-index: 2;
-  }
-  .gallery__grid > :nth-child(3) {
-    width: 38%;
-    margin-left: 4%;
-    margin-right: auto;
-    margin-top: calc(var(--space-xl) * -0.4);
-  }
-  .gallery__grid > :nth-child(4) {
-    /* Quote — right side of a pair with the previous image (child 3) */
-    width: 42%;
-    margin-left: auto;
-    margin-right: 4%;
-    margin-top: calc(var(--space-2xl) * -1);
-    padding: var(--space-xl) var(--space-md);
-    z-index: 2;
-  }
-  .gallery__grid > :nth-child(5) {
-    width: 50%;
-    margin-left: auto;
-    margin-right: 2%;
-    margin-top: var(--space-lg);
-    z-index: 2;
-  }
-  .gallery__grid > :nth-child(6) {
-    width: 46%;
-    margin-left: 1%;
-    margin-right: auto;
-    margin-top: calc(var(--space-2xl) * -0.6);
-  }
+/* 6-child rhythm: img, img, img, quote, img, img — edges used.
+   Negative margin-top in vw so overlap stays proportional at every viewport. */
+.gallery__grid > :nth-child(1) {
+  width: 55%;
+  margin-left: 1%;
+  margin-right: auto;
+  margin-top: 4vw;
+}
+.gallery__grid > :nth-child(2) {
+  width: 42%;
+  margin-left: auto;
+  margin-right: 1%;
+  margin-top: -12vw;
+  z-index: 2;
+}
+.gallery__grid > :nth-child(3) {
+  width: 38%;
+  margin-left: 4%;
+  margin-right: auto;
+  margin-top: -8vw;
+}
+.gallery__grid > :nth-child(4) {
+  /* Quote — sits next to image 3 on the right */
+  width: 42%;
+  margin-left: auto;
+  margin-right: 4%;
+  margin-top: -18vw;
+  z-index: 2;
+}
+.gallery__grid > :nth-child(5) {
+  width: 50%;
+  margin-left: auto;
+  margin-right: 2%;
+  margin-top: 3vw;
+  z-index: 2;
+}
+.gallery__grid > :nth-child(6) {
+  width: 46%;
+  margin-left: 1%;
+  margin-right: auto;
+  margin-top: -12vw;
 }
 
 @media (min-width: 1024px) {
   .gallery__grid {
     padding: var(--space-xl) 0;
-  }
-  .gallery__grid > :nth-child(2) {
-    margin-top: calc(var(--space-2xl) * -0.5);
-  }
-  .gallery__grid > :nth-child(3) {
-    margin-top: calc(var(--space-xl) * -0.4);
-  }
-  .gallery__grid > :nth-child(4) {
-    margin-top: calc(var(--space-2xl) * -1.2);
-  }
-  .gallery__grid > :nth-child(6) {
-    margin-top: calc(var(--space-2xl) * -0.6);
   }
 }
 
@@ -1103,11 +1074,12 @@
 
 /* ========================================
    PORTFOLIO STAGGERED GALLERY
+   — same mosaic rhythm at every viewport width
    ======================================== */
 .portfolio-masonry {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: 0;
   padding: var(--space-md) 0;
   width: 100%;
   max-width: none;
@@ -1116,8 +1088,6 @@
 }
 
 .portfolio-masonry__item {
-  width: 94%;
-  margin: 0 auto;
   overflow: hidden;
   position: relative;
 }
@@ -1137,82 +1107,58 @@
   filter: brightness(1.05);
 }
 
-/* Staggered asymmetric placement with overlapping rows — kicks in on tablet+ */
-@media (min-width: 768px) {
-  .portfolio-masonry {
-    gap: 0;
-    padding: var(--space-lg) 0;
-  }
-
-  .portfolio-masonry__item {
-    width: auto;
-    margin: 0;
-  }
-
-  /* 7-step repeating rhythm — edges used, gentle side-by-side overlap */
-  .portfolio-masonry__item:nth-child(7n + 1) {
-    width: 48%;
-    margin-left: 2%;
-    margin-right: auto;
-    margin-top: var(--space-md);
-  }
-  .portfolio-masonry__item:nth-child(7n + 2) {
-    width: 38%;
-    margin-left: auto;
-    margin-right: 2%;
-    margin-top: calc(var(--space-xl) * -0.35);
-    z-index: 2;
-  }
-  .portfolio-masonry__item:nth-child(7n + 3) {
-    width: 34%;
-    margin-left: 5%;
-    margin-right: auto;
-    margin-top: calc(var(--space-xl) * -0.25);
-  }
-  .portfolio-masonry__item:nth-child(7n + 4) {
-    width: 44%;
-    margin-left: auto;
-    margin-right: 3%;
-    margin-top: calc(var(--space-xl) * -0.3);
-    z-index: 2;
-  }
-  .portfolio-masonry__item:nth-child(7n + 5) {
-    width: 42%;
-    margin-left: 2%;
-    margin-right: auto;
-    margin-top: calc(var(--space-xl) * -0.2);
-  }
-  .portfolio-masonry__item:nth-child(7n + 6) {
-    width: 46%;
-    margin-left: auto;
-    margin-right: 2%;
-    margin-top: calc(var(--space-xl) * -0.35);
-    z-index: 2;
-  }
-  .portfolio-masonry__item:nth-child(7n + 7) {
-    width: 34%;
-    margin-left: 18%;
-    margin-right: auto;
-    margin-top: var(--space-md);
-  }
+/* 7-step repeating rhythm — edges used, gentle side-by-side overlap.
+   Negative margin-top in vw so the overlap scales with viewport width
+   and stays proportional from 320px phones up to 4K displays. */
+.portfolio-masonry__item:nth-child(7n + 1) {
+  width: 48%;
+  margin-left: 2%;
+  margin-right: auto;
+  margin-top: 4vw;
+}
+.portfolio-masonry__item:nth-child(7n + 2) {
+  width: 38%;
+  margin-left: auto;
+  margin-right: 2%;
+  margin-top: -9vw;
+  z-index: 2;
+}
+.portfolio-masonry__item:nth-child(7n + 3) {
+  width: 34%;
+  margin-left: 5%;
+  margin-right: auto;
+  margin-top: -6vw;
+}
+.portfolio-masonry__item:nth-child(7n + 4) {
+  width: 44%;
+  margin-left: auto;
+  margin-right: 3%;
+  margin-top: -7vw;
+  z-index: 2;
+}
+.portfolio-masonry__item:nth-child(7n + 5) {
+  width: 42%;
+  margin-left: 2%;
+  margin-right: auto;
+  margin-top: -5vw;
+}
+.portfolio-masonry__item:nth-child(7n + 6) {
+  width: 46%;
+  margin-left: auto;
+  margin-right: 2%;
+  margin-top: -9vw;
+  z-index: 2;
+}
+.portfolio-masonry__item:nth-child(7n + 7) {
+  width: 34%;
+  margin-left: 18%;
+  margin-right: auto;
+  margin-top: 3vw;
 }
 
 @media (min-width: 1024px) {
   .portfolio-masonry {
     padding: var(--space-xl) 0;
-  }
-
-  .portfolio-masonry__item:nth-child(7n + 2) {
-    margin-top: calc(var(--space-2xl) * -0.7);
-  }
-  .portfolio-masonry__item:nth-child(7n + 3) {
-    margin-top: calc(var(--space-xl) * -0.5);
-  }
-  .portfolio-masonry__item:nth-child(7n + 5) {
-    margin-top: calc(var(--space-2xl) * -0.6);
-  }
-  .portfolio-masonry__item:nth-child(7n + 6) {
-    margin-top: calc(var(--space-xl) * -0.8);
   }
 }
 
