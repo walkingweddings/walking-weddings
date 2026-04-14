@@ -1125,49 +1125,49 @@
     margin: 0;
   }
 
-  /* 7-step repeating rhythm — edges used, side-by-side overlap */
+  /* 7-step repeating rhythm — edges used, gentle side-by-side overlap */
   .portfolio-masonry__item:nth-child(7n + 1) {
-    width: 54%;
-    margin-left: 1%;
+    width: 48%;
+    margin-left: 2%;
     margin-right: auto;
     margin-top: var(--space-md);
   }
   .portfolio-masonry__item:nth-child(7n + 2) {
-    width: 42%;
+    width: 38%;
     margin-left: auto;
-    margin-right: 1%;
-    margin-top: calc(var(--space-2xl) * -0.7);
+    margin-right: 2%;
+    margin-top: calc(var(--space-xl) * -0.35);
     z-index: 2;
   }
   .portfolio-masonry__item:nth-child(7n + 3) {
-    width: 36%;
-    margin-left: 4%;
+    width: 34%;
+    margin-left: 5%;
     margin-right: auto;
-    margin-top: calc(var(--space-xl) * -0.4);
+    margin-top: calc(var(--space-xl) * -0.25);
   }
   .portfolio-masonry__item:nth-child(7n + 4) {
-    width: 50%;
+    width: 44%;
     margin-left: auto;
-    margin-right: 2%;
-    margin-top: calc(var(--space-2xl) * -0.6);
+    margin-right: 3%;
+    margin-top: calc(var(--space-xl) * -0.3);
     z-index: 2;
   }
   .portfolio-masonry__item:nth-child(7n + 5) {
-    width: 46%;
-    margin-left: 1%;
+    width: 42%;
+    margin-left: 2%;
     margin-right: auto;
-    margin-top: calc(var(--space-xl) * -0.3);
+    margin-top: calc(var(--space-xl) * -0.2);
   }
   .portfolio-masonry__item:nth-child(7n + 6) {
-    width: 52%;
+    width: 46%;
     margin-left: auto;
-    margin-right: 1%;
-    margin-top: calc(var(--space-2xl) * -0.7);
+    margin-right: 2%;
+    margin-top: calc(var(--space-xl) * -0.35);
     z-index: 2;
   }
   .portfolio-masonry__item:nth-child(7n + 7) {
-    width: 38%;
-    margin-left: 16%;
+    width: 34%;
+    margin-left: 18%;
     margin-right: auto;
     margin-top: var(--space-md);
   }
