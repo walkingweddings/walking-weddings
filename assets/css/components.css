@@ -321,7 +321,7 @@
 /* W brandmark — anchored bottom-left, blended negative against the video */
 .hero__brandmark {
   position: absolute;
-  bottom: var(--space-md);
+  bottom: -10vh;
   left: var(--space-md);
   height: 75vh;
   width: auto;
