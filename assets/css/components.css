@@ -48,14 +48,6 @@
   -webkit-backdrop-filter: blur(6px);
 }
 
-.nav--hidden {
-  transform: translateY(-100%);
-}
-
-.nav--hidden.nav--peek {
-  transform: translateY(0);
-}
-
 .nav--scrolled::after {
   content: '';
   position: absolute;
