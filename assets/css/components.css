@@ -85,7 +85,7 @@
 
 .nav__links {
   position: fixed;
-  bottom: var(--space-md);
+  bottom: var(--space-xs);
   left: 50%;
   transform: translateX(-50%);
   display: none;
