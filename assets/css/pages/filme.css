@@ -67,26 +67,27 @@
   color: rgba(247, 247, 245, 0.8);
 }
 
-/* Video frame — grows with scroll progress */
+/* Video frame — 16:9 container that grows with scroll progress */
 .film-showcase__frame {
   position: absolute;
-  top: 55vh;
+  top: 58vh;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: calc(28vw + 44vw * var(--progress));
-  height: calc(38vh + 22vh * var(--progress));
+  /* Width interpolates from small → large; capped so height never exceeds ~62vh */
+  --target-width: calc(30vw + 46vw * var(--progress));
+  --height-bound: calc(62vh * 16 / 9);
+  width: min(var(--target-width), 82vw, var(--height-bound));
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   background: #000;
-  will-change: width, height;
+  will-change: width;
 }
 
 .film-showcase__frame iframe {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: max(100vw, 178vh);
-  height: max(56.25vw, 100vh);
-  transform: translate(-50%, -50%);
+  inset: 0;
+  width: 100%;
+  height: 100%;
   border: 0;
 }
 
