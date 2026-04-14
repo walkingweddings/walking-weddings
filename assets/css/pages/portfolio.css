@@ -9,6 +9,24 @@
   padding: calc(var(--nav-height) + var(--space-xl)) var(--section-padding) var(--space-xl);
 }
 
+.page-header--light {
+  background: var(--color-bg-light);
+  color: var(--color-text-dark);
+}
+
+.page-header--light h1,
+.page-header--light .page-header__content h1 {
+  color: var(--color-text-dark);
+}
+
+.page-header--light .text-caption {
+  color: var(--color-secondary);
+}
+
+.page-header--light .font-accent {
+  color: var(--color-text-dark);
+}
+
 .page-header__content h1 {
   margin-top: var(--space-xs);
   margin-bottom: var(--space-sm);
