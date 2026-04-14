@@ -2,20 +2,8 @@
 // NAVIGATION
 // ========================================
 
-const nav = document.getElementById('nav');
 const hamburger = document.getElementById('navHamburger');
 const mobileMenu = document.getElementById('mobileMenu');
-
-// Scroll state for nav background (blur when past first viewport)
-function handleNavScroll() {
-  if (window.scrollY > 80) {
-    nav.classList.add('nav--scrolled');
-  } else {
-    nav.classList.remove('nav--scrolled');
-  }
-}
-
-window.addEventListener('scroll', handleNavScroll, { passive: true });
 
 // Mobile menu toggle
 if (hamburger && mobileMenu) {
