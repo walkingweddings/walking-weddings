@@ -60,21 +60,29 @@ if (filmShowcases.length > 0) {
 }
 
 // ========================================
-// FILM SHOWCASE — lazy + autoplay iframe swap
+// FILM SHOWCASE — play while visible, stop when scrolled past
 // ========================================
 
 const filmFrames = document.querySelectorAll('.film-showcase__frame iframe[data-src]');
 
 if (filmFrames.length > 0) {
+  const setFilmPlaying = (iframe, playing) => {
+    if (playing) {
+      if (iframe.dataset.playing !== 'true') {
+        iframe.src = iframe.dataset.src;
+        iframe.dataset.playing = 'true';
+      }
+    } else {
+      if (iframe.dataset.playing === 'true') {
+        iframe.src = 'about:blank';
+        iframe.dataset.playing = 'false';
+      }
+    }
+  };
+
   const filmFrameObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const iframe = entry.target;
-        if (!iframe.src) {
-          iframe.src = iframe.dataset.src;
-        }
-        filmFrameObserver.unobserve(iframe);
-      }
+      setFilmPlaying(entry.target, entry.isIntersecting);
     });
   }, {
     threshold: 0,
