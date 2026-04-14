@@ -40,8 +40,10 @@
 
 .nav__links {
   position: fixed;
+  top: auto;
   bottom: var(--space-xs);
   left: 50%;
+  right: auto;
   transform: translateX(-50%);
   display: none;
   gap: 0;
@@ -311,9 +313,7 @@
 }
 
 .hero__overlay {
-  position: absolute;
-  inset: 0;
-  background: var(--color-overlay);
+  display: none;
 }
 
 .hero__content {
