@@ -28,6 +28,112 @@
   }
 }
 
+/* ------- Role toggle (Hochzeitspaar / Wedding Planner) ------- */
+.form-role-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.form-role-btn {
+  padding: var(--space-sm) var(--space-md);
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--color-text-dark);
+  background: transparent;
+  border: 1px solid rgba(42, 47, 48, 0.2);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.form-role-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.form-role-btn--active {
+  background: var(--color-text-dark);
+  border-color: var(--color-text-dark);
+  color: var(--color-bg-light);
+}
+
+.form-role-btn--active:hover {
+  background: var(--color-text-dark);
+  border-color: var(--color-text-dark);
+  color: var(--color-bg-light);
+}
+
+/* ------- Dropdown (Art der Veranstaltung) ------- */
+.form__select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%236B7374' stroke-width='1.5' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.25rem center;
+  padding-right: 2rem;
+  cursor: pointer;
+}
+
+.form__select option {
+  font-family: var(--font-body);
+  color: var(--color-text-dark);
+  background: var(--color-bg-light);
+}
+
+/* ------- Referral radio group with conditional sub-fields ------- */
+.form-referral {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding-top: var(--space-xs);
+}
+
+.form-referral__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.form-referral__option input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.form-referral__option label {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: var(--text-lg);
+  color: var(--color-text-dark);
+  cursor: pointer;
+}
+
+.form-referral__detail {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height var(--transition-medium), opacity var(--transition-medium), margin var(--transition-medium);
+  margin-left: calc(16px + var(--space-sm));
+}
+
+.form-referral__detail--open {
+  max-height: 200px;
+  opacity: 1;
+  margin-top: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+.form-referral__detail .form__input,
+.form-referral__detail .form__textarea {
+  padding: 0.5rem 0;
+}
+
 /* ------- Form sections ------- */
 .form-section {
   margin-bottom: var(--space-xl);

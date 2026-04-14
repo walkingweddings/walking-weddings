@@ -48,13 +48,25 @@ async function sendEmail({ to, subject, html, replyTo }) {
   return true;
 }
 
+function referralSummary(lead) {
+  const v = lead.referral;
+  if (!v) return '-';
+  if (v === 'Wedding Planner' && lead.referralPlanner) return `Wedding Planner — ${lead.referralPlanner}`;
+  if (v === 'Hochzeit' && lead.referralWedding) return `Hochzeit — ${lead.referralWedding}`;
+  if (v === 'Sonstiges' && lead.referralOther) return `Sonstiges — ${lead.referralOther}`;
+  return v;
+}
+
 async function sendTeamEmail(lead) {
   const dateStr = lead.noDate ? 'Noch kein fixes Datum' : (lead.dates?.join(', ') || 'Nicht angegeben');
   const locStr = lead.noLocation ? 'Noch keine Location' : (lead.locations?.join(', ') || 'Nicht angegeben');
+  const roleStr = lead.role === 'planner' ? 'Wedding Planner' : 'Hochzeitspaar';
+  const refStr = referralSummary(lead);
+  const subjectLabel = lead.role === 'planner' ? `${lead.name}${lead.company ? ' (' + lead.company + ')' : ''}` : lead.name;
 
   return sendEmail({
     to: 'contact@walkingweddings.com',
-    subject: `Neue Website-Anfrage: ${lead.name}`,
+    subject: `Neue Website-Anfrage: ${subjectLabel}`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#393e3f;">
         <div style="text-align:center;padding:30px 0;background:#393e3f;">
@@ -63,16 +75,20 @@ async function sendTeamEmail(lead) {
         <div style="padding:30px 20px;">
           <h2 style="font-family:Georgia,serif;color:#393e3f;margin:0 0 20px;">Neue Anfrage über die Website</h2>
           <table style="border-collapse:collapse;width:100%;font-size:14px;">
-            <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;width:160px;">Name</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(lead.name)}</td></tr>
+            <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;width:180px;">Anfrage von</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(roleStr)}</td></tr>
+            <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Name</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(lead.name)}</td></tr>
+            ${lead.company ? `<tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Firmenname</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(lead.company)}</td></tr>` : ''}
             <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Telefon</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(lead.phone)}</td></tr>
             <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">E-Mail</td><td style="padding:10px 12px;border:1px solid #d4c4a8;"><a href="mailto:${esc(lead.email)}">${esc(lead.email)}</a></td></tr>
-            <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Hochzeitsdatum</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(dateStr)}</td></tr>
+            <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Art der Veranstaltung</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(lead.eventType || '-')}</td></tr>
+            <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Datum</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(dateStr)}</td></tr>
             <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Location</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(locStr)}</td></tr>
             <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Interesse</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(lead.interesse?.join(', ') || '-')}</td></tr>
             <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Zusatzprodukte</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(lead.zusatz?.join(', ') || '-')}</td></tr>
             <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Stunden</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(lead.hours || '-')}</td></tr>
             <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Budget</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(lead.budget || '-')}</td></tr>
             <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Anmerkungen</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(lead.message || '-')}</td></tr>
+            <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Woher</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(refStr)}</td></tr>
           </table>
         </div>
       </div>

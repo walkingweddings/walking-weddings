@@ -63,12 +63,23 @@
         <div class="contact-form" id="contactFormWrapper">
           <form id="contactForm" novalidate>
 
+            <!-- Role toggle: Hochzeitspaar / Wedding Planner -->
+            <div class="form-role-toggle">
+              <button type="button" class="form-role-btn form-role-btn--active" data-role="couple">Hochzeitspaar</button>
+              <button type="button" class="form-role-btn" data-role="planner">Wedding Planner</button>
+            </div>
+            <input type="hidden" id="role" name="role" value="couple">
+
             <!-- 1. Kontaktdaten -->
             <div class="form-section">
               <h2 class="form-section__title">Kontaktdaten</h2>
               <div class="form__group">
                 <label class="form__label" for="name">Name *</label>
                 <input class="form__input" type="text" id="name" name="name" required>
+              </div>
+              <div class="form__group form__group--planner" id="companyGroup" style="display: none;">
+                <label class="form__label" for="company">Firmenname *</label>
+                <input class="form__input" type="text" id="company" name="company">
               </div>
               <div class="form-row">
                 <div class="form__group">
@@ -82,9 +93,22 @@
               </div>
             </div>
 
-            <!-- 2. Hochzeitsdatum -->
+            <!-- 2. Art der Veranstaltung -->
             <div class="form-section">
-              <h2 class="form-section__title">Hochzeitsdatum</h2>
+              <h2 class="form-section__title">Art der Veranstaltung *</h2>
+              <div class="form__group">
+                <select class="form__input form__select" id="eventType" name="eventType" required>
+                  <option value="" disabled selected>Bitte wählen</option>
+                  <option value="Hochzeit">Hochzeit</option>
+                  <option value="Destination Wedding">Destination Wedding</option>
+                  <option value="Elopement">Elopement</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 3. Hochzeitsdatum -->
+            <div class="form-section">
+              <h2 class="form-section__title">Datum</h2>
               <div class="form-check">
                 <input type="checkbox" id="noDate" name="noDate">
                 <label for="noDate">Wir haben noch kein fixes Datum</label>
@@ -97,7 +121,7 @@
               <button type="button" class="form-add-btn" id="addDate">+ Weiteres Datum</button>
             </div>
 
-            <!-- 3. Location -->
+            <!-- 4. Location -->
             <div class="form-section">
               <h2 class="form-section__title">Location</h2>
               <div class="form-check">
@@ -112,7 +136,7 @@
               <button type="button" class="form-add-btn" id="addLocation">+ Weitere Location</button>
             </div>
 
-            <!-- 4. Interesse -->
+            <!-- 5. Interesse -->
             <div class="form-section">
               <h2 class="form-section__title">Interesse *</h2>
               <div class="form-toggles">
@@ -127,7 +151,7 @@
               </div>
             </div>
 
-            <!-- 5. Zusatzprodukte -->
+            <!-- 6. Zusatzprodukte -->
             <div class="form-section">
               <h2 class="form-section__title">Zusatzprodukte</h2>
               <div class="form-toggles">
@@ -144,7 +168,7 @@
               </div>
             </div>
 
-            <!-- 6. Details -->
+            <!-- 7. Details -->
             <div class="form-section">
               <h2 class="form-section__title">Details</h2>
               <div class="form-row">
@@ -160,6 +184,54 @@
               <div class="form__group">
                 <label class="form__label" for="message">Anmerkungen</label>
                 <textarea class="form__textarea" id="message" name="message" rows="4" placeholder="Erzählt uns von eurem Tag..."></textarea>
+              </div>
+            </div>
+
+            <!-- 8. Wie habt ihr von uns erfahren? -->
+            <div class="form-section">
+              <h2 class="form-section__title">Wie habt ihr von uns erfahren?</h2>
+              <div class="form-referral">
+                <div class="form-referral__option">
+                  <input type="radio" id="refSocial" name="referral" value="Social Media">
+                  <label for="refSocial">Social Media</label>
+                </div>
+                <div class="form-referral__option">
+                  <input type="radio" id="refWebsite" name="referral" value="Website">
+                  <label for="refWebsite">Website</label>
+                </div>
+                <div class="form-referral__option">
+                  <input type="radio" id="refPlanner" name="referral" value="Wedding Planner">
+                  <label for="refPlanner">Wedding Planner</label>
+                </div>
+                <div class="form-referral__detail" id="detailPlanner">
+                  <input class="form__input" type="text" id="referralPlanner" name="referralPlanner" placeholder="Wer?">
+                </div>
+                <div class="form-referral__option">
+                  <input type="radio" id="refMesse" name="referral" value="Hochzeitsmesse">
+                  <label for="refMesse">Hochzeitsmesse</label>
+                </div>
+                <div class="form-referral__option">
+                  <input type="radio" id="refFriends" name="referral" value="Freunde & Familie">
+                  <label for="refFriends">Freunde &amp; Familie</label>
+                </div>
+                <div class="form-referral__option">
+                  <input type="radio" id="refGoogle" name="referral" value="Google">
+                  <label for="refGoogle">Google</label>
+                </div>
+                <div class="form-referral__option">
+                  <input type="radio" id="refWedding" name="referral" value="Hochzeit">
+                  <label for="refWedding">Hochzeit</label>
+                </div>
+                <div class="form-referral__detail" id="detailWedding">
+                  <input class="form__input" type="text" id="referralWedding" name="referralWedding" placeholder="Von welcher Hochzeit?">
+                </div>
+                <div class="form-referral__option">
+                  <input type="radio" id="refOther" name="referral" value="Sonstiges">
+                  <label for="refOther">Sonstiges</label>
+                </div>
+                <div class="form-referral__detail" id="detailOther">
+                  <textarea class="form__textarea" id="referralOther" name="referralOther" rows="2" placeholder="Hast du noch andere Vorschläge?"></textarea>
+                </div>
               </div>
             </div>
 
@@ -269,7 +341,7 @@
         </div>
       </div>
       <div class="footer__bottom">
-        <p>&copy; 2025 Walking Weddings. Alle Rechte vorbehalten.</p>
+        <p>&copy; 2024 Walking Weddings. Alle Rechte vorbehalten.</p>
         <div class="footer__legal">
           <a href="impressum.html" class="footer__link">Impressum</a>
           <a href="privacy.html" class="footer__link">Datenschutz</a>
@@ -320,19 +392,62 @@
       btn.style.display = this.checked ? 'none' : 'block';
     });
 
+    // Role toggle: Hochzeitspaar / Wedding Planner
+    document.querySelectorAll('.form-role-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var role = this.dataset.role;
+        document.getElementById('role').value = role;
+        document.querySelectorAll('.form-role-btn').forEach(function(b) {
+          b.classList.toggle('form-role-btn--active', b === btn);
+        });
+        var companyGroup = document.getElementById('companyGroup');
+        var companyInput = document.getElementById('company');
+        if (role === 'planner') {
+          companyGroup.style.display = 'block';
+          companyInput.required = true;
+        } else {
+          companyGroup.style.display = 'none';
+          companyInput.required = false;
+          companyInput.value = '';
+        }
+      });
+    });
+
+    // Referral conditional sub-fields
+    document.querySelectorAll('input[name="referral"]').forEach(function(radio) {
+      radio.addEventListener('change', function() {
+        document.getElementById('detailPlanner').classList.toggle('form-referral__detail--open', this.value === 'Wedding Planner');
+        document.getElementById('detailWedding').classList.toggle('form-referral__detail--open', this.value === 'Hochzeit');
+        document.getElementById('detailOther').classList.toggle('form-referral__detail--open', this.value === 'Sonstiges');
+      });
+    });
+
     // Form submission
     document.getElementById('contactForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       var btn = document.getElementById('submitBtn');
 
       // Validate required fields
+      var role = document.getElementById('role').value;
       var name = document.getElementById('name').value.trim();
+      var company = document.getElementById('company').value.trim();
       var phone = document.getElementById('phone').value.trim();
       var email = document.getElementById('email').value.trim();
+      var eventType = document.getElementById('eventType').value;
       var interesse = document.querySelectorAll('input[name="interesse"]:checked');
 
       if (!name || !phone || !email) {
         alert('Bitte füllt alle Pflichtfelder aus (Name, Telefon, E-Mail).');
+        return;
+      }
+
+      if (role === 'planner' && !company) {
+        alert('Bitte gebt euren Firmennamen an.');
+        return;
+      }
+
+      if (!eventType) {
+        alert('Bitte wählt die Art der Veranstaltung aus.');
         return;
       }
 
@@ -343,9 +458,12 @@
 
       // Collect form data
       var data = {};
+      data.role = role;
       data.name = name;
+      data.company = company;
       data.phone = phone;
       data.email = email;
+      data.eventType = eventType;
       data.noDate = document.getElementById('noDate').checked;
       data.noLocation = document.getElementById('noLocation').checked;
 
@@ -370,6 +488,13 @@
       data.hours = document.getElementById('hours').value.trim();
       data.budget = document.getElementById('budget').value.trim();
       data.message = document.getElementById('message').value.trim();
+
+      // Referral source + conditional details
+      var refChecked = document.querySelector('input[name="referral"]:checked');
+      data.referral = refChecked ? refChecked.value : '';
+      data.referralPlanner = document.getElementById('referralPlanner').value.trim();
+      data.referralWedding = document.getElementById('referralWedding').value.trim();
+      data.referralOther = document.getElementById('referralOther').value.trim();
 
       // Send to API
       btn.textContent = 'Wird gesendet...';
