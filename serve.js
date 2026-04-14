@@ -1,5 +1,5 @@
 const { createServer } = require('http');
-const { readFileSync, existsSync, statSync } = require('fs');
+const { readFileSync, existsSync, statSync, createReadStream } = require('fs');
 const { join, extname } = require('path');
 
 const PORT = process.env.PORT || 8082;
@@ -197,6 +197,36 @@ createServer(async (req, res) => {
     return;
   }
   const ext = extname(file);
-  res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
-  res.end(readFileSync(file));
+  const contentType = MIME[ext] || 'application/octet-stream';
+  const stat = statSync(file);
+  const fileSize = stat.size;
+
+  // Handle HTTP Range requests — mandatory for iOS Safari video playback
+  const range = req.headers.range;
+  if (range) {
+    const match = /bytes=(\d*)-(\d*)/.exec(range);
+    const start = match && match[1] ? parseInt(match[1], 10) : 0;
+    const end = match && match[2] ? parseInt(match[2], 10) : fileSize - 1;
+    if (start >= fileSize || end >= fileSize) {
+      res.writeHead(416, { 'Content-Range': `bytes */${fileSize}` });
+      res.end();
+      return;
+    }
+    const chunkSize = end - start + 1;
+    res.writeHead(206, {
+      'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+      'Accept-Ranges': 'bytes',
+      'Content-Length': chunkSize,
+      'Content-Type': contentType
+    });
+    createReadStream(file, { start, end }).pipe(res);
+    return;
+  }
+
+  res.writeHead(200, {
+    'Content-Type': contentType,
+    'Content-Length': fileSize,
+    'Accept-Ranges': 'bytes'
+  });
+  createReadStream(file).pipe(res);
 }).listen(PORT, () => console.log(`Walking Weddings server running on port ${PORT}`));
