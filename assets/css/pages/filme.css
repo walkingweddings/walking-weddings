@@ -5,8 +5,8 @@
 .film-showcase {
   position: relative;
   height: 220vh;
-  background: var(--color-bg-light);
-  color: var(--color-text-dark);
+  background: var(--color-bg-dark);
+  color: var(--color-text-light);
 }
 
 .film-showcase__stage {
@@ -29,35 +29,42 @@
   letter-spacing: 0.02em;
   line-height: 1;
   white-space: nowrap;
-  color: var(--color-text-dark);
+  color: var(--color-text-light);
   text-transform: none;
   margin: 0;
 }
 
-/* Venue (left) + Location (right) — small caps at the edges */
-.film-showcase__venue,
-.film-showcase__location {
+/* Full location (left, multi-line) + narrative caption (right) */
+.film-showcase__location,
+.film-showcase__caption {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
+  margin: 0;
+  color: var(--color-text-light);
+}
+
+.film-showcase__location {
+  left: 3vw;
+  max-width: 22vw;
   font-family: var(--font-body);
   font-size: var(--text-xs);
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--color-text-dark);
-  margin: 0;
-  max-width: 22vw;
-  line-height: 1.5;
-}
-
-.film-showcase__venue {
-  left: 3vw;
+  line-height: 1.8;
   text-align: left;
+  opacity: 0.85;
 }
 
-.film-showcase__location {
+.film-showcase__caption {
   right: 3vw;
+  max-width: 26vw;
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: var(--text-base);
+  line-height: 1.7;
   text-align: right;
+  color: rgba(247, 247, 245, 0.8);
 }
 
 /* Video frame — grows with scroll progress */
@@ -69,7 +76,7 @@
   width: calc(28vw + 44vw * var(--progress));
   height: calc(38vh + 22vh * var(--progress));
   overflow: hidden;
-  background: #111;
+  background: #000;
   will-change: width, height;
 }
 
@@ -83,7 +90,7 @@
   border: 0;
 }
 
-/* Mobile fallback — static stacked layout, no scroll pin */
+/* Mobile fallback — static stacked layout */
 @media (max-width: 767px) {
   .film-showcase {
     height: auto;
@@ -105,14 +112,18 @@
     padding: 0 var(--space-sm);
   }
 
-  .film-showcase__venue,
-  .film-showcase__location {
+  .film-showcase__location,
+  .film-showcase__caption {
     position: static;
     transform: none;
     text-align: center;
     max-width: none;
     margin: var(--space-xs) auto;
-    padding: 0 var(--space-sm);
+    padding: 0 var(--space-md);
+  }
+
+  .film-showcase__caption {
+    font-size: var(--text-sm);
   }
 
   .film-showcase__frame {

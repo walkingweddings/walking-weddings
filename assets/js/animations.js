@@ -58,3 +58,28 @@ if (filmShowcases.length > 0) {
   window.addEventListener('resize', onFilmScroll, { passive: true });
   updateFilmProgress();
 }
+
+// ========================================
+// FILM SHOWCASE — lazy + autoplay iframe swap
+// ========================================
+
+const filmFrames = document.querySelectorAll('.film-showcase__frame iframe[data-src]');
+
+if (filmFrames.length > 0) {
+  const filmFrameObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const iframe = entry.target;
+        if (!iframe.src) {
+          iframe.src = iframe.dataset.src;
+        }
+        filmFrameObserver.unobserve(iframe);
+      }
+    });
+  }, {
+    threshold: 0,
+    rootMargin: '200px 0px 200px 0px'
+  });
+
+  filmFrames.forEach(frame => filmFrameObserver.observe(frame));
+}
