@@ -18,9 +18,12 @@
 }
 
 .nav__logo {
-  position: absolute;
+  position: fixed;
   top: 0;
   right: 30px;
+  z-index: var(--z-nav);
+  mix-blend-mode: difference;
+  pointer-events: auto;
 }
 
 
@@ -29,13 +32,12 @@
   width: auto;
   max-width: 30vw;
   display: block;
-  mix-blend-mode: difference;
 }
 
 @media (max-width: 767px) {
   .nav__logo img {
-    height: 40px;
-    max-width: none;
+    height: 120px;
+    max-width: 60vw;
   }
 }
 
@@ -165,14 +167,13 @@
 @media (max-width: 767px) {
   .nav {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     padding: 0 20px;
   }
 
   .nav__logo {
-    position: static;
-    top: auto;
-    right: auto;
+    top: var(--space-xs);
+    right: 20px;
   }
 
   .nav__links {
