@@ -67,17 +67,20 @@
   color: rgba(247, 247, 245, 0.8);
 }
 
-/* Video frame — 16:9 container that grows with scroll progress */
+/* Video frame — cinematic 21:9 container that grows with scroll progress.
+   The iframe inside is 16:9 width-filled and vertically centered so its
+   top and bottom (where Pic-Time's letterbox bars live) get clipped. */
 .film-showcase__frame {
   position: absolute;
   top: 58vh;
   left: 50%;
   transform: translate(-50%, -50%);
-  /* Width interpolates from small → large; capped so height never exceeds ~62vh */
-  --target-width: calc(30vw + 46vw * var(--progress));
-  --height-bound: calc(62vh * 16 / 9);
-  width: min(var(--target-width), 82vw, var(--height-bound));
-  aspect-ratio: 16 / 9;
+  /* Width interpolates from small → large; capped so visible height
+     never exceeds ~62vh after the 21:9 aspect ratio is applied. */
+  --target-width: calc(36vw + 52vw * var(--progress));
+  --height-bound: calc(62vh * 21 / 9);
+  width: min(var(--target-width), 86vw, var(--height-bound));
+  aspect-ratio: 21 / 9;
   overflow: hidden;
   background: #000;
   will-change: width;
@@ -85,9 +88,11 @@
 
 .film-showcase__frame iframe {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 0;
   width: 100%;
-  height: 100%;
+  aspect-ratio: 16 / 9;
+  transform: translateY(-50%);
   border: 0;
 }
 
