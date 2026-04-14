@@ -995,28 +995,20 @@
 .reveal-stagger > .reveal:nth-child(4) { transition-delay: 0.45s; }
 
 /* ========================================
-   PORTFOLIO MASONRY
+   PORTFOLIO STAGGERED GALLERY
    ======================================== */
 .portfolio-masonry {
-  columns: 1;
-  column-gap: 6px;
-}
-
-@media (min-width: 768px) {
-  .portfolio-masonry {
-    columns: 2;
-  }
-}
-
-@media (min-width: 1024px) {
-  .portfolio-masonry {
-    columns: 3;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .portfolio-masonry__item {
-  break-inside: avoid;
-  margin-bottom: 6px;
+  width: 92%;
+  margin: 0 auto;
   overflow: hidden;
 }
 
@@ -1029,6 +1021,63 @@
 .portfolio-masonry__item:hover img {
   transform: scale(1.03);
   filter: brightness(1.05);
+}
+
+/* Staggered asymmetric placement — kicks in on tablet+ */
+@media (min-width: 768px) {
+  .portfolio-masonry {
+    gap: var(--space-lg);
+    padding: var(--space-lg) 0;
+  }
+
+  .portfolio-masonry__item {
+    width: auto;
+    margin: 0;
+  }
+
+  /* 7-step repeating rhythm of widths + horizontal offsets */
+  .portfolio-masonry__item:nth-child(7n + 1) {
+    width: 62%;
+    margin-left: 2%;
+    margin-right: auto;
+  }
+  .portfolio-masonry__item:nth-child(7n + 2) {
+    width: 52%;
+    margin-left: auto;
+    margin-right: 6%;
+  }
+  .portfolio-masonry__item:nth-child(7n + 3) {
+    width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .portfolio-masonry__item:nth-child(7n + 4) {
+    width: 48%;
+    margin-left: 10%;
+    margin-right: auto;
+  }
+  .portfolio-masonry__item:nth-child(7n + 5) {
+    width: 72%;
+    margin-left: auto;
+    margin-right: 2%;
+  }
+  .portfolio-masonry__item:nth-child(7n + 6) {
+    width: 56%;
+    margin-left: 18%;
+    margin-right: auto;
+  }
+  .portfolio-masonry__item:nth-child(7n + 7) {
+    width: 66%;
+    margin-left: auto;
+    margin-right: 12%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .portfolio-masonry {
+    gap: var(--space-xl);
+    padding: var(--space-xl) 0;
+  }
 }
 
 /* Filter Tabs */
