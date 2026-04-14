@@ -50,9 +50,9 @@
   gap: 0;
   align-items: center;
   padding: var(--space-xs) var(--space-md);
-  background: rgba(19, 27, 27, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(19, 27, 27, 0.28);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 999px;
   z-index: var(--z-nav);
   pointer-events: auto;
@@ -77,22 +77,6 @@
   color: rgba(247, 247, 245, 0.5);
   pointer-events: none;
   line-height: 1;
-}
-
-.nav__link::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 0;
-  height: 1px;
-  background: var(--color-accent);
-  transition: width var(--transition-fast);
-}
-
-.nav__link:hover::after,
-.nav__link--active::after {
-  width: 100%;
 }
 
 .nav__link:hover {
