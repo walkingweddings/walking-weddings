@@ -1,55 +1,114 @@
-/* Contact Grid */
+/* ========================================
+   CONTACT — editorial luxury form
+   ======================================== */
+
+.contact {
+  background: var(--color-bg-light);
+  color: var(--color-text-dark);
+  padding: var(--space-2xl) 0;
+}
+
+.contact__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 var(--section-padding);
+}
+
+/* Two-column layout: form (wider) + sidebar */
 .contact-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--space-xl);
+  gap: var(--space-2xl);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 900px) {
   .contact-grid {
     grid-template-columns: 3fr 2fr;
+    gap: var(--space-2xl);
   }
 }
 
-/* Form sections */
+/* ------- Form sections ------- */
 .form-section {
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-xl);
 }
 
 .form-section__title {
   font-family: var(--font-display);
-  font-size: var(--text-xl);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-  margin-bottom: var(--space-md);
+  font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--color-text-dark);
+  margin: 0 0 var(--space-md);
   padding-bottom: var(--space-xs);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid rgba(42, 47, 48, 0.15);
 }
 
-/* Form rows */
+/* ------- Inputs ------- */
+.form__group {
+  margin-bottom: var(--space-md);
+}
+
+.form__label {
+  display: block;
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: var(--text-base);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-secondary);
+  margin-bottom: var(--space-xs);
+}
+
+.form__input,
+.form__textarea {
+  width: 100%;
+  padding: 0.75rem 0;
+  font-family: var(--font-accent);
+  font-size: var(--text-lg);
+  color: var(--color-text-dark);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(42, 47, 48, 0.2);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.form__input::placeholder,
+.form__textarea::placeholder {
+  font-style: italic;
+  color: rgba(42, 47, 48, 0.35);
+}
+
+.form__input:focus,
+.form__textarea:focus {
+  border-color: var(--color-accent);
+}
+
+.form__textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-md);
 }
 
-@media (min-width: 480px) {
+@media (min-width: 600px) {
   .form-row {
     grid-template-columns: 1fr 1fr;
   }
 }
 
-/* Date input styling */
-.form__input[type="date"] {
-  color-scheme: dark;
-}
-
-/* Checkbox toggle items */
+/* ------- Toggle "pills" as plain text buttons ------- */
 .form-toggles {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-xs);
+  gap: var(--space-md);
+  padding-top: var(--space-xs);
 }
 
 .form-toggle {
@@ -58,28 +117,28 @@
 
 .form-toggle-label {
   display: inline-block;
-  padding: 0.6rem 1.2rem;
-  font-size: var(--text-sm);
-  letter-spacing: 0.08em;
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: var(--text-lg);
+  letter-spacing: 0;
   color: var(--color-secondary);
-  border: 1px solid var(--color-border-light);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  padding: 0 0 4px;
+  border-bottom: 1px solid transparent;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
   user-select: none;
 }
 
 .form-toggle-label:hover {
-  border-color: var(--color-accent);
-  color: var(--color-text-light);
+  color: var(--color-text-dark);
 }
 
 .form-toggle:checked + .form-toggle-label {
-  background: var(--color-accent);
-  color: var(--color-bg-dark);
-  border-color: var(--color-accent);
+  color: var(--color-text-dark);
+  border-bottom-color: var(--color-accent);
 }
 
-/* Inline checkbox (for "kein fixes Datum" etc.) */
+/* ------- Inline checkbox ("kein fixes Datum" etc.) ------- */
 .form-check {
   display: flex;
   align-items: center;
@@ -88,27 +147,35 @@
 }
 
 .form-check input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   accent-color: var(--color-accent);
   cursor: pointer;
 }
 
 .form-check label {
-  font-size: var(--text-sm);
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: var(--text-base);
   color: var(--color-secondary);
   cursor: pointer;
 }
 
-/* Dynamic add-field button */
+/* Date input styling (flip off the dark scheme) */
+.form__input[type="date"] {
+  color-scheme: light;
+}
+
+/* ------- Add-field button as text link ------- */
 .form-add-btn {
   background: none;
   border: none;
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: var(--text-base);
   color: var(--color-accent);
-  font-size: var(--text-sm);
-  letter-spacing: 0.05em;
   cursor: pointer;
-  padding: var(--space-xs) 0;
+  padding: var(--space-xs) 0 0;
   transition: color var(--transition-fast);
 }
 
@@ -116,37 +183,87 @@
   color: var(--color-accent-hover);
 }
 
-/* Dynamic fields container */
 .form-dynamic-fields {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
 }
 
-/* Contact sidebar */
+/* ------- Submit as editorial text-link ------- */
+#submitBtn.btn,
+.contact-grid .btn {
+  display: inline-block;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-text-dark);
+  padding: 0 0 4px;
+  margin-top: var(--space-md);
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--color-text-dark);
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast), letter-spacing var(--transition-fast);
+}
+
+#submitBtn.btn:hover,
+.contact-grid .btn:hover {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+  letter-spacing: 0.3em;
+}
+
+#submitBtn.btn::after,
+.contact-grid .btn::after {
+  content: ' →';
+  font-family: var(--font-body);
+}
+
+/* ------- Sidebar ------- */
+.contact-sidebar {
+  padding-top: var(--space-xs);
+}
+
+.contact-info {
+  margin-bottom: var(--space-xl);
+}
+
+.contact-info .text-caption {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: var(--text-base);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-accent);
+  margin-bottom: var(--space-md);
+}
+
 .contact-info__item {
   display: flex;
   align-items: flex-start;
   gap: var(--space-sm);
   padding: var(--space-sm) 0;
-  border-bottom: 1px solid var(--color-border-light);
-  color: var(--color-secondary);
-  font-size: var(--text-sm);
+  border-bottom: 1px solid rgba(42, 47, 48, 0.1);
+  color: var(--color-text-dark);
+  font-family: var(--font-accent);
+  font-size: var(--text-lg);
 }
 
 .contact-info__item svg {
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 4px;
   color: var(--color-accent);
 }
 
 .contact-info__item a {
-  color: var(--color-secondary);
+  color: var(--color-text-dark);
+  text-decoration: none;
   transition: color var(--transition-fast);
 }
 
 .contact-info__item a:hover {
-  color: var(--color-text-light);
+  color: var(--color-accent);
 }
 
 /* Social links */
@@ -160,8 +277,11 @@
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  color: var(--color-secondary);
-  font-size: var(--text-sm);
+  font-family: var(--font-accent);
+  font-style: italic;
+  color: var(--color-text-dark);
+  font-size: var(--text-lg);
+  text-decoration: none;
   transition: color var(--transition-fast);
 }
 
@@ -169,38 +289,48 @@
   color: var(--color-accent);
 }
 
-/* Thank you screen */
+/* Note below sidebar */
+.contact-note p {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: var(--text-lg);
+  color: var(--color-secondary) !important;
+  line-height: 1.6;
+}
+
+/* ------- Thank you screen ------- */
 .contact-thankyou {
   text-align: center;
-  padding: var(--space-xl) 0;
+  padding: var(--space-2xl) 0;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .contact-thankyou h2 {
   font-family: var(--font-display);
-  font-size: var(--text-3xl);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-light);
-  margin-bottom: var(--space-sm);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--color-text-dark);
+  margin-bottom: var(--space-md);
 }
 
 .contact-thankyou p {
   font-family: var(--font-accent);
+  font-style: italic;
   font-size: var(--text-lg);
   color: var(--color-secondary);
   line-height: 1.7;
-  max-width: 500px;
+  max-width: 520px;
   margin: 0 auto var(--space-sm);
-}
-
-.contact-thankyou .btn {
-  margin-top: var(--space-md);
 }
 
 /* Form error */
 .form__error {
   color: #c0392b;
-  font-size: var(--text-xs);
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: var(--text-sm);
   margin-top: 4px;
   display: none;
 }
