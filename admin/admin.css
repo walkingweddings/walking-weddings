@@ -22,6 +22,9 @@
 
 * { box-sizing: border-box; }
 
+/* Ensure [hidden] always wins over custom display rules like flex/grid */
+[hidden] { display: none !important; }
+
 .admin-body {
   margin: 0;
   font-family: "PT Sans", -apple-system, BlinkMacSystemFont, sans-serif;
