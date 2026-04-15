@@ -19,6 +19,7 @@
     media: [],       // [{ url, type, filename, caption }]
     draftId: null,
     draft: null,
+    sourceSlug: null, // when editing a published post, the slug it originated from
   };
 
   // --- DOM refs -------------------------------------------------------------
@@ -46,6 +47,12 @@
   const manageRefreshBtn = $('manageRefreshBtn');
   const manageList = $('manageList');
   const managePostCount = $('managePostCount');
+  const manageSearch = $('manageSearch');
+  const tabPostsCount = $('tabPostsCount');
+  const tabDraftsCount = $('tabDraftsCount');
+  const editModeBanner = $('editModeBanner');
+  const editModeTitle = $('editModeTitle');
+  const newDraftBtn = $('newDraftBtn');
   const userEmailEl = $('userEmail');
   const claudeStatusEl = $('claudeStatus');
   const toast = $('toast');
@@ -376,7 +383,7 @@
 
   // --- Publish --------------------------------------------------------------
 
-  // --- Manage existing posts ------------------------------------------------
+  // --- Manage existing posts & drafts ---------------------------------------
 
   function escapeHtml(str) {
     return String(str == null ? '' : str)
@@ -386,10 +393,17 @@
       .replace(/"/g, '&quot;');
   }
 
+  const manageState = {
+    tab: 'posts',          // 'posts' | 'drafts'
+    posts: [],
+    drafts: [],
+    search: '',
+  };
+
   function openManageOverlay() {
     manageOverlay.hidden = false;
     document.body.classList.add('admin-no-scroll');
-    loadPostsList();
+    loadManageData();
   }
 
   function closeManageOverlay() {
@@ -397,31 +411,86 @@
     document.body.classList.remove('admin-no-scroll');
   }
 
-  async function loadPostsList() {
-    manageList.innerHTML = '<div class="admin-manage__placeholder">Lade Beiträge…</div>';
-    managePostCount.textContent = '';
+  async function loadManageData() {
+    manageList.innerHTML = '<div class="admin-manage__placeholder">Lade…</div>';
     try {
-      const data = await api('/api/admin/posts');
-      renderPostsList(data.posts || []);
+      const [posts, drafts] = await Promise.all([
+        api('/api/admin/posts').catch(() => ({ posts: [] })),
+        api('/api/admin/drafts').catch(() => ({ drafts: [] })),
+      ]);
+      manageState.posts = posts.posts || [];
+      manageState.drafts = drafts.drafts || [];
+      tabPostsCount.textContent = manageState.posts.length ? '(' + manageState.posts.length + ')' : '';
+      tabDraftsCount.textContent = manageState.drafts.length ? '(' + manageState.drafts.length + ')' : '';
+      renderManageList();
     } catch (err) {
       manageList.innerHTML = '<div class="admin-manage__placeholder admin-manage__placeholder--error">Fehler: ' + escapeHtml(err.message) + '</div>';
     }
   }
 
-  function renderPostsList(posts) {
-    if (!posts.length) {
-      manageList.innerHTML = '<div class="admin-manage__placeholder">Noch keine Beiträge veröffentlicht.</div>';
-      managePostCount.textContent = '';
-      return;
-    }
-    managePostCount.textContent = posts.length === 1 ? '· 1 Geschichte' : '· ' + posts.length + ' Geschichten';
+  function setManageTab(tab) {
+    manageState.tab = tab;
+    document.querySelectorAll('.admin-manage-tab').forEach(b => {
+      b.classList.toggle('admin-manage-tab--active', b.dataset.tab === tab);
+    });
+    renderManageList();
+  }
 
+  function matchesSearch(needle, haystackParts) {
+    if (!needle) return true;
+    const n = needle.toLowerCase();
+    return haystackParts.some(p => (p || '').toLowerCase().includes(n));
+  }
+
+  function renderManageList() {
+    const q = manageState.search.trim();
+    if (manageState.tab === 'posts') {
+      const filtered = manageState.posts.filter(p =>
+        matchesSearch(q, [p.title, p.slug, p.excerpt, p.tag])
+      );
+      managePostCount.textContent = filtered.length
+        ? '· ' + filtered.length + (filtered.length === 1 ? ' Geschichte' : ' Geschichten')
+        : '';
+      if (!filtered.length) {
+        const msg = manageState.posts.length
+          ? 'Keine Treffer für „' + escapeHtml(q) + '".'
+          : 'Noch keine Beiträge veröffentlicht.';
+        manageList.innerHTML = '<div class="admin-manage__placeholder">' + msg + '</div>';
+        return;
+      }
+      renderPostsCards(filtered);
+    } else {
+      const filtered = manageState.drafts.filter(d =>
+        matchesSearch(q, [d.plainTitle, d.slug, d.coupleNames, d.eyebrow, d.prompt])
+      );
+      managePostCount.textContent = filtered.length
+        ? '· ' + filtered.length + ' Entwurf' + (filtered.length === 1 ? '' : 'e')
+        : '';
+      if (!filtered.length) {
+        const msg = manageState.drafts.length
+          ? 'Keine Treffer für „' + escapeHtml(q) + '".'
+          : 'Keine offenen Entwürfe.';
+        manageList.innerHTML = '<div class="admin-manage__placeholder">' + msg + '</div>';
+        return;
+      }
+      renderDraftCards(filtered);
+    }
+  }
+
+  function renderPostsCards(posts) {
     manageList.innerHTML = '';
     posts.forEach((p, i) => {
       const card = document.createElement('article');
       card.className = 'admin-manage-card';
-
       const plate = String(i + 1).padStart(2, '0');
+
+      const editBtn = p.editable
+        ? '<button type="button" class="admin-btn admin-btn--secondary admin-btn--small" data-action="edit" data-slug="' + escapeHtml(p.slug) + '">Bearbeiten</button>'
+        : '<button type="button" class="admin-btn admin-btn--ghost admin-btn--small" disabled title="Dieser Legacy-Beitrag hat keine Quelldatei und kann nur angesehen oder gelöscht werden.">Bearbeiten</button>';
+
+      const dupBtn = p.editable
+        ? '<button type="button" class="admin-btn admin-btn--ghost admin-btn--small" data-action="duplicate" data-slug="' + escapeHtml(p.slug) + '">Duplizieren</button>'
+        : '';
 
       card.innerHTML =
         '<div class="admin-manage-card__image">' +
@@ -430,6 +499,7 @@
             : '<div class="admin-manage-card__noimage">Kein Bild</div>') +
           '<span class="admin-manage-card__plate">№ ' + plate + '</span>' +
           (p.fileExists ? '' : '<span class="admin-manage-card__missing">HTML fehlt</span>') +
+          (p.editable ? '' : '<span class="admin-manage-card__legacy">Legacy</span>') +
         '</div>' +
         '<div class="admin-manage-card__body">' +
           '<p class="admin-manage-card__tag">' + escapeHtml(p.tag || 'Journal') + '</p>' +
@@ -438,15 +508,61 @@
           '<p class="admin-manage-card__slug"><code>' + escapeHtml(p.url) + '</code></p>' +
           '<div class="admin-manage-card__actions">' +
             '<a href="' + escapeHtml(p.url) + '" target="_blank" rel="noopener" class="admin-btn admin-btn--ghost admin-btn--small">↗ Ansehen</a>' +
+            editBtn +
+            dupBtn +
             '<button type="button" class="admin-btn admin-btn--danger admin-btn--small" data-action="delete" data-slug="' + escapeHtml(p.slug) + '" data-title="' + escapeHtml(p.title || p.slug) + '">Löschen</button>' +
           '</div>' +
         '</div>';
-
       manageList.appendChild(card);
     });
 
     manageList.querySelectorAll('[data-action="delete"]').forEach(btn => {
       btn.addEventListener('click', () => handleDeletePost(btn.dataset.slug, btn.dataset.title));
+    });
+    manageList.querySelectorAll('[data-action="edit"]').forEach(btn => {
+      btn.addEventListener('click', () => handleOpenPost(btn.dataset.slug, 'edit'));
+    });
+    manageList.querySelectorAll('[data-action="duplicate"]').forEach(btn => {
+      btn.addEventListener('click', () => handleOpenPost(btn.dataset.slug, 'duplicate'));
+    });
+  }
+
+  function renderDraftCards(drafts) {
+    manageList.innerHTML = '';
+    drafts.forEach((d, i) => {
+      const card = document.createElement('article');
+      card.className = 'admin-manage-card admin-manage-card--draft';
+      const plate = String(i + 1).padStart(2, '0');
+      const img = d.heroImageUrl || d.cardImageUrl || '';
+      const promptPreview = (d.prompt || '').slice(0, 140);
+      const updated = d.updatedAt ? new Date(d.updatedAt).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' }) : '';
+      card.innerHTML =
+        '<div class="admin-manage-card__image">' +
+          (img
+            ? '<img src="' + escapeHtml(img) + '" alt="" loading="lazy">'
+            : '<div class="admin-manage-card__noimage">Ohne Bild</div>') +
+          '<span class="admin-manage-card__plate">№ ' + plate + '</span>' +
+          '<span class="admin-manage-card__draftbadge">Entwurf</span>' +
+        '</div>' +
+        '<div class="admin-manage-card__body">' +
+          '<p class="admin-manage-card__tag">' + escapeHtml(d.eyebrow || 'Entwurf') + '</p>' +
+          '<h3 class="admin-manage-card__title">' + escapeHtml(d.plainTitle || d.slug || 'Ohne Titel') + '</h3>' +
+          '<p class="admin-manage-card__excerpt">' + escapeHtml(d.coupleNames || '') + (d.location ? ' · ' + escapeHtml(d.location) : '') + '</p>' +
+          (promptPreview ? '<p class="admin-manage-card__prompt">„' + escapeHtml(promptPreview) + (d.prompt.length > 140 ? '…' : '') + '"</p>' : '') +
+          '<p class="admin-manage-card__slug"><code>' + escapeHtml(d.mediaCount + ' Medien · ' + updated) + '</code></p>' +
+          '<div class="admin-manage-card__actions">' +
+            '<button type="button" class="admin-btn admin-btn--secondary admin-btn--small" data-action="resume" data-id="' + escapeHtml(d.id) + '">Fortsetzen</button>' +
+            '<button type="button" class="admin-btn admin-btn--danger admin-btn--small" data-action="discard" data-id="' + escapeHtml(d.id) + '" data-title="' + escapeHtml(d.plainTitle || d.slug) + '">Verwerfen</button>' +
+          '</div>' +
+        '</div>';
+      manageList.appendChild(card);
+    });
+
+    manageList.querySelectorAll('[data-action="resume"]').forEach(btn => {
+      btn.addEventListener('click', () => handleResumeDraft(btn.dataset.id));
+    });
+    manageList.querySelectorAll('[data-action="discard"]').forEach(btn => {
+      btn.addEventListener('click', () => handleDiscardDraft(btn.dataset.id, btn.dataset.title));
     });
   }
 
@@ -462,19 +578,127 @@
       await api('/api/admin/posts/' + encodeURIComponent(slug), { method: 'DELETE' });
       hideOverlay();
       showToast('Beitrag entfernt', 'success');
-      await loadPostsList();
+      await loadManageData();
     } catch (err) {
       hideOverlay();
       showToast('Fehler: ' + err.message, 'error', 6000);
     }
   }
 
+  async function handleOpenPost(slug, mode) {
+    if (!slug) return;
+    if (state.draftId && !confirm('Der aktuelle Entwurf geht verloren. Trotzdem ' + (mode === 'duplicate' ? 'duplizieren' : 'bearbeiten') + '?')) return;
+    showOverlay(mode === 'duplicate' ? 'Kopie wird erstellt…' : 'Beitrag wird geladen…');
+    try {
+      const data = await api('/api/admin/posts/open', {
+        method: 'POST',
+        body: JSON.stringify({ slug, mode }),
+      });
+      hydrateDraft(data, mode === 'duplicate' ? null : data.sourceSlug || slug);
+      closeManageOverlay();
+      hideOverlay();
+      showToast(mode === 'duplicate' ? 'Duplikat geladen — gib ihm einen neuen Slug.' : 'Beitrag im Editor geladen', 'success');
+    } catch (err) {
+      hideOverlay();
+      showToast('Fehler: ' + err.message, 'error', 6000);
+    }
+  }
+
+  async function handleResumeDraft(id) {
+    if (!id) return;
+    if (state.draftId && state.draftId !== id && !confirm('Der aktuelle Entwurf geht verloren. Diesen Entwurf fortsetzen?')) return;
+    showOverlay('Entwurf wird geladen…');
+    try {
+      const data = await api('/api/admin/drafts/open', {
+        method: 'POST',
+        body: JSON.stringify({ id }),
+      });
+      hydrateDraft(data, null);
+      closeManageOverlay();
+      hideOverlay();
+      showToast('Entwurf geladen', 'success');
+    } catch (err) {
+      hideOverlay();
+      showToast('Fehler: ' + err.message, 'error', 6000);
+    }
+  }
+
+  async function handleDiscardDraft(id, title) {
+    if (!id) return;
+    if (!confirm('Entwurf "' + (title || id) + '" wirklich verwerfen?')) return;
+    try {
+      await api('/api/admin/drafts/' + encodeURIComponent(id), { method: 'DELETE' });
+      showToast('Entwurf verworfen', 'success');
+      await loadManageData();
+    } catch (err) {
+      showToast('Fehler: ' + err.message, 'error', 6000);
+    }
+  }
+
+  function hydrateDraft(data, sourceSlug) {
+    state.draftId = data.id;
+    state.draft = data.draft;
+    state.media = (data.media || []).map(m => ({ ...m }));
+    state.sourceSlug = sourceSlug || null;
+    promptInput.value = data.prompt || '';
+    renderMediaList();
+    renderDraftFields();
+    showDraftSections();
+    loadPreview();
+    updateEditModeBanner();
+  }
+
+  function updateEditModeBanner() {
+    if (state.sourceSlug) {
+      editModeBanner.hidden = false;
+      editModeTitle.textContent = (state.draft && state.draft.plainTitle) || state.sourceSlug;
+    } else {
+      editModeBanner.hidden = true;
+      editModeTitle.textContent = '';
+    }
+  }
+
+  function resetCreator() {
+    state.draftId = null;
+    state.draft = null;
+    state.media = [];
+    state.sourceSlug = null;
+    promptInput.value = '';
+    revisionInput.value = '';
+    renderMediaList();
+    renderDraftFields();
+    draftSection.hidden = true;
+    reviseSection.hidden = true;
+    publishSection.hidden = true;
+    previewFrame.hidden = true;
+    previewFrame.src = 'about:blank';
+    previewPlaceholder.hidden = false;
+    updateEditModeBanner();
+  }
+
+  if (newDraftBtn) {
+    newDraftBtn.addEventListener('click', () => {
+      if (state.draft && !confirm('Aktuellen Entwurf verwerfen und neu beginnen?')) return;
+      resetCreator();
+      showToast('Bereit für eine neue Geschichte', 'info');
+    });
+  }
+
   if (managePostsBtn) managePostsBtn.addEventListener('click', openManageOverlay);
   if (manageCloseBtn) manageCloseBtn.addEventListener('click', closeManageOverlay);
-  if (manageRefreshBtn) manageRefreshBtn.addEventListener('click', loadPostsList);
+  if (manageRefreshBtn) manageRefreshBtn.addEventListener('click', loadManageData);
   if (manageOverlay) {
     manageOverlay.addEventListener('click', (e) => {
       if (e.target === manageOverlay) closeManageOverlay();
+    });
+  }
+  document.querySelectorAll('.admin-manage-tab').forEach(btn => {
+    btn.addEventListener('click', () => setManageTab(btn.dataset.tab));
+  });
+  if (manageSearch) {
+    manageSearch.addEventListener('input', () => {
+      manageState.search = manageSearch.value;
+      renderManageList();
     });
   }
   document.addEventListener('keydown', (e) => {
@@ -487,17 +711,23 @@
       showToast('Ungültiger Slug — nur kleine Buchstaben, Zahlen, Bindestriche', 'error');
       return;
     }
-    if (!confirm('Beitrag "' + (state.draft.plainTitle || state.draft.slug) + '" wirklich veröffentlichen?\n\nEr wird als /blog/' + state.draft.slug + '.html gespeichert und auf der Journal-Seite hinzugefügt.')) {
+    const isUpdate = !!state.sourceSlug;
+    const confirmMsg = isUpdate
+      ? 'Beitrag "' + (state.draft.plainTitle || state.draft.slug) + '" wirklich aktualisieren?\n\nEr wird als /blog/' + state.draft.slug + '.html gespeichert.'
+          + (state.sourceSlug !== state.draft.slug ? '\n\nAchtung: Der Slug hat sich geändert — der alte Beitrag unter /blog/' + state.sourceSlug + '.html wird entfernt.' : '')
+      : 'Beitrag "' + (state.draft.plainTitle || state.draft.slug) + '" wirklich veröffentlichen?\n\nEr wird als /blog/' + state.draft.slug + '.html gespeichert und auf der Journal-Seite hinzugefügt.';
+    if (!confirm(confirmMsg)) {
       return;
     }
     await syncDraftToServer();
-    showOverlay('Beitrag wird veröffentlicht…');
+    showOverlay(isUpdate ? 'Beitrag wird aktualisiert…' : 'Beitrag wird veröffentlicht…');
     try {
       const data = await api('/api/admin/publish', {
         method: 'POST',
         body: JSON.stringify({
           id: state.draftId,
           cardImageUrl: state.draft.cardImageUrl,
+          sourceSlug: state.sourceSlug || null,
         }),
       });
       hideOverlay();
@@ -508,20 +738,7 @@
         if (confirm('Beitrag wurde veröffentlicht.\n\nMöchtest du den Beitrag jetzt ansehen?')) {
           window.open(data.url, '_blank');
         }
-        // Reset state for a new post
-        state.draftId = null;
-        state.draft = null;
-        state.media = [];
-        promptInput.value = '';
-        revisionInput.value = '';
-        renderMediaList();
-        renderDraftFields();
-        draftSection.hidden = true;
-        reviseSection.hidden = true;
-        publishSection.hidden = true;
-        previewFrame.hidden = true;
-        previewFrame.src = 'about:blank';
-        previewPlaceholder.hidden = false;
+        resetCreator();
       }, 600);
     } catch (err) {
       hideOverlay();

@@ -47,6 +47,14 @@
         <div class="admin-masthead__rule"></div>
       </div>
 
+      <div id="editModeBanner" class="admin-editmode" hidden>
+        <div class="admin-editmode__inner">
+          <span class="admin-editmode__label">Im Bearbeitungsmodus</span>
+          <span id="editModeTitle" class="admin-editmode__title"></span>
+        </div>
+        <button type="button" id="newDraftBtn" class="admin-btn admin-btn--ghost admin-btn--small">Neu beginnen</button>
+      </div>
+
       <section class="admin-section">
         <div class="admin-section__header">
           <span class="admin-section__numeral">I</span>
@@ -211,7 +219,7 @@
   <div id="manageOverlay" class="admin-manage" hidden>
     <div class="admin-manage__dialog" role="dialog" aria-modal="true" aria-labelledby="manageTitle">
       <header class="admin-manage__header">
-        <div>
+        <div class="admin-manage__heading">
           <p class="admin-manage__eyebrow">Editorial Archive</p>
           <h2 class="admin-manage__title" id="manageTitle">Alle Journal-Beiträge</h2>
           <p class="admin-manage__sub">Verwalte bereits veröffentlichte Geschichten. <span id="managePostCount"></span></p>
@@ -221,6 +229,17 @@
           <button id="manageCloseBtn" class="admin-btn admin-btn--ghost admin-btn--small">Schließen ✕</button>
         </div>
       </header>
+
+      <div class="admin-manage__toolbar">
+        <div class="admin-manage__tabs">
+          <button class="admin-manage-tab admin-manage-tab--active" data-tab="posts">Veröffentlicht <span id="tabPostsCount" class="admin-manage-tab__count"></span></button>
+          <button class="admin-manage-tab" data-tab="drafts">Entwürfe <span id="tabDraftsCount" class="admin-manage-tab__count"></span></button>
+        </div>
+        <div class="admin-manage__search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+          <input type="text" id="manageSearch" placeholder="Suchen nach Titel, Paar, Slug…" autocomplete="off">
+        </div>
+      </div>
 
       <div id="manageList" class="admin-manage__list">
         <div class="admin-manage__placeholder">Lade Beiträge…</div>

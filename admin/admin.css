@@ -1007,7 +1007,209 @@ code {
   padding-top: 14px;
   border-top: 1px solid var(--admin-rule);
 }
-.admin-manage-card__actions .admin-btn { flex: 1; }
+.admin-manage-card__actions .admin-btn { flex: 1 1 auto; min-width: 0; }
+
+/* ==========================================================================
+   Edit-mode banner
+   ========================================================================== */
+
+.admin-editmode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  margin: 0 0 36px;
+  background: linear-gradient(90deg, rgba(184, 168, 138, 0.12), rgba(184, 168, 138, 0.04));
+  border: 1px solid rgba(184, 168, 138, 0.35);
+  border-left: 3px solid var(--admin-accent);
+  animation: admin-fade-in 0.35s ease;
+}
+.admin-editmode__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.admin-editmode__label {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--admin-accent);
+}
+.admin-editmode__title {
+  font-family: "Italiana", serif;
+  font-size: 17px;
+  color: var(--admin-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   Manage toolbar: tabs + search
+   ========================================================================== */
+
+.admin-manage__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 44px;
+  background: var(--admin-bg-alt);
+  border-bottom: 1px solid var(--admin-rule);
+  flex-wrap: wrap;
+}
+
+.admin-manage__tabs {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-border);
+}
+.admin-manage-tab {
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--admin-text-dim);
+  border: none;
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-weight: 700;
+  font-family: inherit;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.admin-manage-tab:hover { color: var(--admin-text); }
+.admin-manage-tab--active {
+  background: var(--admin-accent);
+  color: #0B1111;
+}
+.admin-manage-tab__count {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 13px;
+  letter-spacing: 0;
+  opacity: 0.85;
+}
+
+.admin-manage__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-border);
+  min-width: 260px;
+  flex: 0 1 360px;
+  color: var(--admin-text-dim);
+  transition: border-color 0.2s;
+}
+.admin-manage__search:focus-within {
+  border-color: var(--admin-accent);
+  color: var(--admin-accent);
+}
+.admin-manage__search svg { flex-shrink: 0; }
+.admin-manage__search input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--admin-text);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  padding: 0;
+  min-width: 0;
+}
+.admin-manage__search input::placeholder {
+  color: var(--admin-text-dim);
+  font-style: italic;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 14px;
+}
+
+/* --- Draft / legacy card badges ------------------------------------------- */
+
+.admin-manage-card__legacy,
+.admin-manage-card__draftbadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 4px 10px;
+  font-size: 9px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.admin-manage-card__legacy {
+  background: rgba(154, 161, 159, 0.88);
+  color: #0B1111;
+}
+.admin-manage-card__draftbadge {
+  background: rgba(184, 168, 138, 0.92);
+  color: #0B1111;
+}
+
+.admin-manage-card--draft {
+  border-style: dashed;
+  background: var(--admin-bg-card);
+}
+
+.admin-manage-card__prompt {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--admin-text-dim);
+  line-height: 1.5;
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border-left: 2px solid var(--admin-rule);
+  background: rgba(184, 168, 138, 0.04);
+  max-height: 64px;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Reveal animations
+   ========================================================================== */
+
+@keyframes admin-reveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.admin-section { animation: admin-reveal 0.5s ease both; }
+.admin-section:nth-of-type(1) { animation-delay: 0.05s; }
+.admin-section:nth-of-type(2) { animation-delay: 0.10s; }
+.admin-section:nth-of-type(3) { animation-delay: 0.15s; }
+.admin-section:nth-of-type(4) { animation-delay: 0.20s; }
+.admin-section:nth-of-type(5) { animation-delay: 0.25s; }
+
+.admin-masthead { animation: admin-reveal 0.5s ease both; }
+
+.admin-manage-card { animation: admin-reveal 0.4s ease both; }
+.admin-manage-card:nth-child(1) { animation-delay: 0.02s; }
+.admin-manage-card:nth-child(2) { animation-delay: 0.05s; }
+.admin-manage-card:nth-child(3) { animation-delay: 0.08s; }
+.admin-manage-card:nth-child(4) { animation-delay: 0.11s; }
+.admin-manage-card:nth-child(5) { animation-delay: 0.14s; }
+.admin-manage-card:nth-child(6) { animation-delay: 0.17s; }
+.admin-manage-card:nth-child(n+7) { animation-delay: 0.20s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-section,
+  .admin-masthead,
+  .admin-manage-card,
+  .admin-editmode,
+  .admin-manage { animation: none !important; }
+}
 
 /* ==========================================================================
    Toast / overlay
@@ -1089,6 +1291,7 @@ code {
   .admin-fields { grid-template-columns: 1fr; }
   .admin-field { grid-column: auto; }
   .admin-manage__header { padding: 28px 28px 20px; flex-direction: column; }
+  .admin-manage__toolbar { padding: 14px 28px; }
   .admin-manage__list { padding: 24px 28px 32px; }
 }
 
