@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Journal Creator — Walking Weddings</title>
+  <meta name="robots" content="noindex, nofollow">
+
+  <link rel="stylesheet" href="../assets/css/reset.css">
+  <link rel="stylesheet" href="../assets/css/variables.css">
+  <link rel="stylesheet" href="admin.css">
+  <link rel="icon" href="../assets/images/logo/favicon.svg" type="image/svg+xml">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Italiana&family=PT+Sans:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+
+  <header class="admin-header">
+    <div class="admin-header__brand">
+      <img src="../assets/images/logo/ww_logoWhite_wtagline.svg" alt="Walking Weddings">
+      <span class="admin-header__divider"></span>
+      <span class="admin-header__label">Journal Creator</span>
+    </div>
+    <div class="admin-header__meta">
+      <span id="claudeStatus" class="admin-pill">Claude: prüfe…</span>
+      <span id="userEmail" class="admin-user"></span>
+      <button id="logoutBtn" class="admin-btn admin-btn--ghost">Logout</button>
+    </div>
+  </header>
+
+  <main class="admin-main">
+
+    <!-- LEFT: Control panel -->
+    <aside class="admin-panel" id="panel">
+
+      <section class="admin-section">
+        <h2 class="admin-section__title">① Medien</h2>
+        <p class="admin-section__sub">Bilder oder Videos per Drag &amp; Drop oder Klick hinzufügen.</p>
+        <div id="dropzone" class="admin-dropzone" tabindex="0">
+          <div class="admin-dropzone__inner">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 3v14M5 10l7-7 7 7"/><path d="M5 21h14"/></svg>
+            <p><strong>Dateien hier ablegen</strong><br>oder klicken zum Auswählen</p>
+            <p class="admin-dropzone__hint">JPG, PNG, WEBP, MP4 · mehrere Dateien möglich</p>
+          </div>
+          <input type="file" id="fileInput" accept="image/*,video/*" multiple hidden>
+        </div>
+        <div id="mediaList" class="admin-media-list"></div>
+      </section>
+
+      <section class="admin-section">
+        <h2 class="admin-section__title">② Briefing</h2>
+        <p class="admin-section__sub">Erzähl Claude von der Hochzeit — Paar, Location, Stimmung, besondere Momente.</p>
+        <textarea id="promptInput" class="admin-textarea" rows="10" placeholder="Beispiel:&#10;Romantische Sommerhochzeit von Anna &amp; Max im Schlosspark Schönbrunn. Intime Zeremonie im Rosengarten, anschließend Dinner in der Orangerie. Der ganze Tag war geprägt von goldenem Abendlicht und emotionalen Momenten zwischen Familie und Freunden. Stil: elegant, klassisch, sommerlich."></textarea>
+        <button id="generateBtn" class="admin-btn admin-btn--primary admin-btn--full">Entwurf mit Claude erstellen</button>
+      </section>
+
+      <section class="admin-section" id="draftSection" hidden>
+        <h2 class="admin-section__title">③ Entwurf</h2>
+        <p class="admin-section__sub">Du kannst alle Felder direkt bearbeiten. Die Vorschau aktualisiert sich automatisch.</p>
+
+        <div class="admin-fields">
+          <label class="admin-field">
+            <span>Titel (plain)</span>
+            <input type="text" id="f_plainTitle" data-field="plainTitle">
+          </label>
+          <label class="admin-field">
+            <span>Titel mit &lt;em&gt;-Akzent</span>
+            <input type="text" id="f_title" data-field="title">
+          </label>
+          <label class="admin-field">
+            <span>Eyebrow</span>
+            <input type="text" id="f_eyebrow" data-field="eyebrow">
+          </label>
+          <label class="admin-field">
+            <span>Issue-Nr.</span>
+            <input type="text" id="f_issueNumber" data-field="issueNumber">
+          </label>
+          <label class="admin-field">
+            <span>Paar</span>
+            <input type="text" id="f_coupleNames" data-field="coupleNames">
+          </label>
+          <label class="admin-field">
+            <span>Location</span>
+            <input type="text" id="f_location" data-field="location">
+          </label>
+          <label class="admin-field">
+            <span>Services</span>
+            <input type="text" id="f_services" data-field="services">
+          </label>
+          <label class="admin-field">
+            <span>Slug (URL)</span>
+            <input type="text" id="f_slug" data-field="slug">
+          </label>
+          <label class="admin-field">
+            <span>Tag</span>
+            <input type="text" id="f_tag" data-field="tag">
+          </label>
+          <label class="admin-field admin-field--wide">
+            <span>Meta-Beschreibung</span>
+            <input type="text" id="f_metaDescription" data-field="metaDescription">
+          </label>
+          <label class="admin-field admin-field--wide">
+            <span>Card-Titel (Grid)</span>
+            <input type="text" id="f_cardTitle" data-field="cardTitle">
+          </label>
+          <label class="admin-field admin-field--wide">
+            <span>Excerpt (Grid-Teaser)</span>
+            <input type="text" id="f_excerpt" data-field="excerpt">
+          </label>
+          <label class="admin-field admin-field--wide">
+            <span>Galerie-Link (optional)</span>
+            <input type="text" id="f_galleryUrl" data-field="galleryUrl">
+          </label>
+          <label class="admin-field admin-field--wide">
+            <span>Hero-Bild URL</span>
+            <input type="text" id="f_heroImageUrl" data-field="heroImageUrl">
+          </label>
+          <label class="admin-field admin-field--wide">
+            <span>Card-Bild URL (Grid-Thumbnail)</span>
+            <input type="text" id="f_cardImageUrl" data-field="cardImageUrl">
+          </label>
+        </div>
+      </section>
+
+      <section class="admin-section" id="reviseSection" hidden>
+        <h2 class="admin-section__title">④ Änderungen prompten</h2>
+        <p class="admin-section__sub">Sag Claude, was angepasst werden soll — Text, Struktur, Reihenfolge, Ton.</p>
+        <textarea id="revisionInput" class="admin-textarea" rows="5" placeholder="Beispiel: Mache die Einleitung poetischer. Füge ein Kapitel über das Dinner hinzu. Ersetze das zweite Bild durch das Triptychon."></textarea>
+        <button id="reviseBtn" class="admin-btn admin-btn--secondary admin-btn--full">Änderungen anwenden</button>
+      </section>
+
+      <section class="admin-section" id="publishSection" hidden>
+        <h2 class="admin-section__title">⑤ Veröffentlichen</h2>
+        <p class="admin-section__sub">Der Beitrag wird unter <code>/blog/&lt;slug&gt;.html</code> gespeichert und in die Journal-Übersicht eingefügt.</p>
+        <button id="publishBtn" class="admin-btn admin-btn--publish admin-btn--full">Jetzt veröffentlichen</button>
+      </section>
+
+    </aside>
+
+    <!-- RIGHT: Preview -->
+    <section class="admin-preview">
+      <div class="admin-preview__bar">
+        <div class="admin-preview__tabs">
+          <button class="admin-tab admin-tab--active" data-device="desktop">Desktop</button>
+          <button class="admin-tab" data-device="tablet">Tablet</button>
+          <button class="admin-tab" data-device="mobile">Mobile</button>
+        </div>
+        <button id="refreshPreviewBtn" class="admin-btn admin-btn--ghost admin-btn--small">↻ Aktualisieren</button>
+      </div>
+      <div class="admin-preview__frame" id="previewFrameWrap">
+        <div class="admin-preview__placeholder" id="previewPlaceholder">
+          <p>Noch kein Entwurf</p>
+          <p class="admin-preview__hint">Lade Medien hoch, beschreibe die Hochzeit und klicke auf <em>Entwurf erstellen</em>.</p>
+        </div>
+        <iframe id="previewFrame" title="Preview" hidden></iframe>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Overlay toast -->
+  <div id="toast" class="admin-toast" hidden></div>
+
+  <!-- Full-screen loading overlay -->
+  <div id="overlay" class="admin-overlay" hidden>
+    <div class="admin-overlay__inner">
+      <div class="admin-spinner"></div>
+      <p id="overlayText">Claude schreibt…</p>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
