@@ -16,6 +16,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Italiana&family=PT+Sans:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="../assets/css/reset.css">
   <link rel="stylesheet" href="../assets/css/variables.css">
@@ -37,7 +38,7 @@
   }
   </script>
 </head>
-<body>
+<body class="editorial">
 
   <a href="../index.html" class="nav__logo">
       <img src="../assets/images/logo/ww_logoWhite_wtagline.svg" alt="Walking Weddings">
@@ -64,94 +65,166 @@
     <a href="../contact.html" class="mobile-menu__link">Contact</a>
   </div>
 
-  <section class="blog-hero">
-    <img class="blog-hero__image" src="../assets/images/portfolio/LianaKevin-74.jpg" alt="Hochzeit von Paula und Ryan an der Donau in Wien">
-    <div class="blog-hero__overlay"></div>
-    <div class="blog-hero__content">
-      <p class="blog-hero__tag">Wedding</p>
-      <h1 class="blog-hero__title">Internationale Liebe in der Donaustadt</h1>
-      <p class="blog-hero__subtitle">Paula & Ryan — Wien, Österreich</p>
+  <header class="editorial-hero">
+    <div class="editorial-hero__topbar">
+      <span>Walking Weddings Journal</span>
+      <span>Issue №11 · MMXXIV</span>
+    </div>
+    <p class="editorial-hero__eyebrow">Donauufer Love Story</p>
+    <h1 class="editorial-hero__title">Internationale <em>Liebe</em> in der Donaustadt</h1>
+    <p class="editorial-hero__meta">
+      <span>Paula &amp; Ryan</span>
+      <span>Wien, Österreich</span>
+      <span>Foto + Film</span>
+    </p>
+    <figure class="editorial-hero__figure">
+      <img src="../assets/images/portfolio/LianaKevin-74.jpg" alt="Paula & Ryan — Hochzeit Donau Wien" loading="eager">
+      <figcaption>Plate I — An den Ufern der Donau</figcaption>
+    </figure>
+  </header>
+
+  <div class="editorial-marquee">
+    <div class="editorial-marquee__track">
+      <span>Paula &amp; Ryan</span>
+      <span>Donauliebe</span>
+      <span>Internationale Hochzeit</span>
+      <span>Lichterketten</span>
+      <span>Paula &amp; Ryan</span>
+      <span>Donauliebe</span>
+      <span>Internationale Hochzeit</span>
+      <span>Lichterketten</span>
+    </div>
+  </div>
+
+  <article class="editorial-post">
+
+    <section class="editorial-chapter editorial-chapter--intro">
+      <p class="editorial-chapter__label">Kapitel I<br>Prolog</p>
+      <div class="editorial-chapter__body">
+        <p>Wenn zwei Menschen aus verschiedenen Ecken der Welt zueinander finden und ihre Liebe an den Ufern der Donau feiern, entsteht etwas ganz Besonderes. Paula und Ryan haben genau das getan — eine Hochzeit, die Kulturen verband und Wien als Bühne für ihr gemeinsames Versprechen wählte.</p>
+      </div>
+    </section>
+
+    <section class="editorial-duo">
+      <figure class="editorial-figure editorial-duo__primary">
+        <img src="../assets/images/portfolio/LianaKevin-74.jpg" alt="Paula & Ryan — Donau" loading="lazy">
+        <figcaption>Plate II — Blick auf die Donau</figcaption>
+      </figure>
+      <figure class="editorial-figure editorial-duo__secondary">
+        <img src="../assets/images/portfolio/LianaKevin-74.jpg" alt="Paula & Ryan — Details" loading="lazy">
+        <figcaption>Plate III — Abendhimmel über Wien</figcaption>
+      </figure>
+    </section>
+
+    <section class="editorial-chapter">
+      <p class="editorial-chapter__label">Kapitel II<br>Erste Schritte</p>
+      <div class="editorial-chapter__body">
+        <p>Die beiden lernten sich während eines Auslandssemesters kennen und wussten schnell, dass ihre Geschichte keine Grenzen kennen würde. Wien wurde nicht zufällig als Ort ihrer Feier gewählt — die Stadt, in der sie ihre ersten gemeinsamen Schritte machten, sollte auch der Ort sein, an dem sie ihr Ja-Wort geben. Die Zeremonie fand unter freiem Himmel statt, mit Blick auf die Donau und den sanften Wiener Abendhimmel.</p>
+      </div>
+    </section>
+
+    <blockquote class="editorial-quote">
+      <p>Liebe ist die schönste Sprache — und überwindet mühelos jede Grenze.</p>
+      <cite>— Walking Weddings</cite>
+    </blockquote>
+
+    <section class="editorial-triptych">
+      <figure class="editorial-figure">
+        <img src="../assets/images/portfolio/LianaKevin-74.jpg" alt="Paula & Ryan — Zeremonie" loading="lazy">
+        <figcaption>Plate IV — Zeremonie am Ufer</figcaption>
+      </figure>
+      <figure class="editorial-figure">
+        <img src="../assets/images/portfolio/LianaKevin-74.jpg" alt="Paula & Ryan — Brautpaar" loading="lazy">
+        <figcaption>Plate V — Paulas Gang zum Altar</figcaption>
+      </figure>
+      <figure class="editorial-figure">
+        <img src="../assets/images/portfolio/LianaKevin-74.jpg" alt="Paula & Ryan — Familien" loading="lazy">
+        <figcaption>Plate VI — Herzliche Umarmungen</figcaption>
+      </figure>
+    </section>
+
+    <section class="editorial-chapter">
+      <p class="editorial-chapter__label">Kapitel III<br>Zwei Welten</p>
+      <div class="editorial-chapter__body">
+        <p>Was diesen Tag so unvergesslich machte, war die Verschmelzung zweier Welten. Die Gäste reisten aus mehreren Ländern an, und jede Tradition bekam ihren Platz — von irischen Segenswünschen bis hin zu österreichischen Hochzeitsbräuchen. Das Ergebnis war ein Fest voller Wärme, Lachen und Momente, die jede Sprachbarriere mühelos überwanden.</p>
+      </div>
+    </section>
+
+    <figure class="editorial-fullbleed">
+      <img src="../assets/images/portfolio/LianaKevin-74.jpg" alt="Paula & Ryan — Tanz am Donauufer" loading="lazy">
+      <figcaption>Plate VII — Tanzen unter Lichterketten</figcaption>
+    </figure>
+
+    <section class="editorial-chapter">
+      <p class="editorial-chapter__label">Kapitel IV<br>Die schönste Sprache</p>
+      <div class="editorial-chapter__body">
+        <p>Für uns als Fotografen und Filmemacher war es eine Freude, die kleinen Details einzufangen: den Blick, den Ryan Paula zuwarf, als sie den Gang entlangging, das Tanzen unter Lichterketten am Donauufer und die herzlichen Umarmungen zwischen Familien, die sich zum ersten Mal begegneten. Paulas und Ryans Hochzeit war der beste Beweis dafür, dass Liebe die schönste Sprache ist.</p>
+      </div>
+    </section>
+
+    <aside class="editorial-ticket">
+      <div class="editorial-ticket__stamp">№ 11 · Wien</div>
+      <p class="editorial-ticket__heading">Die Credits</p>
+      <dl class="editorial-ticket__list">
+        <div>
+          <dt>Paar</dt>
+          <dd>Paula &amp; Ryan</dd>
+        </div>
+        <div>
+          <dt>Location</dt>
+          <dd>Wien, Österreich</dd>
+        </div>
+        <div>
+          <dt>Services</dt>
+          <dd>Foto + Film</dd>
+        </div>
+      </dl>
+      <a href="https://walkingweddings.pic-time.com/9wLak7OE4XZOm" target="_blank" rel="noopener" class="editorial-ticket__link">→ Zur vollständigen Galerie</a>
+    </aside>
+
+    <div class="editorial-signature">
+      <p>mit Liebe festgehalten von Walking Weddings</p>
+    </div>
+
+  </article>
+
+  <section class="editorial-related">
+    <div class="editorial-related__inner">
+      <div class="editorial-related__heading">
+        <h2 class="editorial-related__title">Weitere Geschichten</h2>
+      </div>
+      <div class="editorial-related__grid">
+        <a href="engla-leyon.html" class="editorial-related__card">
+          <div class="editorial-related__card-image">
+            <img src="../assets/images/portfolio/karinjinwedding-165.jpg" alt="Engla & Leyon" loading="lazy">
+          </div>
+          <p class="editorial-related__card-tag">Wedding</p>
+          <h3 class="editorial-related__card-title">Engla &amp; Leyon</h3>
+        </a>
+        <a href="apple-andrew.html" class="editorial-related__card">
+          <div class="editorial-related__card-image">
+            <img src="https://pictime5neu1public-pub-fbevadhjh6c7b2d9.a02.azurefd.net/pictures/48/504/48504445/homepage/homepage.jpg?rs=134066245391353348" alt="Apple & Andrew" loading="lazy">
+          </div>
+          <p class="editorial-related__card-tag">Wedding</p>
+          <h3 class="editorial-related__card-title">Apple &amp; Andrew</h3>
+        </a>
+        <a href="jennise-florian.html" class="editorial-related__card">
+          <div class="editorial-related__card-image">
+            <img src="../assets/images/portfolio/jenniseflorian-396.jpg" alt="Jennise & Florian" loading="lazy">
+          </div>
+          <p class="editorial-related__card-tag">Wedding</p>
+          <h3 class="editorial-related__card-title">Jennise &amp; Florian</h3>
+        </a>
+      </div>
     </div>
   </section>
 
-  <div class="blog-content">
-    <p class="lead">Wenn zwei Menschen aus verschiedenen Ecken der Welt zueinander finden und ihre Liebe an den Ufern der Donau feiern, entsteht etwas ganz Besonderes. Paula und Ryan haben genau das getan — eine Hochzeit, die Kulturen verband und Wien als Bühne für ihr gemeinsames Versprechen wählte.</p>
-
-    <p>Die beiden lernten sich während eines Auslandssemesters kennen und wussten schnell, dass ihre Geschichte keine Grenzen kennen würde. Wien wurde nicht zufällig als Ort ihrer Feier gewählt — die Stadt, in der sie ihre ersten gemeinsamen Schritte machten, sollte auch der Ort sein, an dem sie ihr Ja-Wort geben. Die Zeremonie fand unter freiem Himmel statt, mit Blick auf die Donau und den sanften Wiener Abendhimmel.</p>
-
-    <p>Was diesen Tag so unvergesslich machte, war die Verschmelzung zweier Welten. Die Gäste reisten aus mehreren Ländern an, und jede Tradition bekam ihren Platz — von irischen Segenswünschen bis hin zu österreichischen Hochzeitsbräuchen. Das Ergebnis war ein Fest voller Wärme, Lachen und Momente, die jede Sprachbarriere mühelos überwanden.</p>
-
-    <p>Für uns als Fotografen und Filmemacher war es eine Freude, die kleinen Details einzufangen: den Blick, den Ryan Paula zuwarf, als sie den Gang entlangging, das Tanzen unter Lichterketten am Donauufer und die herzlichen Umarmungen zwischen Familien, die sich zum ersten Mal begegneten. Paulas und Ryans Hochzeit war der beste Beweis dafür, dass Liebe die schönste Sprache ist.</p>
-  </div>
-
-  <div class="blog-gallery">
-    <img src="../assets/images/portfolio/LianaKevin-74.jpg" alt="Paula und Ryan Hochzeitsfotos Wien" loading="lazy">
-  </div>
-
-  <div class="blog-details">
-    <h3 class="blog-details__title">Details</h3>
-    <div class="blog-details__grid">
-      <div class="blog-details__item">
-        <span class="blog-details__label">Paar</span>
-        <span class="blog-details__value">Paula & Ryan</span>
-      </div>
-      <div class="blog-details__item">
-        <span class="blog-details__label">Location</span>
-        <span class="blog-details__value">Wien, Österreich</span>
-      </div>
-      <div class="blog-details__item">
-        <span class="blog-details__label">Art</span>
-        <span class="blog-details__value">Hochzeit</span>
-      </div>
-      <div class="blog-details__item">
-        <span class="blog-details__label">Leistungen</span>
-        <span class="blog-details__value">Foto + Film</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="blog-gallery-cta">
-    <a href="https://walkingweddings.pic-time.com/9wLak7OE4XZOm" target="_blank" rel="noopener" class="btn btn--primary">Gesamte Galerie ansehen</a>
-  </div>
-
-  <section class="cta">
-    <div class="cta__inner">
-      <h2 class="cta__title">Eure Geschichte verdient es, erzählt zu werden</h2>
-      <p class="cta__text">Lasst uns gemeinsam eure Hochzeit unvergesslich festhalten — in Bildern und Bewegtbild.</p>
-      <a href="../contact.html" class="btn btn--primary">Jetzt anfragen</a>
-    </div>
-  </section>
-
-  <section class="blog-related">
-    <h2 class="blog-related__title">Weitere Geschichten</h2>
-    <div class="blog-related__grid">
-      <a href="engla-leyon.html" class="blog-card">
-        <div class="blog-card__image-wrapper">
-          <img src="../assets/images/portfolio/karinjinwedding-165.jpg" alt="Engla & Leyon Hochzeit" class="blog-card__image" loading="lazy">
-        </div>
-        <div class="blog-card__content">
-          <p class="blog-card__tag">Wedding</p>
-          <h3 class="blog-card__title">Engla & Leyon</h3>
-        </div>
-      </a>
-      <a href="apple-andrew.html" class="blog-card">
-        <div class="blog-card__image-wrapper">
-          <img src="https://pictime5neu1public-pub-fbevadhjh6c7b2d9.a02.azurefd.net/pictures/48/504/48504445/homepage/homepage.jpg?rs=134066245391353348" alt="Apple & Andrew Hochzeit" class="blog-card__image" loading="lazy">
-        </div>
-        <div class="blog-card__content">
-          <p class="blog-card__tag">Wedding</p>
-          <h3 class="blog-card__title">Apple & Andrew</h3>
-        </div>
-      </a>
-      <a href="jennise-florian.html" class="blog-card">
-        <div class="blog-card__image-wrapper">
-          <img src="../assets/images/portfolio/jenniseflorian-396.jpg" alt="Jennise & Florian Hochzeit" class="blog-card__image" loading="lazy">
-        </div>
-        <div class="blog-card__content">
-          <p class="blog-card__tag">Wedding</p>
-          <h3 class="blog-card__title">Jennise & Florian</h3>
-        </div>
-      </a>
+  <section class="editorial-cta">
+    <div class="editorial-cta__inner">
+      <p class="editorial-cta__eyebrow">Eure Geschichte</p>
+      <h2 class="editorial-cta__title">Eure Geschichte verdient es, erzählt zu werden.</h2>
+      <p class="editorial-cta__text">Lasst uns gemeinsam eure Hochzeit unvergesslich festhalten — in Bildern und Bewegtbild.</p>
+      <a href="../contact.html" class="btn btn--light">Jetzt anfragen</a>
     </div>
   </section>
 
