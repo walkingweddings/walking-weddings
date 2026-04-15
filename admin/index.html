@@ -21,9 +21,13 @@
     <div class="admin-header__brand">
       <img src="../assets/images/logo/ww_logoWhite_wtagline.svg" alt="Walking Weddings">
       <span class="admin-header__divider"></span>
-      <span class="admin-header__label">Journal Creator</span>
+      <div class="admin-header__masthead">
+        <span class="admin-header__eyebrow">Editorial Desk</span>
+        <span class="admin-header__label">Journal Creator</span>
+      </div>
     </div>
     <div class="admin-header__meta">
+      <button id="managePostsBtn" class="admin-btn admin-btn--ghost admin-btn--small">Alle Beiträge</button>
       <span id="claudeStatus" class="admin-pill">Claude: prüfe…</span>
       <span id="userEmail" class="admin-user"></span>
       <button id="logoutBtn" class="admin-btn admin-btn--ghost">Logout</button>
@@ -35,9 +39,22 @@
     <!-- LEFT: Control panel -->
     <aside class="admin-panel" id="panel">
 
+      <div class="admin-masthead">
+        <div class="admin-masthead__rule"></div>
+        <p class="admin-masthead__eyebrow">Walking Weddings Journal</p>
+        <h1 class="admin-masthead__title">The Editorial Desk</h1>
+        <p class="admin-masthead__sub">Ein Atelier für neue Geschichten.<br>Medien, Briefing und Feinschliff an einem Ort.</p>
+        <div class="admin-masthead__rule"></div>
+      </div>
+
       <section class="admin-section">
-        <h2 class="admin-section__title">① Medien</h2>
-        <p class="admin-section__sub">Bilder oder Videos per Drag &amp; Drop oder Klick hinzufügen.</p>
+        <div class="admin-section__header">
+          <span class="admin-section__numeral">I</span>
+          <div>
+            <h2 class="admin-section__title">Medien</h2>
+            <p class="admin-section__sub">Bilder oder Videos per Drag &amp; Drop oder Klick hinzufügen.</p>
+          </div>
+        </div>
         <div id="dropzone" class="admin-dropzone" tabindex="0">
           <div class="admin-dropzone__inner">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 3v14M5 10l7-7 7 7"/><path d="M5 21h14"/></svg>
@@ -50,15 +67,25 @@
       </section>
 
       <section class="admin-section">
-        <h2 class="admin-section__title">② Briefing</h2>
-        <p class="admin-section__sub">Erzähl Claude von der Hochzeit — Paar, Location, Stimmung, besondere Momente.</p>
+        <div class="admin-section__header">
+          <span class="admin-section__numeral">II</span>
+          <div>
+            <h2 class="admin-section__title">Briefing</h2>
+            <p class="admin-section__sub">Erzähl Claude von der Hochzeit — Paar, Location, Stimmung, besondere Momente.</p>
+          </div>
+        </div>
         <textarea id="promptInput" class="admin-textarea" rows="10" placeholder="Beispiel:&#10;Romantische Sommerhochzeit von Anna &amp; Max im Schlosspark Schönbrunn. Intime Zeremonie im Rosengarten, anschließend Dinner in der Orangerie. Der ganze Tag war geprägt von goldenem Abendlicht und emotionalen Momenten zwischen Familie und Freunden. Stil: elegant, klassisch, sommerlich."></textarea>
         <button id="generateBtn" class="admin-btn admin-btn--primary admin-btn--full">Entwurf mit Claude erstellen</button>
       </section>
 
       <section class="admin-section" id="draftSection" hidden>
-        <h2 class="admin-section__title">③ Entwurf</h2>
-        <p class="admin-section__sub">Du kannst alle Felder direkt bearbeiten. Die Vorschau aktualisiert sich automatisch.</p>
+        <div class="admin-section__header">
+          <span class="admin-section__numeral">III</span>
+          <div>
+            <h2 class="admin-section__title">Entwurf</h2>
+            <p class="admin-section__sub">Alle Felder direkt bearbeiten. Die Vorschau aktualisiert sich automatisch.</p>
+          </div>
+        </div>
 
         <div class="admin-fields">
           <label class="admin-field">
@@ -125,23 +152,42 @@
       </section>
 
       <section class="admin-section" id="reviseSection" hidden>
-        <h2 class="admin-section__title">④ Änderungen prompten</h2>
-        <p class="admin-section__sub">Sag Claude, was angepasst werden soll — Text, Struktur, Reihenfolge, Ton.</p>
+        <div class="admin-section__header">
+          <span class="admin-section__numeral">IV</span>
+          <div>
+            <h2 class="admin-section__title">Änderungen prompten</h2>
+            <p class="admin-section__sub">Sag Claude, was angepasst werden soll — Text, Struktur, Reihenfolge, Ton.</p>
+          </div>
+        </div>
         <textarea id="revisionInput" class="admin-textarea" rows="5" placeholder="Beispiel: Mache die Einleitung poetischer. Füge ein Kapitel über das Dinner hinzu. Ersetze das zweite Bild durch das Triptychon."></textarea>
         <button id="reviseBtn" class="admin-btn admin-btn--secondary admin-btn--full">Änderungen anwenden</button>
       </section>
 
       <section class="admin-section" id="publishSection" hidden>
-        <h2 class="admin-section__title">⑤ Veröffentlichen</h2>
-        <p class="admin-section__sub">Der Beitrag wird unter <code>/blog/&lt;slug&gt;.html</code> gespeichert und in die Journal-Übersicht eingefügt.</p>
+        <div class="admin-section__header">
+          <span class="admin-section__numeral">V</span>
+          <div>
+            <h2 class="admin-section__title">Veröffentlichen</h2>
+            <p class="admin-section__sub">Der Beitrag wird unter <code>/blog/&lt;slug&gt;.html</code> gespeichert und in die Journal-Übersicht eingefügt.</p>
+          </div>
+        </div>
         <button id="publishBtn" class="admin-btn admin-btn--publish admin-btn--full">Jetzt veröffentlichen</button>
       </section>
+
+      <div class="admin-colophon">
+        <span>·</span><span>·</span><span>·</span>
+        <p>Walking Weddings Editorial Suite · MCMXCIX</p>
+      </div>
 
     </aside>
 
     <!-- RIGHT: Preview -->
     <section class="admin-preview">
       <div class="admin-preview__bar">
+        <div class="admin-preview__label">
+          <span class="admin-preview__eyebrow">Live Preview</span>
+          <span class="admin-preview__caption">Wie der Leser den Beitrag später sieht.</span>
+        </div>
         <div class="admin-preview__tabs">
           <button class="admin-tab admin-tab--active" data-device="desktop">Desktop</button>
           <button class="admin-tab" data-device="tablet">Tablet</button>
@@ -151,6 +197,7 @@
       </div>
       <div class="admin-preview__frame" id="previewFrameWrap">
         <div class="admin-preview__placeholder" id="previewPlaceholder">
+          <p class="admin-preview__plate">Plate I</p>
           <p>Noch kein Entwurf</p>
           <p class="admin-preview__hint">Lade Medien hoch, beschreibe die Hochzeit und klicke auf <em>Entwurf erstellen</em>.</p>
         </div>
@@ -159,6 +206,27 @@
     </section>
 
   </main>
+
+  <!-- MANAGE POSTS OVERLAY -->
+  <div id="manageOverlay" class="admin-manage" hidden>
+    <div class="admin-manage__dialog" role="dialog" aria-modal="true" aria-labelledby="manageTitle">
+      <header class="admin-manage__header">
+        <div>
+          <p class="admin-manage__eyebrow">Editorial Archive</p>
+          <h2 class="admin-manage__title" id="manageTitle">Alle Journal-Beiträge</h2>
+          <p class="admin-manage__sub">Verwalte bereits veröffentlichte Geschichten. <span id="managePostCount"></span></p>
+        </div>
+        <div class="admin-manage__actions">
+          <button id="manageRefreshBtn" class="admin-btn admin-btn--ghost admin-btn--small">↻ Neu laden</button>
+          <button id="manageCloseBtn" class="admin-btn admin-btn--ghost admin-btn--small">Schließen ✕</button>
+        </div>
+      </header>
+
+      <div id="manageList" class="admin-manage__list">
+        <div class="admin-manage__placeholder">Lade Beiträge…</div>
+      </div>
+    </div>
+  </div>
 
   <!-- Overlay toast -->
   <div id="toast" class="admin-toast" hidden></div>

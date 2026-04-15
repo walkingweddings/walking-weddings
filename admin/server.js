@@ -329,6 +329,78 @@ function publishDraft(draft, cardImageUrl) {
   return `/blog/${draft.slug}.html`;
 }
 
+// --- Existing post management ----------------------------------------------
+
+function decodeHtmlEntities(str) {
+  return String(str || '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
+function listPosts() {
+  const blogHtmlPath = join(ROOT, 'blog.html');
+  const html = readFileSync(blogHtmlPath, 'utf8');
+  const posts = [];
+  const re = /<article class="blog-card reveal">([\s\S]*?)<\/article>/g;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    const block = m[1];
+    const href = (block.match(/href="(blog\/[^"]+)"/) || [])[1] || '';
+    const slug = href.replace(/^blog\//, '').replace(/\.html$/, '');
+    if (!slug) continue;
+    const image = (block.match(/<img[^>]*src="([^"]+)"/) || [])[1] || '';
+    const imageAlt = (block.match(/<img[^>]*alt="([^"]*)"/) || [])[1] || '';
+    const tag = decodeHtmlEntities((block.match(/blog-card__tag">([^<]*)</) || [])[1] || '');
+    const title = decodeHtmlEntities((block.match(/blog-card__title">([^<]*)</) || [])[1] || '');
+    const excerpt = decodeHtmlEntities((block.match(/blog-card__excerpt">([^<]*)</) || [])[1] || '');
+    const filePath = join(ROOT, 'blog', `${slug}.html`);
+    const exists = existsSync(filePath);
+    posts.push({
+      slug,
+      url: `/${href}`,
+      image,
+      imageAlt,
+      tag,
+      title,
+      excerpt,
+      fileExists: exists,
+    });
+  }
+  return posts;
+}
+
+function deletePost(slug) {
+  if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
+    throw new Error('Ungültiger Slug');
+  }
+  const blogHtmlPath = join(ROOT, 'blog.html');
+  let html = readFileSync(blogHtmlPath, 'utf8');
+  const slugHref = `blog/${slug}.html`;
+  const escapedHref = slugHref.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const articleRegex = new RegExp(
+    `\\n?\\s*<article class="blog-card reveal">[\\s\\S]*?${escapedHref}[\\s\\S]*?<\\/article>`
+  );
+  let removedFromGrid = false;
+  if (articleRegex.test(html)) {
+    html = html.replace(articleRegex, '');
+    writeFileSync(blogHtmlPath, html);
+    removedFromGrid = true;
+  }
+  const postPath = join(ROOT, 'blog', `${slug}.html`);
+  let removedFile = false;
+  if (existsSync(postPath)) {
+    unlinkSync(postPath);
+    removedFile = true;
+  }
+  if (!removedFromGrid && !removedFile) {
+    throw new Error('Beitrag nicht gefunden');
+  }
+  return { ok: true, removedFromGrid, removedFile };
+}
+
 // --- HTTP handler -----------------------------------------------------------
 
 async function handle(req, res, url) {
@@ -465,6 +537,29 @@ async function handle(req, res, url) {
       saveDraft(id, { ...draft, _media: current._media, _prompt: current._prompt });
       json(res, 200, { ok: true });
     } catch (e) {
+      json(res, 500, { error: e.message });
+    }
+    return true;
+  }
+
+  if (req.method === 'GET' && url === '/api/admin/posts') {
+    try {
+      const posts = listPosts();
+      json(res, 200, { ok: true, posts });
+    } catch (e) {
+      console.error('[admin] list posts error:', e);
+      json(res, 500, { error: e.message });
+    }
+    return true;
+  }
+
+  if (req.method === 'DELETE' && url.startsWith('/api/admin/posts/')) {
+    try {
+      const slug = decodeURIComponent(url.slice('/api/admin/posts/'.length).split('?')[0]);
+      const result = deletePost(slug);
+      json(res, 200, result);
+    } catch (e) {
+      console.error('[admin] delete post error:', e);
       json(res, 500, { error: e.message });
     }
     return true;
