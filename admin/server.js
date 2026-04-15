@@ -4,7 +4,7 @@
 
 const crypto = require('crypto');
 const {
-  readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync,
+  readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync, readdirSync, statSync,
 } = require('fs');
 const { join } = require('path');
 const { buildPostHtml, buildBlogCard } = require('./template');
@@ -20,8 +20,10 @@ const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-4-5';
 const UPLOAD_LIMIT = 200 * 1024 * 1024; // 200 MB per request
 
 const DRAFTS_DIR = join(__dirname, 'drafts');
+const PUBLISHED_DIR = join(__dirname, 'published');
 const UPLOADS_DIR = join(ROOT, 'assets', 'images', 'journal');
 if (!existsSync(DRAFTS_DIR)) mkdirSync(DRAFTS_DIR, { recursive: true });
+if (!existsSync(PUBLISHED_DIR)) mkdirSync(PUBLISHED_DIR, { recursive: true });
 if (!existsSync(UPLOADS_DIR)) mkdirSync(UPLOADS_DIR, { recursive: true });
 
 // --- Sessions (in-memory) ---------------------------------------------------
@@ -318,7 +320,7 @@ function updateBlogGrid(draft, cardImageUrl) {
   writeFileSync(blogHtmlPath, html);
 }
 
-function publishDraft(draft, cardImageUrl) {
+function publishDraft(draft, cardImageUrl, meta) {
   if (!draft.slug || !/^[a-z0-9-]+$/.test(draft.slug)) {
     throw new Error('Ungültiger Slug (nur a-z, 0-9, Bindestriche erlaubt)');
   }
@@ -326,7 +328,26 @@ function publishDraft(draft, cardImageUrl) {
   const postHtml = buildPostHtml(draft);
   writeFileSync(postPath, postHtml);
   updateBlogGrid(draft, cardImageUrl || draft.cardImageUrl || draft.heroImageUrl);
+  // Sidecar JSON so posts can be re-opened for editing later
+  const sidecar = {
+    ...draft,
+    _media: (meta && meta.media) || [],
+    _prompt: (meta && meta.prompt) || '',
+    _publishedAt: Date.now(),
+  };
+  writeFileSync(join(PUBLISHED_DIR, `${draft.slug}.json`), JSON.stringify(sidecar, null, 2));
   return `/blog/${draft.slug}.html`;
+}
+
+function loadPublishedDraft(slug) {
+  if (!slug || !/^[a-z0-9-]+$/.test(slug)) return null;
+  const p = join(PUBLISHED_DIR, `${slug}.json`);
+  if (!existsSync(p)) return null;
+  try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return null; }
+}
+
+function deletePublishedSidecar(slug) {
+  try { unlinkSync(join(PUBLISHED_DIR, `${slug}.json`)); } catch {}
 }
 
 // --- Existing post management ----------------------------------------------
@@ -358,6 +379,12 @@ function listPosts() {
     const excerpt = decodeHtmlEntities((block.match(/blog-card__excerpt">([^<]*)</) || [])[1] || '');
     const filePath = join(ROOT, 'blog', `${slug}.html`);
     const exists = existsSync(filePath);
+    const sidecarPath = join(PUBLISHED_DIR, `${slug}.json`);
+    const editable = existsSync(sidecarPath);
+    let publishedAt = null;
+    if (editable) {
+      try { publishedAt = JSON.parse(readFileSync(sidecarPath, 'utf8'))._publishedAt || null; } catch {}
+    }
     posts.push({
       slug,
       url: `/${href}`,
@@ -367,6 +394,8 @@ function listPosts() {
       title,
       excerpt,
       fileExists: exists,
+      editable,
+      publishedAt,
     });
   }
   return posts;
@@ -395,10 +424,42 @@ function deletePost(slug) {
     unlinkSync(postPath);
     removedFile = true;
   }
+  deletePublishedSidecar(slug);
   if (!removedFromGrid && !removedFile) {
     throw new Error('Beitrag nicht gefunden');
   }
   return { ok: true, removedFromGrid, removedFile };
+}
+
+// --- Draft listing ---------------------------------------------------------
+
+function listDrafts() {
+  const out = [];
+  let files = [];
+  try { files = readdirSync(DRAFTS_DIR).filter(f => f.endsWith('.json')); } catch { return out; }
+  for (const f of files) {
+    const id = f.replace(/\.json$/, '');
+    try {
+      const full = join(DRAFTS_DIR, f);
+      const d = JSON.parse(readFileSync(full, 'utf8'));
+      const stat = statSync(full);
+      out.push({
+        id,
+        slug: d.slug || '',
+        plainTitle: d.plainTitle || '',
+        coupleNames: d.coupleNames || '',
+        location: d.location || '',
+        eyebrow: d.eyebrow || '',
+        heroImageUrl: d.heroImageUrl || '',
+        cardImageUrl: d.cardImageUrl || '',
+        prompt: d._prompt || '',
+        mediaCount: Array.isArray(d._media) ? d._media.length : 0,
+        updatedAt: stat.mtimeMs,
+      });
+    } catch {}
+  }
+  out.sort((a, b) => b.updatedAt - a.updatedAt);
+  return out;
 }
 
 // --- HTTP handler -----------------------------------------------------------
@@ -567,15 +628,88 @@ async function handle(req, res, url) {
 
   if (req.method === 'POST' && url === '/api/admin/publish') {
     try {
-      const { id, cardImageUrl } = await readJson(req);
+      const { id, cardImageUrl, sourceSlug } = await readJson(req);
       const current = loadDraft(id);
       if (!current) { json(res, 404, { error: 'Entwurf nicht gefunden' }); return true; }
-      const { _media, _prompt, ...cleanDraft } = current;
-      const postUrl = publishDraft(cleanDraft, cardImageUrl);
+      const { _media, _prompt, _sourceSlug, ...cleanDraft } = current;
+      // If editing an existing post and the slug changed, remove the old one
+      const effectiveSource = sourceSlug || _sourceSlug;
+      if (effectiveSource && effectiveSource !== cleanDraft.slug) {
+        try { deletePost(effectiveSource); } catch (err) {
+          console.warn('[admin] could not remove old post:', err.message);
+        }
+      }
+      const postUrl = publishDraft(cleanDraft, cardImageUrl, { media: _media || [], prompt: _prompt || '' });
       deleteDraft(id);
       json(res, 200, { ok: true, url: postUrl });
     } catch (e) {
       console.error('[admin] publish error:', e);
+      json(res, 500, { error: e.message });
+    }
+    return true;
+  }
+
+  // --- Edit / duplicate existing published posts ---------------------------
+  if (req.method === 'POST' && url === '/api/admin/posts/open') {
+    try {
+      const { slug, mode } = await readJson(req);
+      if (!slug) { json(res, 400, { error: 'slug erforderlich' }); return true; }
+      const sidecar = loadPublishedDraft(slug);
+      if (!sidecar) {
+        json(res, 404, { error: 'Dieser Beitrag hat keine Quelldatei zum Bearbeiten. Nur neue Beiträge sind editierbar.' });
+        return true;
+      }
+      const { _media, _prompt, _publishedAt, ...cleanDraft } = sidecar;
+      const newDraft = { ...cleanDraft };
+      if (mode === 'duplicate') {
+        const suffix = '-copy-' + crypto.randomBytes(2).toString('hex');
+        newDraft.slug = (cleanDraft.slug || 'untitled') + suffix;
+        newDraft.plainTitle = (cleanDraft.plainTitle || '') + ' (Kopie)';
+      }
+      const id = crypto.randomBytes(8).toString('hex');
+      saveDraft(id, { ...newDraft, _media: _media || [], _prompt: _prompt || '', _sourceSlug: mode === 'duplicate' ? null : slug });
+      json(res, 200, { ok: true, id, draft: newDraft, media: _media || [], prompt: _prompt || '', sourceSlug: mode === 'duplicate' ? null : slug });
+    } catch (e) {
+      console.error('[admin] open post error:', e);
+      json(res, 500, { error: e.message });
+    }
+    return true;
+  }
+
+  // --- Draft listing + resume ----------------------------------------------
+  if (req.method === 'GET' && url === '/api/admin/drafts') {
+    try {
+      json(res, 200, { ok: true, drafts: listDrafts() });
+    } catch (e) {
+      console.error('[admin] list drafts error:', e);
+      json(res, 500, { error: e.message });
+    }
+    return true;
+  }
+
+  if (req.method === 'POST' && url === '/api/admin/drafts/open') {
+    try {
+      const { id } = await readJson(req);
+      const current = loadDraft(id);
+      if (!current) { json(res, 404, { error: 'Entwurf nicht gefunden' }); return true; }
+      const { _media, _prompt, _sourceSlug, _publishedAt, ...cleanDraft } = current;
+      json(res, 200, { ok: true, id, draft: cleanDraft, media: _media || [], prompt: _prompt || '' });
+    } catch (e) {
+      json(res, 500, { error: e.message });
+    }
+    return true;
+  }
+
+  if (req.method === 'DELETE' && url.startsWith('/api/admin/drafts/')) {
+    try {
+      const id = decodeURIComponent(url.slice('/api/admin/drafts/'.length).split('?')[0]);
+      if (!/^[a-f0-9]+$/.test(id)) {
+        json(res, 400, { error: 'Ungültige ID' });
+        return true;
+      }
+      deleteDraft(id);
+      json(res, 200, { ok: true });
+    } catch (e) {
       json(res, 500, { error: e.message });
     }
     return true;
