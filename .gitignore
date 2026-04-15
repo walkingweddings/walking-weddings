@@ -1,0 +1,11 @@
+node_modules/
+
+# Admin journal creator: drafts in progress and uploaded user media
+admin/drafts/*.json
+!admin/drafts/.gitkeep
+assets/images/journal/*
+!assets/images/journal/.gitkeep
+
+# Environment
+.env
+.env.local

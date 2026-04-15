@@ -1,6 +1,7 @@
 const { createServer } = require('http');
 const { readFileSync, existsSync, statSync, createReadStream } = require('fs');
 const { join, extname } = require('path');
+const admin = require('./admin/server');
 
 const PORT = process.env.PORT || 8082;
 const ROOT = __dirname;
@@ -168,6 +169,18 @@ createServer(async (req, res) => {
 
   const url = req.url.split('?')[0];
 
+  // Admin / Journal Creator routes (auth, upload, Claude, publish)
+  try {
+    if (await admin.handle(req, res, url)) return;
+  } catch (err) {
+    console.error('Admin handler error:', err);
+    if (!res.headersSent) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+    return;
+  }
+
   // API: Contact form submission
   if (req.method === 'POST' && url === '/api/contact') {
     try {
@@ -205,7 +218,9 @@ createServer(async (req, res) => {
   }
 
   // Static files
-  let filePath = url === '/' ? '/index.html' : url;
+  let filePath = url;
+  if (filePath === '/') filePath = '/index.html';
+  else if (filePath.endsWith('/')) filePath += 'index.html';
   const file = join(ROOT, decodeURIComponent(filePath));
   if (!existsSync(file) || !statSync(file).isFile()) {
     res.writeHead(404);
