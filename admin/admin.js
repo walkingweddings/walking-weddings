@@ -40,6 +40,12 @@
   const previewPlaceholder = $('previewPlaceholder');
   const refreshPreviewBtn = $('refreshPreviewBtn');
   const logoutBtn = $('logoutBtn');
+  const managePostsBtn = $('managePostsBtn');
+  const manageOverlay = $('manageOverlay');
+  const manageCloseBtn = $('manageCloseBtn');
+  const manageRefreshBtn = $('manageRefreshBtn');
+  const manageList = $('manageList');
+  const managePostCount = $('managePostCount');
   const userEmailEl = $('userEmail');
   const claudeStatusEl = $('claudeStatus');
   const toast = $('toast');
@@ -369,6 +375,111 @@
   }
 
   // --- Publish --------------------------------------------------------------
+
+  // --- Manage existing posts ------------------------------------------------
+
+  function escapeHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function openManageOverlay() {
+    manageOverlay.hidden = false;
+    document.body.classList.add('admin-no-scroll');
+    loadPostsList();
+  }
+
+  function closeManageOverlay() {
+    manageOverlay.hidden = true;
+    document.body.classList.remove('admin-no-scroll');
+  }
+
+  async function loadPostsList() {
+    manageList.innerHTML = '<div class="admin-manage__placeholder">Lade Beiträge…</div>';
+    managePostCount.textContent = '';
+    try {
+      const data = await api('/api/admin/posts');
+      renderPostsList(data.posts || []);
+    } catch (err) {
+      manageList.innerHTML = '<div class="admin-manage__placeholder admin-manage__placeholder--error">Fehler: ' + escapeHtml(err.message) + '</div>';
+    }
+  }
+
+  function renderPostsList(posts) {
+    if (!posts.length) {
+      manageList.innerHTML = '<div class="admin-manage__placeholder">Noch keine Beiträge veröffentlicht.</div>';
+      managePostCount.textContent = '';
+      return;
+    }
+    managePostCount.textContent = posts.length === 1 ? '· 1 Geschichte' : '· ' + posts.length + ' Geschichten';
+
+    manageList.innerHTML = '';
+    posts.forEach((p, i) => {
+      const card = document.createElement('article');
+      card.className = 'admin-manage-card';
+
+      const plate = String(i + 1).padStart(2, '0');
+
+      card.innerHTML =
+        '<div class="admin-manage-card__image">' +
+          (p.image
+            ? '<img src="' + escapeHtml(p.image) + '" alt="' + escapeHtml(p.imageAlt || p.title) + '" loading="lazy">'
+            : '<div class="admin-manage-card__noimage">Kein Bild</div>') +
+          '<span class="admin-manage-card__plate">№ ' + plate + '</span>' +
+          (p.fileExists ? '' : '<span class="admin-manage-card__missing">HTML fehlt</span>') +
+        '</div>' +
+        '<div class="admin-manage-card__body">' +
+          '<p class="admin-manage-card__tag">' + escapeHtml(p.tag || 'Journal') + '</p>' +
+          '<h3 class="admin-manage-card__title">' + escapeHtml(p.title || p.slug) + '</h3>' +
+          '<p class="admin-manage-card__excerpt">' + escapeHtml(p.excerpt || '') + '</p>' +
+          '<p class="admin-manage-card__slug"><code>' + escapeHtml(p.url) + '</code></p>' +
+          '<div class="admin-manage-card__actions">' +
+            '<a href="' + escapeHtml(p.url) + '" target="_blank" rel="noopener" class="admin-btn admin-btn--ghost admin-btn--small">↗ Ansehen</a>' +
+            '<button type="button" class="admin-btn admin-btn--danger admin-btn--small" data-action="delete" data-slug="' + escapeHtml(p.slug) + '" data-title="' + escapeHtml(p.title || p.slug) + '">Löschen</button>' +
+          '</div>' +
+        '</div>';
+
+      manageList.appendChild(card);
+    });
+
+    manageList.querySelectorAll('[data-action="delete"]').forEach(btn => {
+      btn.addEventListener('click', () => handleDeletePost(btn.dataset.slug, btn.dataset.title));
+    });
+  }
+
+  async function handleDeletePost(slug, title) {
+    if (!slug) return;
+    const confirmMsg =
+      'Beitrag "' + (title || slug) + '" wirklich löschen?\n\n' +
+      'Die HTML-Datei wird entfernt und der Eintrag aus /blog.html gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.';
+    if (!confirm(confirmMsg)) return;
+
+    showOverlay('Beitrag wird entfernt…');
+    try {
+      await api('/api/admin/posts/' + encodeURIComponent(slug), { method: 'DELETE' });
+      hideOverlay();
+      showToast('Beitrag entfernt', 'success');
+      await loadPostsList();
+    } catch (err) {
+      hideOverlay();
+      showToast('Fehler: ' + err.message, 'error', 6000);
+    }
+  }
+
+  if (managePostsBtn) managePostsBtn.addEventListener('click', openManageOverlay);
+  if (manageCloseBtn) manageCloseBtn.addEventListener('click', closeManageOverlay);
+  if (manageRefreshBtn) manageRefreshBtn.addEventListener('click', loadPostsList);
+  if (manageOverlay) {
+    manageOverlay.addEventListener('click', (e) => {
+      if (e.target === manageOverlay) closeManageOverlay();
+    });
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !manageOverlay.hidden) closeManageOverlay();
+  });
 
   publishBtn.addEventListener('click', async () => {
     if (!state.draftId || !state.draft) return;
