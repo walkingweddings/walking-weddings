@@ -27,6 +27,8 @@
   const $ = id => document.getElementById(id);
   const dropzone = $('dropzone');
   const fileInput = $('fileInput');
+  const reviseDropzone = $('reviseDropzone');
+  const reviseFileInput = $('reviseFileInput');
   const mediaListEl = $('mediaList');
   const promptInput = $('promptInput');
   const generateBtn = $('generateBtn');
@@ -166,6 +168,31 @@
     fileInput.value = '';
   });
 
+  // Revise dropzone — shares handleFiles so new uploads are available to Claude
+  reviseDropzone.addEventListener('click', () => reviseFileInput.click());
+  reviseDropzone.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); reviseFileInput.click(); }
+  });
+  ['dragenter', 'dragover'].forEach(ev =>
+    reviseDropzone.addEventListener(ev, e => {
+      e.preventDefault(); e.stopPropagation();
+      reviseDropzone.classList.add('admin-dropzone--over');
+    })
+  );
+  ['dragleave', 'drop'].forEach(ev =>
+    reviseDropzone.addEventListener(ev, e => {
+      e.preventDefault(); e.stopPropagation();
+      reviseDropzone.classList.remove('admin-dropzone--over');
+    })
+  );
+  reviseDropzone.addEventListener('drop', e => {
+    handleFiles(Array.from(e.dataTransfer.files || []));
+  });
+  reviseFileInput.addEventListener('change', e => {
+    handleFiles(Array.from(e.target.files || []));
+    reviseFileInput.value = '';
+  });
+
   async function handleFiles(files) {
     if (!files.length) return;
     for (const file of files) {
@@ -204,6 +231,10 @@
         if (idx !== -1) state.media.splice(idx, 1);
         renderMediaList();
       }
+    }
+    // Persist new media on the active draft so revise/publish see them
+    if (state.draftId) {
+      try { await syncDraftToServer(); } catch {}
     }
   }
 
@@ -247,6 +278,7 @@
         e.stopPropagation();
         state.media.splice(i, 1);
         renderMediaList();
+        if (state.draftId) syncDraftToServer().catch(() => {});
       });
       item.appendChild(removeBtn);
 
@@ -350,9 +382,16 @@
   async function syncDraftToServer() {
     if (!state.draftId || !state.draft) return;
     try {
+      const mediaForApi = state.media
+        .filter(m => m.url && !m.uploading)
+        .map(m => ({ url: m.url, type: m.type, filename: m.filename }));
       await api('/api/admin/draft-update', {
         method: 'POST',
-        body: JSON.stringify({ id: state.draftId, draft: state.draft }),
+        body: JSON.stringify({
+          id: state.draftId,
+          draft: state.draft,
+          media: mediaForApi,
+        }),
       });
     } catch (err) {
       showToast('Speichern fehlgeschlagen: ' + err.message, 'error');
