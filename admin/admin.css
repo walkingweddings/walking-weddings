@@ -483,6 +483,134 @@ code {
 }
 .admin-field--wide { grid-column: 1 / -1; }
 
+/* --- Upload row (input + button) ------------------------------------------ */
+
+.admin-field--upload { display: flex; flex-direction: column; gap: 8px; }
+.admin-upload-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.admin-upload-row input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--admin-border-strong);
+  color: var(--admin-text);
+  padding: 10px 2px;
+  font: inherit;
+  font-size: 14px;
+  border-radius: 0;
+  transition: border-color 0.25s;
+}
+.admin-upload-row input:focus {
+  outline: none;
+  border-bottom-color: var(--admin-accent);
+}
+.admin-upload-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.admin-upload-preview {
+  border: 1px solid var(--admin-border);
+  background: var(--admin-bg-alt);
+  overflow: hidden;
+  max-height: 160px;
+}
+.admin-upload-preview:empty { display: none; }
+.admin-upload-preview img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+}
+
+/* --- Article images gallery (image swapping) ------------------------------ */
+
+.admin-article-images {
+  margin-top: 28px;
+  padding-top: 28px;
+  border-top: 1px solid var(--admin-rule);
+}
+.admin-article-images__header {
+  margin-bottom: 18px;
+}
+.admin-article-images__title {
+  font-family: "Italiana", serif;
+  font-size: 22px;
+  margin: 0 0 6px;
+  letter-spacing: 0.02em;
+  color: var(--admin-text);
+}
+.admin-article-images__sub {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--admin-text-dim);
+  margin: 0;
+}
+.admin-article-images__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.admin-article-image {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--admin-bg-alt);
+  border: 1px solid var(--admin-border);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+.admin-article-image:hover { border-color: var(--admin-accent); }
+.admin-article-image img,
+.admin-article-image video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.admin-article-image__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 17, 17, 0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.25s;
+}
+.admin-article-image__overlay .admin-btn {
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.25s, transform 0.25s;
+}
+.admin-article-image:hover .admin-article-image__overlay {
+  background: rgba(11, 17, 17, 0.65);
+}
+.admin-article-image:hover .admin-article-image__overlay .admin-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+.admin-article-image__plate {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 3px 8px;
+  background: rgba(11, 17, 17, 0.88);
+  color: var(--admin-accent);
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 1px;
+  pointer-events: none;
+}
+
 /* --- Colophon at the very bottom ------------------------------------------ */
 
 .admin-colophon {
