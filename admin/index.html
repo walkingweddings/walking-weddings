@@ -148,14 +148,35 @@
             <span>Galerie-Link (optional)</span>
             <input type="text" id="f_galleryUrl" data-field="galleryUrl">
           </label>
-          <label class="admin-field admin-field--wide">
-            <span>Hero-Bild URL</span>
-            <input type="text" id="f_heroImageUrl" data-field="heroImageUrl">
-          </label>
-          <label class="admin-field admin-field--wide">
-            <span>Card-Bild URL (Grid-Thumbnail)</span>
-            <input type="text" id="f_cardImageUrl" data-field="cardImageUrl">
-          </label>
+
+          <div class="admin-field admin-field--wide admin-field--upload">
+            <span>Cover-Bild (Hero + Journal-Karte)</span>
+            <div class="admin-upload-row">
+              <input type="text" id="f_heroImageUrl" data-field="heroImageUrl" placeholder="URL oder Bild hochladen…">
+              <button type="button" class="admin-btn admin-btn--ghost admin-btn--small admin-upload-btn" data-upload-target="heroImageUrl" title="Bild hochladen">↑ Upload</button>
+            </div>
+            <div id="heroImagePreview" class="admin-upload-preview"></div>
+            <input type="file" id="uploadHeroImage" accept="image/*" hidden>
+          </div>
+
+          <div class="admin-field admin-field--wide admin-field--upload">
+            <span>Card-Bild (falls abweichend vom Hero)</span>
+            <div class="admin-upload-row">
+              <input type="text" id="f_cardImageUrl" data-field="cardImageUrl" placeholder="Leer = Hero-Bild wird verwendet">
+              <button type="button" class="admin-btn admin-btn--ghost admin-btn--small admin-upload-btn" data-upload-target="cardImageUrl" title="Bild hochladen">↑ Upload</button>
+            </div>
+            <div id="cardImagePreview" class="admin-upload-preview"></div>
+            <input type="file" id="uploadCardImage" accept="image/*" hidden>
+          </div>
+        </div>
+
+        <div id="articleImagesSection" class="admin-article-images" hidden>
+          <div class="admin-article-images__header">
+            <h3 class="admin-article-images__title">Bilder im Beitrag</h3>
+            <p class="admin-article-images__sub">Klicke auf ein Bild, um es durch ein neues zu ersetzen.</p>
+          </div>
+          <div id="articleImagesList" class="admin-article-images__grid"></div>
+          <input type="file" id="uploadArticleImage" accept="image/*,video/*" hidden>
         </div>
       </section>
 

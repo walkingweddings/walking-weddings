@@ -61,6 +61,14 @@
 
   // --- Helpers --------------------------------------------------------------
 
+  function escapeHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
   async function api(path, opts = {}) {
     const headers = Object.assign(
       { 'Authorization': 'Bearer ' + token },
@@ -379,19 +387,193 @@
     draftSection.hidden = false;
     reviseSection.hidden = false;
     publishSection.hidden = false;
+    renderArticleImages();
+    renderCoverPreviews();
   }
+
+  // --- Cover image upload ---------------------------------------------------
+
+  const uploadHeroInput = $('uploadHeroImage');
+  const uploadCardInput = $('uploadCardImage');
+  const heroPreview = $('heroImagePreview');
+  const cardPreview = $('cardImagePreview');
+
+  function renderCoverPreviews() {
+    if (!state.draft) {
+      heroPreview.innerHTML = '';
+      cardPreview.innerHTML = '';
+      return;
+    }
+    renderCoverThumb(heroPreview, state.draft.heroImageUrl);
+    renderCoverThumb(cardPreview, state.draft.cardImageUrl);
+  }
+
+  function renderCoverThumb(container, url) {
+    if (!url) {
+      container.innerHTML = '';
+      return;
+    }
+    container.innerHTML = '<img src="' + escapeHtml(url) + '" alt="Vorschau">';
+  }
+
+  document.querySelectorAll('.admin-upload-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.uploadTarget;
+      if (target === 'heroImageUrl') uploadHeroInput.click();
+      else if (target === 'cardImageUrl') uploadCardInput.click();
+    });
+  });
+
+  uploadHeroInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    await uploadCoverImage(file, 'heroImageUrl');
+    uploadHeroInput.value = '';
+  });
+
+  uploadCardInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    await uploadCoverImage(file, 'cardImageUrl');
+    uploadCardInput.value = '';
+  });
+
+  async function uploadCoverImage(file, field) {
+    showOverlay('Bild wird hochgeladen…');
+    try {
+      const dataBase64 = await fileToBase64(file);
+      const data = await api('/api/admin/upload', {
+        method: 'POST',
+        body: JSON.stringify({
+          filename: file.name,
+          contentType: file.type,
+          dataBase64,
+        }),
+      });
+      hideOverlay();
+      if (!state.draft) return;
+      const oldHero = state.draft.heroImageUrl;
+      state.draft[field] = data.url;
+      if (field === 'heroImageUrl') {
+        const cInput = $('f_cardImageUrl');
+        if (!state.draft.cardImageUrl || state.draft.cardImageUrl === oldHero) {
+          state.draft.cardImageUrl = data.url;
+          if (cInput) cInput.value = data.url;
+        }
+      }
+      const input = $('f_' + field);
+      if (input) input.value = data.url;
+      renderCoverPreviews();
+      await syncDraftToServer();
+      loadPreview();
+      showToast('Cover-Bild aktualisiert', 'success');
+    } catch (err) {
+      hideOverlay();
+      showToast('Upload fehlgeschlagen: ' + err.message, 'error', 6000);
+    }
+  }
+
+  $('f_heroImageUrl').addEventListener('change', renderCoverPreviews);
+  $('f_cardImageUrl').addEventListener('change', renderCoverPreviews);
+
+  // --- Article image swap ---------------------------------------------------
+
+  const articleImagesSection = $('articleImagesSection');
+  const articleImagesList = $('articleImagesList');
+  const uploadArticleInput = $('uploadArticleImage');
+  let swappingUrl = null;
+
+  function extractArticleMedia(articleInner) {
+    if (!articleInner) return [];
+    const urls = [];
+    const seen = new Set();
+    const re = /<(?:img|video)[^>]*\bsrc="([^"]+)"/g;
+    let m;
+    while ((m = re.exec(articleInner)) !== null) {
+      if (!seen.has(m[1])) {
+        seen.add(m[1]);
+        const isVideo = /\.(mp4|mov|webm)(\?|$)/i.test(m[1]) || m[0].startsWith('<video');
+        urls.push({ url: m[1], type: isVideo ? 'video' : 'image' });
+      }
+    }
+    return urls;
+  }
+
+  function toRoman(num) {
+    const vals = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+    const syms = ['M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I'];
+    let r = '';
+    for (let i = 0; i < vals.length; i++) {
+      while (num >= vals[i]) { r += syms[i]; num -= vals[i]; }
+    }
+    return r;
+  }
+
+  function renderArticleImages() {
+    if (!state.draft || !state.draft.articleInner) {
+      if (articleImagesSection) articleImagesSection.hidden = true;
+      return;
+    }
+    const media = extractArticleMedia(state.draft.articleInner);
+    if (!media.length) {
+      articleImagesSection.hidden = true;
+      return;
+    }
+    articleImagesSection.hidden = false;
+    articleImagesList.innerHTML = '';
+    media.forEach((m, i) => {
+      const item = document.createElement('div');
+      item.className = 'admin-article-image';
+      item.innerHTML =
+        (m.type === 'video'
+          ? '<video src="' + escapeHtml(m.url) + '" muted playsinline preload="metadata"></video>'
+          : '<img src="' + escapeHtml(m.url) + '" alt="Plate ' + (i + 2) + '">') +
+        '<div class="admin-article-image__overlay">' +
+          '<span class="admin-article-image__plate">Plate ' + toRoman(i + 2) + '</span>' +
+          '<button type="button" class="admin-btn admin-btn--ghost admin-btn--small">Austauschen</button>' +
+        '</div>';
+
+      const trigger = () => { swappingUrl = m.url; uploadArticleInput.click(); };
+      item.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); trigger(); });
+      item.addEventListener('click', trigger);
+      articleImagesList.appendChild(item);
+    });
+  }
+
+  uploadArticleInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file || !swappingUrl) return;
+    showOverlay('Bild wird ersetzt…');
+    try {
+      const dataBase64 = await fileToBase64(file);
+      const data = await api('/api/admin/upload', {
+        method: 'POST',
+        body: JSON.stringify({
+          filename: file.name,
+          contentType: file.type,
+          dataBase64,
+        }),
+      });
+      hideOverlay();
+      if (!state.draft || !state.draft.articleInner) return;
+      const oldUrl = swappingUrl;
+      state.draft.articleInner = state.draft.articleInner.split(oldUrl).join(data.url);
+      state.media.forEach(m => { if (m.url === oldUrl) m.url = data.url; });
+      swappingUrl = null;
+      renderArticleImages();
+      await syncDraftToServer();
+      loadPreview();
+      showToast('Bild ersetzt', 'success');
+    } catch (err) {
+      hideOverlay();
+      showToast('Upload fehlgeschlagen: ' + err.message, 'error', 6000);
+    }
+    uploadArticleInput.value = '';
+  });
 
   // --- Publish --------------------------------------------------------------
 
   // --- Manage existing posts & drafts ---------------------------------------
-
-  function escapeHtml(str) {
-    return String(str == null ? '' : str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
 
   const manageState = {
     tab: 'posts',          // 'posts' | 'drafts'
