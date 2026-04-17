@@ -453,7 +453,7 @@
   display: flex;
   gap: var(--space-md);
   white-space: nowrap;
-  animation: editorial-scroll 40s linear infinite;
+  animation: editorial-scroll 90s linear infinite;
   font-family: var(--font-display);
   font-size: var(--text-xl);
   text-transform: uppercase;
