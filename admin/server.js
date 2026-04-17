@@ -598,10 +598,15 @@ async function handle(req, res, url) {
 
   if (req.method === 'POST' && url === '/api/admin/draft-update') {
     try {
-      const { id, draft } = await readJson(req);
+      const { id, draft, media } = await readJson(req);
       const current = loadDraft(id);
       if (!current) { json(res, 404, { error: 'Entwurf nicht gefunden' }); return true; }
-      saveDraft(id, { ...draft, _media: current._media, _prompt: current._prompt });
+      saveDraft(id, {
+        ...draft,
+        _media: Array.isArray(media) ? media : current._media,
+        _prompt: current._prompt,
+        _sourceSlug: current._sourceSlug,
+      });
       json(res, 200, { ok: true });
     } catch (e) {
       json(res, 500, { error: e.message });

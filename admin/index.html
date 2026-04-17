@@ -189,6 +189,15 @@
           </div>
         </div>
         <textarea id="revisionInput" class="admin-textarea" rows="5" placeholder="Beispiel: Mache die Einleitung poetischer. Füge ein Kapitel über das Dinner hinzu. Ersetze das zweite Bild durch das Triptychon."></textarea>
+
+        <div id="reviseDropzone" class="admin-dropzone admin-dropzone--compact" tabindex="0">
+          <div class="admin-dropzone__inner">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 3v14M5 10l7-7 7 7"/><path d="M5 21h14"/></svg>
+            <p><strong>Neue Medien hinzufügen</strong><br><span class="admin-dropzone__hint">Optional — für das Revision-Prompt verfügbar</span></p>
+          </div>
+          <input type="file" id="reviseFileInput" accept="image/*,video/*" multiple hidden>
+        </div>
+
         <button id="reviseBtn" class="admin-btn admin-btn--secondary admin-btn--full">Änderungen anwenden</button>
       </section>
 

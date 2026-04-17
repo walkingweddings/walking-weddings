@@ -675,6 +675,16 @@ code {
   background: rgba(184, 168, 138, 0.12);
   color: var(--admin-text);
 }
+.admin-dropzone--compact {
+  padding: 22px 18px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+.admin-dropzone--compact .admin-dropzone__inner { gap: 8px; }
+.admin-dropzone--compact .admin-dropzone__inner p { font-size: 13px; }
+.admin-dropzone--compact .admin-dropzone__inner strong {
+  font-size: 16px;
+}
 .admin-dropzone__inner {
   display: flex;
   flex-direction: column;
