@@ -488,7 +488,13 @@ async function handle(req, res, url) {
       return true;
     }
     const { _media, ...cleanDraft } = draft;
-    const html = buildPostHtml(cleanDraft);
+    const rawHtml = buildPostHtml(cleanDraft);
+    // The template uses relative paths like ../assets/css/… that expect the
+    // document to live under /blog/<slug>.html. In the preview iframe the
+    // response is served from /api/admin/preview/<id>, so those relative
+    // paths would resolve to nowhere. Injecting <base href="/blog/"> makes
+    // them resolve exactly as they do on the published page.
+    const html = rawHtml.replace(/<head>/i, '<head>\n  <base href="/blog/">');
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(html);
     return true;
