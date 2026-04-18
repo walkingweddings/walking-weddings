@@ -231,8 +231,8 @@ ${galleryUrl ? `      <a href="${escapeHtml(galleryUrl)}" target="_blank" rel="n
       </div>
     </div>
   </footer>
-  <script src="../assets/js/main.js"></script>
-  <script src="../assets/js/animations.js"></script>
+  <script src="../assets/js/main.js?v=2"></script>
+  <script src="../assets/js/animations.js?v=2"></script>
 
 </body>
 </html>
