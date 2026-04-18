@@ -494,7 +494,15 @@ async function handle(req, res, url) {
     // response is served from /api/admin/preview/<id>, so those relative
     // paths would resolve to nowhere. Injecting <base href="/blog/"> makes
     // them resolve exactly as they do on the published page.
-    const html = rawHtml.replace(/<head>/i, '<head>\n  <base href="/blog/">');
+    let html = rawHtml.replace(/<head>/i, '<head>\n  <base href="/blog/">');
+    // Inject the inline editor so admin users can edit texts and swap images
+    // directly in the preview. The script talks back via postMessage.
+    try {
+      const editorJs = readFileSync(join(__dirname, 'preview-editor.js'), 'utf8');
+      html = html.replace(/<\/body>/i, '<script>\n' + editorJs + '\n</script>\n</body>');
+    } catch (err) {
+      console.warn('[admin] could not inject preview editor:', err.message);
+    }
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(html);
     return true;

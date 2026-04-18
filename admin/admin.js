@@ -414,6 +414,56 @@
     loadPreview();
   });
 
+  // --- Inline edits from preview iframe -------------------------------------
+  // The preview injects a script that makes texts contentEditable and images
+  // clickable. Changes arrive here as postMessage events.
+
+  let pendingInlineSync = null;
+  function queueInlineSync() {
+    clearTimeout(pendingInlineSync);
+    pendingInlineSync = setTimeout(() => {
+      syncDraftToServer().catch(() => {});
+    }, 300);
+  }
+
+  window.addEventListener('message', async (e) => {
+    if (e.origin !== window.location.origin) return;
+    const msg = e.data;
+    if (!msg || typeof msg !== 'object') return;
+    if (!state.draft) return;
+
+    if (msg.type === 'edit-field') {
+      const field = msg.field;
+      if (!field) return;
+      // For the title field, msg.value is the inner HTML (with <em>). Also sync
+      // plainTitle from the text content so both stay in sync.
+      state.draft[field] = msg.value;
+      if (field === 'title' && msg.plainValue != null) {
+        state.draft.plainTitle = msg.plainValue;
+        const pt = $('f_plainTitle');
+        if (pt) pt.value = msg.plainValue;
+      }
+      const input = $('f_' + field);
+      if (input) input.value = msg.value;
+      queueInlineSync();
+      return;
+    }
+
+    if (msg.type === 'edit-article') {
+      state.draft.articleInner = msg.value;
+      renderArticleImages();
+      queueInlineSync();
+      return;
+    }
+
+    if (msg.type === 'swap-image') {
+      swappingUrl = msg.url;
+      swappingContext = msg.context || 'article';
+      uploadArticleInput.click();
+      return;
+    }
+  });
+
   document.querySelectorAll('.admin-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('admin-tab--active'));
@@ -521,6 +571,7 @@
   const articleImagesList = $('articleImagesList');
   const uploadArticleInput = $('uploadArticleImage');
   let swappingUrl = null;
+  let swappingContext = 'article'; // 'article' | 'hero'
 
   function extractArticleMedia(articleInner) {
     if (!articleInner) return [];
@@ -594,12 +645,30 @@
         }),
       });
       hideOverlay();
-      if (!state.draft || !state.draft.articleInner) return;
+      if (!state.draft) return;
       const oldUrl = swappingUrl;
-      state.draft.articleInner = state.draft.articleInner.split(oldUrl).join(data.url);
+      const oldHero = state.draft.heroImageUrl;
+
+      if (swappingContext === 'hero') {
+        state.draft.heroImageUrl = data.url;
+        const heroInput = $('f_heroImageUrl');
+        if (heroInput) heroInput.value = data.url;
+        // Card follows hero if it was empty or tracking hero
+        if (!state.draft.cardImageUrl || state.draft.cardImageUrl === oldHero) {
+          state.draft.cardImageUrl = data.url;
+          const cardInput = $('f_cardImageUrl');
+          if (cardInput) cardInput.value = data.url;
+        }
+        renderCoverPreviews();
+      } else {
+        if (state.draft.articleInner) {
+          state.draft.articleInner = state.draft.articleInner.split(oldUrl).join(data.url);
+          renderArticleImages();
+        }
+      }
       state.media.forEach(m => { if (m.url === oldUrl) m.url = data.url; });
       swappingUrl = null;
-      renderArticleImages();
+      swappingContext = 'article';
       await syncDraftToServer();
       loadPreview();
       showToast('Bild ersetzt', 'success');
