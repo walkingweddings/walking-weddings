@@ -8,6 +8,7 @@ const {
 } = require('fs');
 const { join } = require('path');
 const { buildPostHtml, buildBlogCard } = require('./template');
+const { addCacheBusters } = require('../cache-buster');
 
 const ROOT = join(__dirname, '..');
 
@@ -495,6 +496,8 @@ async function handle(req, res, url) {
     // paths would resolve to nowhere. Injecting <base href="/blog/"> makes
     // them resolve exactly as they do on the published page.
     let html = rawHtml.replace(/<head>/i, '<head>\n  <base href="/blog/">');
+    // Cache-bust referenced JS/CSS so changes propagate into the preview
+    html = addCacheBusters(html);
     // Inject the inline editor so admin users can edit texts and swap images
     // directly in the preview. The script talks back via postMessage.
     try {

@@ -16,6 +16,8 @@ const MIME = {
   '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.json': 'application/json'
 };
 
+const { addCacheBusters } = require('./cache-buster');
+
 function esc(str) {
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -231,6 +233,20 @@ createServer(async (req, res) => {
   const contentType = MIME[ext] || 'application/octet-stream';
   const stat = statSync(file);
   const fileSize = stat.size;
+
+  // For HTML, read into memory and inject cache-busting ?v=<hash> into
+  // <script>/<link> tags so JS/CSS changes propagate without manual bumps.
+  if (ext === '.html') {
+    const html = addCacheBusters(readFileSync(file, 'utf8'));
+    const buf = Buffer.from(html);
+    res.writeHead(200, {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Content-Length': buf.length,
+      'Cache-Control': 'no-cache',
+    });
+    res.end(buf);
+    return;
+  }
 
   // Handle HTTP Range requests — mandatory for iOS Safari video playback
   const range = req.headers.range;
