@@ -453,7 +453,9 @@
   display: flex;
   gap: var(--space-md);
   white-space: nowrap;
-  animation: editorial-scroll 90s linear infinite;
+  /* Fallback duration — JS recalculates based on measured track width so
+     the scroll speed is ~60 px/s and feels consistent across devices. */
+  animation: editorial-scroll 60s linear infinite;
   font-family: var(--font-display);
   font-size: var(--text-xl);
   text-transform: uppercase;
