@@ -101,7 +101,7 @@ if (filmFrames.length > 0) {
 // ========================================
 
 (function setupEditorialMarquee() {
-  const SPEED_PX = 60; // pixels per second — tune for feel
+  const SPEED_PX = 110; // pixels per second — tune for feel
   const tracks = document.querySelectorAll('.editorial-marquee__track');
   if (!tracks.length) return;
 
