@@ -1052,4 +1052,246 @@
     }
   });
 
+  // --- Grid Editor ----------------------------------------------------------
+
+  const gridOverlay = $('gridOverlay');
+  const gridPreview = $('gridPreview');
+  const gridSaveBtn = $('gridSaveBtn');
+  const gridCloseBtn = $('gridCloseBtn');
+  const gridEditorBtn = $('gridEditorBtn');
+  const gridCardUpload = $('gridCardUpload');
+  let gridPosts = [];
+  let gridSwapSlug = null;
+  let gridCropState = null; // { slug, img, dot }
+
+  function openGridEditor() {
+    gridOverlay.hidden = false;
+    document.body.classList.add('admin-no-scroll');
+    loadGridPosts();
+  }
+
+  function closeGridEditor() {
+    gridOverlay.hidden = true;
+    document.body.classList.remove('admin-no-scroll');
+    if (gridCropState) exitGridCrop(false);
+  }
+
+  async function loadGridPosts() {
+    gridPreview.innerHTML = '<div class="admin-manage__placeholder">Lade Grid…</div>';
+    try {
+      const data = await api('/api/admin/posts');
+      gridPosts = data.posts || [];
+      renderGrid();
+    } catch (err) {
+      gridPreview.innerHTML = '<div class="admin-manage__placeholder admin-manage__placeholder--error">' + escapeHtml(err.message) + '</div>';
+    }
+  }
+
+  function renderGrid() {
+    gridPreview.innerHTML = '';
+    gridPosts.forEach((p, idx) => {
+      const card = document.createElement('div');
+      card.className = 'admin-grid-card';
+      card.draggable = true;
+      card.dataset.slug = p.slug;
+      card.dataset.index = idx;
+
+      const imgPos = p.imagePosition || '';
+      const posStyle = imgPos ? ' style="object-position: ' + escapeHtml(imgPos) + '"' : '';
+
+      card.innerHTML =
+        '<div class="admin-grid-card__image">' +
+          (p.image
+            ? '<img src="' + escapeHtml(p.image) + '" alt=""' + posStyle + ' loading="lazy">'
+            : '<div class="admin-grid-card__noimage">—</div>') +
+          '<span class="admin-grid-card__num">' + (idx + 1) + '</span>' +
+          '<div class="admin-grid-card__dot" style="left:' + (parseInt(imgPos) || 50) + '%;top:' + (parseInt((imgPos || '').split(' ')[1]) || 50) + '%"></div>' +
+          '<div class="admin-grid-card__tools">' +
+            '<button type="button" class="admin-gc-btn" data-action="swap" title="Bild tauschen">↑</button>' +
+            '<button type="button" class="admin-gc-btn" data-action="crop" title="Fokuspunkt">✛</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="admin-grid-card__body">' +
+          '<span class="admin-grid-card__tag">' + escapeHtml(p.tag || 'Journal') + '</span>' +
+          '<p class="admin-grid-card__title">' + escapeHtml(p.title || p.slug) + '</p>' +
+        '</div>';
+
+      // Drag & drop
+      card.addEventListener('dragstart', onDragStart);
+      card.addEventListener('dragover', onDragOver);
+      card.addEventListener('dragend', onDragEnd);
+      card.addEventListener('drop', onDrop);
+
+      // Tool buttons
+      card.querySelector('[data-action="swap"]').addEventListener('click', (e) => {
+        e.stopPropagation();
+        gridSwapSlug = p.slug;
+        gridCardUpload.click();
+      });
+      card.querySelector('[data-action="crop"]').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const img = card.querySelector('.admin-grid-card__image img');
+        const dot = card.querySelector('.admin-grid-card__dot');
+        if (img) enterGridCrop(p.slug, img, dot, card);
+      });
+
+      gridPreview.appendChild(card);
+    });
+  }
+
+  // --- Drag & drop reorder ---
+
+  let dragSrcIdx = null;
+
+  function onDragStart(e) {
+    dragSrcIdx = +this.dataset.index;
+    this.classList.add('admin-grid-card--dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', dragSrcIdx);
+  }
+
+  function onDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const mid = rect.left + rect.width / 2;
+    card.classList.toggle('admin-grid-card--drop-before', e.clientX < mid);
+    card.classList.toggle('admin-grid-card--drop-after', e.clientX >= mid);
+  }
+
+  function onDragEnd() {
+    this.classList.remove('admin-grid-card--dragging');
+    gridPreview.querySelectorAll('.admin-grid-card').forEach(c => {
+      c.classList.remove('admin-grid-card--drop-before', 'admin-grid-card--drop-after');
+    });
+  }
+
+  function onDrop(e) {
+    e.preventDefault();
+    const destIdx = +this.dataset.index;
+    if (dragSrcIdx == null || dragSrcIdx === destIdx) return;
+    const item = gridPosts.splice(dragSrcIdx, 1)[0];
+    gridPosts.splice(destIdx, 0, item);
+    renderGrid();
+    showToast('Reihenfolge geändert — klick "Speichern" um zu übernehmen', 'info');
+  }
+
+  // --- Save order ---
+
+  gridSaveBtn.addEventListener('click', async () => {
+    const slugs = gridPosts.map(p => p.slug);
+    showOverlay('Reihenfolge wird gespeichert…');
+    try {
+      await api('/api/admin/posts/reorder', {
+        method: 'POST',
+        body: JSON.stringify({ slugs }),
+      });
+      hideOverlay();
+      showToast('Reihenfolge gespeichert', 'success');
+    } catch (err) {
+      hideOverlay();
+      showToast('Fehler: ' + err.message, 'error', 6000);
+    }
+  });
+
+  // --- Card image swap ---
+
+  gridCardUpload.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file || !gridSwapSlug) return;
+    showOverlay('Bild wird hochgeladen…');
+    try {
+      const dataBase64 = await fileToBase64(file);
+      const data = await api('/api/admin/upload', {
+        method: 'POST',
+        body: JSON.stringify({ filename: file.name, contentType: file.type, dataBase64 }),
+      });
+      await api('/api/admin/posts/update-card', {
+        method: 'POST',
+        body: JSON.stringify({ slug: gridSwapSlug, image: data.url }),
+      });
+      hideOverlay();
+      showToast('Card-Bild aktualisiert', 'success');
+      gridSwapSlug = null;
+      await loadGridPosts();
+    } catch (err) {
+      hideOverlay();
+      showToast('Fehler: ' + err.message, 'error', 6000);
+    }
+    gridCardUpload.value = '';
+  });
+
+  // --- Card focal-point crop ---
+
+  function enterGridCrop(slug, img, dot, card) {
+    if (gridCropState) exitGridCrop(false);
+    card.classList.add('admin-grid-card--crop');
+    dot.classList.add('admin-grid-card__dot--active');
+    gridCropState = { slug, img, dot, card };
+
+    function onPointer(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const rect = img.getBoundingClientRect();
+      let x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+      let y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+      x = Math.round(x); y = Math.round(y);
+      img.style.objectPosition = x + '% ' + y + '%';
+      dot.style.left = x + '%';
+      dot.style.top = y + '%';
+    }
+    function onDown(e) {
+      onPointer(e);
+      const onMove = (ev) => onPointer(ev);
+      const onUp = async () => {
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+        const pos = img.style.objectPosition || '50% 50%';
+        try {
+          await api('/api/admin/posts/update-card', {
+            method: 'POST',
+            body: JSON.stringify({ slug, imagePosition: pos }),
+          });
+          showToast('Fokuspunkt gespeichert', 'success');
+        } catch (err) {
+          showToast('Fehler: ' + err.message, 'error');
+        }
+      };
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp);
+    }
+    img.addEventListener('pointerdown', onDown);
+    img._gcDown = onDown;
+
+    const done = document.createElement('button');
+    done.className = 'admin-crop-done';
+    done.textContent = '✓ Fertig';
+    done.addEventListener('click', (e) => { e.stopPropagation(); exitGridCrop(true); });
+    card.querySelector('.admin-grid-card__image').appendChild(done);
+    card._gcDone = done;
+
+    function onKey(e) { if (e.key === 'Escape') exitGridCrop(true); }
+    document.addEventListener('keydown', onKey);
+    card._gcKey = onKey;
+  }
+
+  function exitGridCrop(save) {
+    if (!gridCropState) return;
+    const { slug, img, dot, card } = gridCropState;
+    card.classList.remove('admin-grid-card--crop');
+    dot.classList.remove('admin-grid-card__dot--active');
+    if (img._gcDown) { img.removeEventListener('pointerdown', img._gcDown); delete img._gcDown; }
+    if (card._gcDone) { card._gcDone.remove(); delete card._gcDone; }
+    if (card._gcKey) { document.removeEventListener('keydown', card._gcKey); delete card._gcKey; }
+    gridCropState = null;
+  }
+
+  gridEditorBtn.addEventListener('click', openGridEditor);
+  gridCloseBtn.addEventListener('click', closeGridEditor);
+  gridOverlay.addEventListener('click', (e) => { if (e.target === gridOverlay) closeGridEditor(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !gridOverlay.hidden) closeGridEditor();
+  });
+
 })();
