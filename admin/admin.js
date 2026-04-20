@@ -462,6 +462,22 @@
       uploadArticleInput.click();
       return;
     }
+
+    if (msg.type === 'crop-image') {
+      const pos = msg.position || '50% 50%';
+      if (msg.context === 'hero') {
+        state.draft.heroImagePosition = pos;
+        state.draft.cardImagePosition = pos;
+      }
+      // Article images: the position is already in the style attribute of the
+      // <img> tag inside articleInner (set by the preview editor). The
+      // articleInner is serialized via the 'edit-article' message which fires
+      // right after crop-image for article context. For hero, we just need
+      // to sync the field values.
+      queueInlineSync();
+      showToast('Komposition gespeichert', 'success');
+      return;
+    }
   });
 
   document.querySelectorAll('.admin-tab').forEach(tab => {
