@@ -389,6 +389,8 @@ function listPosts() {
     if (!slug) continue;
     const image = (block.match(/<img[^>]*src="([^"]+)"/) || [])[1] || '';
     const imageAlt = (block.match(/<img[^>]*alt="([^"]*)"/) || [])[1] || '';
+    const imagePosMatch = block.match(/object-position:\s*([^";]+)/);
+    const imagePosition = imagePosMatch ? imagePosMatch[1].trim() : '';
     const tag = decodeHtmlEntities((block.match(/blog-card__tag">([^<]*)</) || [])[1] || '');
     const title = decodeHtmlEntities((block.match(/blog-card__title">([^<]*)</) || [])[1] || '');
     const excerpt = decodeHtmlEntities((block.match(/blog-card__excerpt">([^<]*)</) || [])[1] || '');
@@ -411,6 +413,7 @@ function listPosts() {
       fileExists: exists,
       editable,
       publishedAt,
+      imagePosition,
     });
   }
   return posts;
@@ -647,6 +650,110 @@ async function handle(req, res, url) {
       json(res, 200, { ok: true, posts });
     } catch (e) {
       console.error('[admin] list posts error:', e);
+      json(res, 500, { error: e.message });
+    }
+    return true;
+  }
+
+  if (req.method === 'POST' && url === '/api/admin/posts/reorder') {
+    try {
+      const { slugs } = await readJson(req);
+      if (!Array.isArray(slugs) || !slugs.length) {
+        json(res, 400, { error: 'slugs array erforderlich' }); return true;
+      }
+      const blogHtmlPath = join(ROOT, 'blog.html');
+      let html = readFileSync(blogHtmlPath, 'utf8');
+      // Extract all cards
+      const cardMap = new Map();
+      const cardRe = /(\s*<article class="blog-card reveal">[\s\S]*?<\/article>)/g;
+      let cm;
+      while ((cm = cardRe.exec(html)) !== null) {
+        const hrefMatch = cm[1].match(/href="blog\/([^"]+)\.html"/);
+        if (hrefMatch) cardMap.set(hrefMatch[1], cm[1]);
+      }
+      // Rebuild the card section in the requested order
+      const gridStart = html.indexOf('<div class="blog-grid">');
+      const gridEnd = html.indexOf('</div>', html.indexOf('</article>', gridStart));
+      if (gridStart === -1 || gridEnd === -1) {
+        json(res, 500, { error: 'blog-grid Struktur nicht gefunden' }); return true;
+      }
+      const before = html.slice(0, gridStart + '<div class="blog-grid">'.length);
+      const after = html.slice(gridEnd);
+      const orderedCards = slugs
+        .filter(s => cardMap.has(s))
+        .map(s => cardMap.get(s));
+      // Also include any cards not in the slugs list (safety)
+      cardMap.forEach((card, slug) => {
+        if (!slugs.includes(slug)) orderedCards.push(card);
+      });
+      const newHtml = before + '\n' + orderedCards.join('\n') + '\n        ' + after;
+      writeFileSync(blogHtmlPath, newHtml);
+      json(res, 200, { ok: true, count: orderedCards.length });
+    } catch (e) {
+      console.error('[admin] reorder error:', e);
+      json(res, 500, { error: e.message });
+    }
+    return true;
+  }
+
+  if (req.method === 'POST' && url === '/api/admin/posts/update-card') {
+    try {
+      const { slug, image, imagePosition, title, excerpt, tag } = await readJson(req);
+      if (!slug) { json(res, 400, { error: 'slug erforderlich' }); return true; }
+      const blogHtmlPath = join(ROOT, 'blog.html');
+      let html = readFileSync(blogHtmlPath, 'utf8');
+      const slugHref = `blog/${slug}.html`;
+      const escapedHref = slugHref.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const cardRe = new RegExp(
+        `(\\s*<article class="blog-card reveal">[\\s\\S]*?${escapedHref}[\\s\\S]*?<\\/article>)`
+      );
+      const match = html.match(cardRe);
+      if (!match) { json(res, 404, { error: 'Card nicht gefunden' }); return true; }
+      let card = match[1];
+      if (image != null) {
+        card = card.replace(
+          /(<div class="blog-card__image">\s*<img\s+src=")[^"]*(")/,
+          '$1' + image.replace(/\$/g, '$$$$') + '$2'
+        );
+      }
+      if (imagePosition != null) {
+        // Add or update style="object-position: ..."
+        if (card.match(/<img[^>]*style="[^"]*object-position/)) {
+          card = card.replace(/(object-position:\s*)[^";]+/, '$1' + imagePosition);
+        } else if (imagePosition && imagePosition !== '50% 50%') {
+          card = card.replace(
+            /(<div class="blog-card__image">\s*<img\s+src="[^"]*")(\s)/,
+            '$1 style="object-position: ' + imagePosition + '"$2'
+          );
+        }
+      }
+      if (title != null) {
+        card = card.replace(/(blog-card__title">)[^<]*</, '$1' + escapeHtml(title) + '<');
+      }
+      if (excerpt != null) {
+        card = card.replace(/(blog-card__excerpt">)[^<]*</, '$1' + escapeHtml(excerpt) + '<');
+      }
+      if (tag != null) {
+        card = card.replace(/(blog-card__tag">)[^<]*</, '$1' + escapeHtml(tag) + '<');
+      }
+      html = html.replace(match[1], card);
+      writeFileSync(blogHtmlPath, html);
+      // Also update sidecar if exists
+      const sidecarPath = join(PUBLISHED_DIR, `${slug}.json`);
+      if (existsSync(sidecarPath)) {
+        try {
+          const sc = JSON.parse(readFileSync(sidecarPath, 'utf8'));
+          if (image != null) sc.cardImageUrl = image;
+          if (imagePosition != null) sc.cardImagePosition = imagePosition;
+          if (title != null) sc.cardTitle = title;
+          if (excerpt != null) sc.excerpt = excerpt;
+          if (tag != null) sc.tag = tag;
+          writeFileSync(sidecarPath, JSON.stringify(sc, null, 2));
+        } catch {}
+      }
+      json(res, 200, { ok: true });
+    } catch (e) {
+      console.error('[admin] update-card error:', e);
       json(res, 500, { error: e.message });
     }
     return true;

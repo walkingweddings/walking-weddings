@@ -28,6 +28,7 @@
     </div>
     <div class="admin-header__meta">
       <button id="managePostsBtn" class="admin-btn admin-btn--ghost admin-btn--small">Alle Beiträge</button>
+      <button id="gridEditorBtn" class="admin-btn admin-btn--ghost admin-btn--small">Journal Grid</button>
       <span id="claudeStatus" class="admin-pill">Claude: prüfe…</span>
       <span id="userEmail" class="admin-user"></span>
       <button id="logoutBtn" class="admin-btn admin-btn--ghost">Logout</button>
@@ -275,6 +276,24 @@
         <div class="admin-manage__placeholder">Lade Beiträge…</div>
       </div>
     </div>
+  </div>
+
+  <!-- GRID EDITOR OVERLAY -->
+  <div id="gridOverlay" class="admin-grid-editor" hidden>
+    <header class="admin-grid-editor__header">
+      <div>
+        <p class="admin-manage__eyebrow">Journal Grid Editor</p>
+        <h2 class="admin-manage__title">Vorschau & Reihenfolge</h2>
+      </div>
+      <div class="admin-manage__actions">
+        <button id="gridSaveBtn" class="admin-btn admin-btn--primary admin-btn--small">Reihenfolge speichern</button>
+        <button id="gridCloseBtn" class="admin-btn admin-btn--ghost admin-btn--small">Schließen ✕</button>
+      </div>
+    </header>
+    <div class="admin-grid-editor__body">
+      <div id="gridPreview" class="admin-grid-editor__grid"></div>
+    </div>
+    <input type="file" id="gridCardUpload" accept="image/*" hidden>
   </div>
 
   <!-- Overlay toast -->
