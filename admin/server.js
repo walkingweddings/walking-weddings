@@ -305,12 +305,26 @@ function updateBlogGrid(draft, cardImageUrl) {
   const slugHref = `blog/${draft.slug}.html`;
 
   if (html.includes(slugHref)) {
-    // Replace existing card (republish)
-    const escapedHref = slugHref.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const articleRegex = new RegExp(
-      `\\n?\\s*<article class="blog-card reveal">[\\s\\S]*?${escapedHref}[\\s\\S]*?<\\/article>`
-    );
-    html = html.replace(articleRegex, newCard.replace(/\s+$/, ''));
+    // Replace the specific card that contains this slug.
+    // Strategy: find all <article>…</article> blocks, identify the one
+    // containing the slug, replace just that one. This avoids greedy
+    // regex issues that could swallow multiple cards.
+    const cardRegex = /\n?\s*<article class="blog-card reveal">[\s\S]*?<\/article>/g;
+    let match;
+    let replaced = false;
+    while ((match = cardRegex.exec(html)) !== null) {
+      if (match[0].includes(slugHref)) {
+        html = html.slice(0, match.index) + newCard.replace(/\s+$/, '') + html.slice(match.index + match[0].length);
+        replaced = true;
+        break;
+      }
+    }
+    if (!replaced) {
+      console.warn('[admin] card with slug', slugHref, 'found in html.includes() but not in regex scan — inserting as new');
+      const marker = '<article class="blog-card reveal">';
+      const idx = html.indexOf(marker);
+      html = html.slice(0, idx) + newCard.trimStart() + '\n        ' + html.slice(idx);
+    }
   } else {
     // Insert before the first existing card so newest appears first
     const marker = '<article class="blog-card reveal">';
@@ -409,15 +423,17 @@ function deletePost(slug) {
   const blogHtmlPath = join(ROOT, 'blog.html');
   let html = readFileSync(blogHtmlPath, 'utf8');
   const slugHref = `blog/${slug}.html`;
-  const escapedHref = slugHref.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const articleRegex = new RegExp(
-    `\\n?\\s*<article class="blog-card reveal">[\\s\\S]*?${escapedHref}[\\s\\S]*?<\\/article>`
-  );
+  // Find the specific card block containing this slug and remove only that one
+  const cardRegex = /\n?\s*<article class="blog-card reveal">[\s\S]*?<\/article>/g;
+  let match;
   let removedFromGrid = false;
-  if (articleRegex.test(html)) {
-    html = html.replace(articleRegex, '');
-    writeFileSync(blogHtmlPath, html);
-    removedFromGrid = true;
+  while ((match = cardRegex.exec(html)) !== null) {
+    if (match[0].includes(slugHref)) {
+      html = html.slice(0, match.index) + html.slice(match.index + match[0].length);
+      writeFileSync(blogHtmlPath, html);
+      removedFromGrid = true;
+      break;
+    }
   }
   const postPath = join(ROOT, 'blog', `${slug}.html`);
   let removedFile = false;
