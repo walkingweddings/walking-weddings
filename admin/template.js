@@ -38,6 +38,7 @@ function buildPostHtml(draft) {
     services = 'Foto + Film',
     heroImageUrl = '',
     heroImageAlt = '',
+    heroImagePosition = '',
     heroCaption = '',
     marqueeTags = [],
     articleInner = '',
@@ -138,7 +139,7 @@ function buildPostHtml(draft) {
       <span>${escapeHtml(services)}</span>
     </p>
     <figure class="editorial-hero__figure">
-      <img src="${escapeHtml(heroImageUrl)}" alt="${escapeHtml(heroImageAlt || coupleNames)}" loading="eager">
+      <img src="${escapeHtml(heroImageUrl)}" alt="${escapeHtml(heroImageAlt || coupleNames)}"${heroImagePosition ? ' style="object-position: ' + escapeHtml(heroImagePosition) + '"' : ''} loading="eager">
       <figcaption>Plate I — ${escapeHtml(heroCaption)}</figcaption>
     </figure>
   </header>
@@ -242,11 +243,12 @@ ${galleryUrl ? `      <a href="${escapeHtml(galleryUrl)}" target="_blank" rel="n
 function buildBlogCard(draft, cardImageUrl) {
   const img = cardImageUrl || draft.cardImageUrl || draft.heroImageUrl || '';
   const cardTitle = draft.cardTitle || draft.plainTitle || '';
+  const pos = draft.cardImagePosition || draft.heroImagePosition || '';
   return `
         <article class="blog-card reveal">
           <a href="blog/${escapeHtml(draft.slug)}.html">
             <div class="blog-card__image">
-              <img src="${escapeHtml(img)}" alt="${escapeHtml(cardTitle)}" loading="lazy">
+              <img src="${escapeHtml(img)}" alt="${escapeHtml(cardTitle)}"${pos ? ' style="object-position: ' + escapeHtml(pos) + '"' : ''} loading="lazy">
             </div>
             <div class="blog-card__content">
               <p class="blog-card__tag">${escapeHtml(draft.tag || 'Hochzeit')}</p>
