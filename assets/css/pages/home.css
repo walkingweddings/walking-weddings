@@ -19,3 +19,130 @@
     background-attachment: fixed;
   }
 }
+
+/* ========================================
+   INSTAGRAM — editorial cream mosaic
+   ======================================== */
+.instagram {
+  position: relative;
+  background: var(--color-bg-light);
+  padding: var(--space-2xl) 0;
+  overflow: hidden;
+}
+
+.instagram__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 var(--space-xs);
+}
+
+.instagram__tile {
+  display: block;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: var(--color-bg-light);
+}
+
+.instagram__tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--transition-slow), filter var(--transition-medium);
+  filter: saturate(0.95);
+}
+
+.instagram__tile:hover img {
+  transform: scale(1.04);
+  filter: saturate(1.05);
+}
+
+.instagram__card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--color-bg-white);
+  padding: var(--space-lg) var(--space-xl);
+  min-width: min(440px, 70vw);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 2px 24px rgba(19, 27, 27, 0.06);
+  color: var(--color-text-dark);
+  text-decoration: none;
+  transition: transform var(--transition-medium), box-shadow var(--transition-medium);
+}
+
+.instagram__card:hover {
+  transform: translate(-50%, -50%) translateY(-2px);
+  box-shadow: 0 6px 32px rgba(19, 27, 27, 0.1);
+  color: var(--color-text-dark);
+}
+
+.instagram__card-eyebrow {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin: 0 0 var(--space-sm);
+}
+
+.instagram__card-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 1.1rem + 1vw, 2rem);
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-dark);
+  margin: 0;
+}
+
+.instagram__card-title em {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: 300;
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+.instagram__card-rule {
+  display: block;
+  width: 80px;
+  height: 1px;
+  background: var(--color-text-dark);
+  margin: var(--space-md) 0;
+}
+
+.instagram__card-handle {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: 300;
+  font-size: var(--text-base);
+  color: var(--color-secondary);
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 767px) {
+  .instagram {
+    padding: var(--space-xl) 0;
+  }
+
+  .instagram__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .instagram__card {
+    min-width: min(320px, 80vw);
+    padding: var(--space-md) var(--space-lg);
+  }
+}
