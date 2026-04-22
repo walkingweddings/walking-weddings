@@ -66,10 +66,11 @@ async function sendTeamEmail(lead) {
   const roleStr = lead.role === 'planner' ? 'Wedding Planner' : 'Hochzeitspaar';
   const refStr = referralSummary(lead);
   const subjectLabel = lead.role === 'planner' ? `${lead.name}${lead.company ? ' (' + lead.company + ')' : ''}` : lead.name;
+  const packageTag = lead.package ? ` [${lead.package}]` : '';
 
   return sendEmail({
     to: 'contact@walkingweddings.com',
-    subject: `Neue Website-Anfrage: ${subjectLabel}`,
+    subject: `Neue Website-Anfrage: ${subjectLabel}${packageTag}`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#393e3f;">
         <div style="text-align:center;padding:30px 0;background:#393e3f;">
@@ -84,6 +85,7 @@ async function sendTeamEmail(lead) {
             <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Telefon</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(lead.phone)}</td></tr>
             <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">E-Mail</td><td style="padding:10px 12px;border:1px solid #d4c4a8;"><a href="mailto:${esc(lead.email)}">${esc(lead.email)}</a></td></tr>
             <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Art der Veranstaltung</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(lead.eventType || '-')}</td></tr>
+            ${lead.package ? `<tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Gewähltes Paket</td><td style="padding:10px 12px;border:1px solid #d4c4a8;"><strong style="color:#B8A88A;letter-spacing:1px;">${esc(lead.package)}</strong></td></tr>` : ''}
             <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Datum</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(dateStr)}</td></tr>
             <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Location</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(locStr)}</td></tr>
             <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Interesse</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(lead.interesse?.join(', ') || '-')}</td></tr>
@@ -120,6 +122,7 @@ async function sendCoupleEmail(lead) {
           <div style="background:#f5f0e8;border:1px solid #d4c4a8;padding:20px;margin:24px 0;">
             <p style="font-family:Georgia,serif;font-size:16px;margin:0 0 12px;letter-spacing:2px;text-transform:uppercase;">Eure Angaben</p>
             <table style="border-collapse:collapse;width:100%;font-size:14px;">
+              ${lead.package ? `<tr><td style="padding:6px 8px;font-weight:bold;vertical-align:top;width:140px;">Paket</td><td style="padding:6px 8px;">${esc(lead.package)}</td></tr>` : ''}
               <tr><td style="padding:6px 8px;font-weight:bold;vertical-align:top;width:140px;">Datum</td><td style="padding:6px 8px;">${esc(dateStr)}</td></tr>
               <tr><td style="padding:6px 8px;font-weight:bold;vertical-align:top;">Location</td><td style="padding:6px 8px;">${esc(locStr)}</td></tr>
               <tr><td style="padding:6px 8px;font-weight:bold;vertical-align:top;">Interesse</td><td style="padding:6px 8px;">${esc(lead.interesse?.join(', ') || '-')}</td></tr>
