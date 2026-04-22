@@ -114,10 +114,13 @@
 }
 
 .editorial-lede {
+  font-family: var(--font-accent);
+  font-weight: 400;
   color: var(--color-text-dark);
-  font-size: var(--text-lg);
-  line-height: 1.7;
+  font-size: calc(var(--text-lg) * 1.1);
+  line-height: 1.6;
   max-width: 42ch;
+  letter-spacing: 0.01em;
 }
 
 /* Drop-cap on desktop */
@@ -197,10 +200,13 @@
 }
 
 .editorial-body {
+  font-family: var(--font-accent);
+  font-weight: 400;
   color: var(--color-text-dark);
-  font-size: var(--text-base);
-  line-height: 1.75;
+  font-size: calc(var(--text-base) * 1.15);
+  line-height: 1.65;
   max-width: 40ch;
+  letter-spacing: 0.01em;
 }
 
 /* ==========================================================================
