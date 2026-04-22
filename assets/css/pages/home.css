@@ -39,6 +39,27 @@
   padding: 0 var(--space-xs);
 }
 
+.instagram__grid img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+
+/* Behold.so live feed — inherits cream background, constrained to grid width */
+.instagram__feed {
+  display: block;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 var(--space-xs);
+
+  /* Behold exposes CSS custom properties — match our 2 px mosaic gap */
+  --behold-row-gap: 2px;
+  --behold-column-gap: 2px;
+  --behold-border-radius: 0;
+}
+
 .instagram__tile {
   display: block;
   aspect-ratio: 1 / 1;
