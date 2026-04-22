@@ -5,7 +5,7 @@
 .contact {
   background: var(--color-bg-light);
   color: var(--color-text-dark);
-  padding: var(--space-xl) 0;
+  padding: var(--space-lg) 0;
 }
 
 .contact__inner {
@@ -18,13 +18,13 @@
 .contact-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--space-xl);
+  gap: var(--space-lg);
 }
 
 @media (min-width: 900px) {
   .contact-grid {
     grid-template-columns: 3fr 2fr;
-    gap: var(--space-xl);
+    gap: var(--space-lg);
   }
 }
 
@@ -33,7 +33,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-sm);
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
 }
 
 .form-role-btn {
@@ -118,24 +118,24 @@
 
 /* ------- Form sections ------- */
 .form-section {
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
 }
 
 .form-section__title {
   font-family: var(--font-display);
-  font-size: clamp(1.25rem, 1.8vw, 1.75rem);
+  font-size: clamp(1.1rem, 1.4vw, 1.4rem);
   font-weight: 400;
   letter-spacing: 0.02em;
   text-transform: none;
   color: var(--color-text-dark);
-  margin: 0 0 var(--space-sm);
-  padding-bottom: var(--space-xs);
+  margin: 0 0 var(--space-xs);
+  padding-bottom: 0.25rem;
   border-bottom: 1px solid rgba(42, 47, 48, 0.15);
 }
 
 /* ------- Inputs ------- */
 .form__group {
-  margin-bottom: var(--space-sm);
+  margin-bottom: var(--space-xs);
 }
 
 .form__label {
@@ -145,13 +145,13 @@
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--color-text-dark);
-  margin-bottom: var(--space-xs);
+  margin-bottom: 0.25rem;
 }
 
 .form__input,
 .form__textarea {
   width: 100%;
-  padding: 0.55rem 0;
+  padding: 0.4rem 0;
   font-family: var(--font-body);
   font-size: var(--text-base);
   color: var(--color-text-dark);
@@ -173,18 +173,18 @@
 .form__textarea:focus {
   border-bottom-width: 2px;
   border-color: var(--color-accent);
-  padding-bottom: calc(0.55rem - 1px);
+  padding-bottom: calc(0.4rem - 1px);
 }
 
 .form__textarea {
   resize: vertical;
-  min-height: 140px;
+  min-height: 100px;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
 }
 
 @media (min-width: 600px) {
