@@ -134,12 +134,11 @@
 }
 
 .instagram__card-title em {
-  font-family: var(--font-accent);
-  font-style: italic;
-  font-weight: 300;
-  text-transform: none;
-  letter-spacing: 0.01em;
-  font-size: 1.05em;
+  font-family: inherit;
+  font-style: normal;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
 }
 
 .instagram__card-rule {
