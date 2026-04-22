@@ -49,6 +49,14 @@
   font-weight: 700;
 }
 
+/* Personennamen (Kiran / Ian) — Italiana, größer und feiner */
+.editorial-portrait__text .editorial-eyebrow {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.4rem, 1rem + 1.2vw, 2rem);
+  letter-spacing: 0.15em;
+}
+
 .editorial-role {
   font-family: var(--font-accent);
   font-style: italic;
