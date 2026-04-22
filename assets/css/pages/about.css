@@ -161,7 +161,7 @@
    ========================================================================== */
 .editorial-portrait {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 5fr 7fr;
   gap: var(--space-xl);
   align-items: start;
 }
@@ -176,6 +176,7 @@
 
 .editorial-portrait__media img {
   width: 100%;
+  max-width: 460px;
   aspect-ratio: 4/5;
   object-fit: cover;
   display: block;
