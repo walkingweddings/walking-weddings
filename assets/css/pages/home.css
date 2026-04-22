@@ -32,9 +32,9 @@
 
 .instagram__grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 2px;
-  max-width: 1600px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 var(--space-xs);
 }
@@ -50,14 +50,18 @@
 /* Behold.so live feed — inherits cream background, constrained to grid width */
 .instagram__feed {
   display: block;
-  max-width: 1600px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 var(--space-xs);
 
-  /* Behold exposes CSS custom properties — match our 2 px mosaic gap */
+  /* Behold exposes CSS custom properties — Tiles größer durch 3-Spalten-Grid */
   --behold-row-gap: 2px;
   --behold-column-gap: 2px;
   --behold-border-radius: 0;
+  --behold-grid-template-columns: repeat(3, 1fr);
+  --behold-columns-desktop: 3;
+  --behold-columns-tablet: 3;
+  --behold-columns-mobile: 2;
 }
 
 .instagram__tile {
