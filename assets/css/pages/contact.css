@@ -430,3 +430,47 @@
 .form__group--error .form__input {
   border-bottom-color: #c0392b;
 }
+
+/* Selected package notice — shown when arriving via packages.html?package=... */
+.form-package-notice {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  padding: var(--space-md) var(--space-md);
+  margin-bottom: var(--space-lg);
+  border: 1px solid var(--color-border);
+  background: rgba(184, 168, 138, 0.06);
+}
+
+.form-package-notice .text-caption {
+  margin: 0;
+}
+
+.form-package-notice__name {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  letter-spacing: 0.05em;
+  color: var(--color-text-dark);
+  margin: 0;
+  flex: 1 1 auto;
+}
+
+.form-package-notice__clear {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-secondary);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: var(--space-xs) 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color var(--transition-fast);
+}
+
+.form-package-notice__clear:hover {
+  color: var(--color-accent);
+}

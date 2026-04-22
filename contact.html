@@ -69,6 +69,14 @@
               <button type="button" class="form-role-btn" data-role="planner">Wedding Planner</button>
             </div>
             <input type="hidden" id="role" name="role" value="couple">
+            <input type="hidden" id="package" name="package" value="">
+
+            <!-- Selected package notice (prefilled from ?package= URL param) -->
+            <div class="form-package-notice" id="packageNotice" style="display: none;">
+              <p class="text-caption text-accent">Gewähltes Paket</p>
+              <p class="form-package-notice__name" id="packageNoticeName"></p>
+              <button type="button" class="form-package-notice__clear" id="packageClear" aria-label="Paket-Auswahl entfernen">Auswahl entfernen</button>
+            </div>
 
             <!-- 1. Kontaktdaten -->
             <div class="form-section">
@@ -354,6 +362,23 @@
   <script src="assets/js/main.js"></script>
   <script src="assets/js/animations.js"></script>
   <script>
+    // Prefill selected package from ?package= URL parameter
+    (function prefillPackage() {
+      var params = new URLSearchParams(window.location.search);
+      var pkg = params.get('package');
+      if (!pkg) return;
+      var allowed = ['Plus', 'Premium', 'Luxury'];
+      if (allowed.indexOf(pkg) === -1) return;
+      document.getElementById('package').value = pkg;
+      document.getElementById('packageNoticeName').textContent = pkg + ' — Paket';
+      document.getElementById('packageNotice').style.display = 'block';
+    })();
+
+    document.getElementById('packageClear').addEventListener('click', function() {
+      document.getElementById('package').value = '';
+      document.getElementById('packageNotice').style.display = 'none';
+    });
+
     // Dynamic date fields (max 3)
     let dateCount = 1;
     document.getElementById('addDate').addEventListener('click', function() {
@@ -461,6 +486,7 @@
       // Collect form data
       var data = {};
       data.role = role;
+      data.package = document.getElementById('package').value;
       data.name = name;
       data.company = company;
       data.phone = phone;
