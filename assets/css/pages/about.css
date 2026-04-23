@@ -177,6 +177,10 @@
   align-items: start;
 }
 
+.editorial-portrait--reverse {
+  grid-template-columns: 7fr 5fr;
+}
+
 .editorial-portrait--reverse .editorial-portrait__media {
   order: 2;
 }
