@@ -21,45 +21,6 @@ if (revealElements.length > 0) {
 }
 
 // ========================================
-// FILM SHOWCASE — scroll progress → --progress
-// ========================================
-
-const filmShowcases = document.querySelectorAll('.film-showcase');
-
-if (filmShowcases.length > 0) {
-  let ticking = false;
-
-  const updateFilmProgress = () => {
-    const vh = window.innerHeight;
-    filmShowcases.forEach(showcase => {
-      const stage = showcase.querySelector('.film-showcase__stage');
-      if (!stage) return;
-      const rect = showcase.getBoundingClientRect();
-      const total = showcase.offsetHeight - vh;
-      if (total <= 0) {
-        stage.style.setProperty('--progress', '1');
-        return;
-      }
-      const scrolled = Math.max(0, -rect.top);
-      const progress = Math.min(1, Math.max(0, scrolled / total));
-      stage.style.setProperty('--progress', progress.toFixed(3));
-    });
-    ticking = false;
-  };
-
-  const onFilmScroll = () => {
-    if (!ticking) {
-      requestAnimationFrame(updateFilmProgress);
-      ticking = true;
-    }
-  };
-
-  window.addEventListener('scroll', onFilmScroll, { passive: true });
-  window.addEventListener('resize', onFilmScroll, { passive: true });
-  updateFilmProgress();
-}
-
-// ========================================
 // FILM SHOWCASE — play while visible, stop when scrolled past
 // ========================================
 
