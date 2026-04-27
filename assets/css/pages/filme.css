@@ -79,9 +79,12 @@
 
 .film-showcase__frame iframe {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 100%;
+  /* Iframe ragt unten 44 px über den Frame hinaus, damit die Player-Leiste
+     vom overflow: hidden des Frames abgeschnitten wird. */
+  height: calc(100% + 44px);
   border: 0;
 }
 
