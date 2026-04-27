@@ -79,13 +79,12 @@
 
 .film-showcase__frame iframe {
   position: absolute;
-  /* Iframe wird 88 px höher als der Frame und 22 px nach oben geschoben.
-     Damit wird oben die Letterbox-Bar und unten Letterbox + Player-Bar
-     vom overflow: hidden des Frames abgeschnitten. */
-  top: -22px;
+  /* Iframe ragt unten 100 px raus, damit Letterbox + Player-Bar
+     vom overflow: hidden des Frames abgeschnitten werden. */
+  top: 0;
   left: 0;
   width: 100%;
-  height: calc(100% + 88px);
+  height: calc(100% + 100px);
   border: 0;
 }
 
