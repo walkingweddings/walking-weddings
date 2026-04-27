@@ -74,17 +74,18 @@
   width: clamp(420px, 56vw, 900px);
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: #000;
+  background: transparent;
 }
 
 .film-showcase__frame iframe {
   position: absolute;
-  /* Iframe ragt unten 100 px raus, damit Letterbox + Player-Bar
-     vom overflow: hidden des Frames abgeschnitten werden. */
+  /* Iframe ragt unten 44 px raus, damit die Player-Bar abgeschnitten wird.
+     Der Pic-Time-Embed läuft mit transparentbg=true, also bleibt der Rest
+     des iframe-Bereichs transparent und zeigt die Cream-Seitenfarbe. */
   top: 0;
   left: 0;
   width: 100%;
-  height: calc(100% + 100px);
+  height: calc(100% + 44px);
   border: 0;
 }
 
