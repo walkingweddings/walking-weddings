@@ -459,6 +459,7 @@
     if (msg.type === 'swap-image') {
       swappingUrl = msg.url;
       swappingContext = msg.context || 'article';
+      swappingIndex = msg.imageIndex != null ? msg.imageIndex : -1;
       uploadArticleInput.click();
       return;
     }
@@ -588,21 +589,27 @@
   const uploadArticleInput = $('uploadArticleImage');
   let swappingUrl = null;
   let swappingContext = 'article'; // 'article' | 'hero'
+  let swappingIndex = -1; // position of the image being swapped in articleInner
 
   function extractArticleMedia(articleInner) {
     if (!articleInner) return [];
-    const urls = [];
-    const seen = new Set();
+    const media = [];
     const re = /<(?:img|video)[^>]*\bsrc="([^"]+)"/g;
     let m;
     while ((m = re.exec(articleInner)) !== null) {
-      if (!seen.has(m[1])) {
-        seen.add(m[1]);
-        const isVideo = /\.(mp4|mov|webm)(\?|$)/i.test(m[1]) || m[0].startsWith('<video');
-        urls.push({ url: m[1], type: isVideo ? 'video' : 'image' });
-      }
+      const isVideo = /\.(mp4|mov|webm)(\?|$)/i.test(m[1]) || m[0].startsWith('<video');
+      media.push({ url: m[1], type: isVideo ? 'video' : 'image', offset: m.index });
     }
-    return urls;
+    return media;
+  }
+
+  function replaceNthMediaSrc(html, index, newUrl) {
+    const re = /(<(?:img|video)[^>]*\bsrc=")([^"]+)(")/g;
+    let count = 0;
+    return html.replace(re, (match, pre, oldUrl, post) => {
+      if (count++ === index) return pre + newUrl + post;
+      return match;
+    });
   }
 
   function toRoman(num) {
@@ -639,7 +646,7 @@
           '<button type="button" class="admin-btn admin-btn--ghost admin-btn--small">Austauschen</button>' +
         '</div>';
 
-      const trigger = () => { swappingUrl = m.url; uploadArticleInput.click(); };
+      const trigger = () => { swappingUrl = m.url; swappingIndex = i; swappingContext = 'article'; uploadArticleInput.click(); };
       item.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); trigger(); });
       item.addEventListener('click', trigger);
       articleImagesList.appendChild(item);
@@ -678,13 +685,18 @@
         renderCoverPreviews();
       } else {
         if (state.draft.articleInner) {
-          state.draft.articleInner = state.draft.articleInner.split(oldUrl).join(data.url);
+          if (swappingIndex >= 0) {
+            state.draft.articleInner = replaceNthMediaSrc(state.draft.articleInner, swappingIndex, data.url);
+          } else {
+            state.draft.articleInner = state.draft.articleInner.split(oldUrl).join(data.url);
+          }
           renderArticleImages();
         }
       }
       state.media.forEach(m => { if (m.url === oldUrl) m.url = data.url; });
       swappingUrl = null;
       swappingContext = 'article';
+      swappingIndex = -1;
       await syncDraftToServer();
       loadPreview();
       showToast('Bild ersetzt', 'success');

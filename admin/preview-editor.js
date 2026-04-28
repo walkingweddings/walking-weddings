@@ -159,7 +159,7 @@
 
   let activeCrop = null; // { img, wrap, dot, context }
 
-  function makeImageSwappable(img, context) {
+  function makeImageSwappable(img, context, imageIndex) {
     if (img.closest('[data-admin-image]')) return;
     if (img.tagName === 'VIDEO') {
       // Videos only get swap, no crop
@@ -175,12 +175,13 @@
       wrap.appendChild(overlay);
       wrap.addEventListener('click', (e) => {
         e.preventDefault(); e.stopPropagation();
-        send({ type: 'swap-image', url: img.currentSrc || img.src, context });
+        send({ type: 'swap-image', url: img.currentSrc || img.src, context, imageIndex });
       });
       return;
     }
 
     img.dataset.adminImageContext = context;
+    img.dataset.adminImageIndex = imageIndex != null ? imageIndex : '';
     const wrap = document.createElement('span');
     wrap.className = 'admin-image-wrap';
     wrap.setAttribute('data-admin-image', context);
@@ -205,18 +206,18 @@
 
     overlay.querySelector('[data-role="swap"]').addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation();
-      send({ type: 'swap-image', url: img.currentSrc || img.src, context });
+      send({ type: 'swap-image', url: img.currentSrc || img.src, context, imageIndex });
     });
 
     overlay.querySelector('[data-role="crop"]').addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation();
-      enterCropMode(img, wrap, dot, context);
+      enterCropMode(img, wrap, dot, context, imageIndex);
     });
   }
 
-  function enterCropMode(img, wrap, dot, context) {
+  function enterCropMode(img, wrap, dot, context, imageIndex) {
     if (activeCrop) exitCropMode(false);
-    activeCrop = { img, wrap, dot, context };
+    activeCrop = { img, wrap, dot, context, imageIndex };
     wrap.classList.add('admin-image-wrap--crop');
     dot.classList.add('admin-focal-dot--active');
     badge.textContent = '✛ Komposition — klicke auf den gewünschten Bildmittelpunkt';
@@ -272,7 +273,7 @@
 
   function exitCropMode(save) {
     if (!activeCrop) return;
-    const { img, wrap, dot, context } = activeCrop;
+    const { img, wrap, dot, context, imageIndex } = activeCrop;
     wrap.classList.remove('admin-image-wrap--crop');
     dot.classList.remove('admin-focal-dot--active');
     badge.textContent = '✎ Editieren — klicke auf Text oder Bild';
@@ -297,6 +298,7 @@
         url: img.currentSrc || img.src,
         position: pos,
         context,
+        imageIndex,
       });
       if (context === 'article') sendArticleUpdate();
     }
@@ -309,9 +311,9 @@
   const heroVid = document.querySelector('.editorial-hero__figure video');
   if (heroVid) makeImageSwappable(heroVid, 'hero');
 
-  // Article images and videos
+  // Article images and videos — each gets a unique index for per-image swap
   if (article) {
-    article.querySelectorAll('img, video').forEach(img => makeImageSwappable(img, 'article'));
+    article.querySelectorAll('img, video').forEach((img, idx) => makeImageSwappable(img, 'article', idx));
   }
 
   // --- Signal ready ---------------------------------------------------------
