@@ -21,46 +21,7 @@ if (revealElements.length > 0) {
 }
 
 // ========================================
-// PACKAGE BREAK — parallax: image scrolls slower than the page so we appear
-// to "drive through" the image as the user scrolls.
-// ========================================
-
-(function setupPackageBreakParallax() {
-  const images = document.querySelectorAll('.package-break img');
-  if (!images.length) return;
-
-  let ticking = false;
-
-  const update = () => {
-    const vh = window.innerHeight;
-    images.forEach(img => {
-      const wrap = img.parentElement;
-      if (!wrap) return;
-      const rect = wrap.getBoundingClientRect();
-      // Skip work when the wrapper is far from viewport
-      if (rect.bottom < -200 || rect.top > vh + 200) return;
-      // Progress: -1 when wrapper is just below viewport, +1 when just above
-      const center = (rect.top + rect.height / 2) - vh / 2;
-      const range = vh / 2 + rect.height / 2;
-      const progress = Math.max(-1, Math.min(1, center / range));
-      // Image is 130% of container — has 30% headroom (15% top + 15% bottom)
-      // Translate within that headroom for the parallax effect.
-      img.style.transform = `translate3d(0, ${(progress * -12).toFixed(2)}%, 0)`;
-    });
-    ticking = false;
-  };
-
-  const onScroll = () => {
-    if (!ticking) {
-      requestAnimationFrame(update);
-      ticking = true;
-    }
-  };
-
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onScroll, { passive: true });
-  update();
-})();
+// FILM SHOWCASE — play while visible, stop when scrolled past
 // Nur das Video, das mindestens 50% im Viewport ist, wird geladen.
 // Sobald es darunter fällt, schaltet src auf about:blank und der Stream
 // stoppt — verhindert Bandbreiten-Konflikte und Lag bei den nächsten Videos.

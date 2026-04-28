@@ -148,16 +148,21 @@
 .package-break {
   width: 100%;
   height: 55vh;
-  overflow: hidden;
   margin: 0;
+  background-color: var(--color-bg-light);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
-.package-break img {
-  width: 100%;
-  height: 130%;
-  object-fit: cover;
-  display: block;
-  will-change: transform;
+.package-break--bw {
+  filter: grayscale(1);
+}
+
+@media (min-width: 768px) {
+  .package-break {
+    background-attachment: fixed;
+  }
 }
 
 /* ========================================
