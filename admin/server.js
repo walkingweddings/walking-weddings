@@ -108,12 +108,46 @@ function requireAuth(req, res) {
   return true;
 }
 
+// Streams a long-running JSON response so reverse proxies don't kill the
+// connection with 502. We write 200 OK + chunked headers immediately, then
+// emit single-space "heartbeat" bytes (valid leading whitespace for any JSON
+// parser) every few seconds AND on every chunk from upstream. The final
+// payload is written on completion. Errors after headers are sent cannot
+// change the status code, so they go out as `{error: "..."}` with HTTP 200 —
+// the client's api() helper already throws on data.error.
+async function streamJsonResponse(res, runner) {
+  res.writeHead(200, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Transfer-Encoding': 'chunked',
+    'Cache-Control': 'no-cache, no-transform',
+    'X-Accel-Buffering': 'no',
+    'Connection': 'keep-alive',
+  });
+  const beat = () => { if (!res.writableEnded) { try { res.write(' '); } catch {} } };
+  beat(); // flush headers immediately
+  const interval = setInterval(beat, 10_000);
+  try {
+    const payload = await runner(beat);
+    if (!res.writableEnded) res.end(JSON.stringify(payload));
+  } catch (e) {
+    if (!res.writableEnded) res.end(JSON.stringify({ error: e.message || String(e) }));
+  } finally {
+    clearInterval(interval);
+  }
+}
+
 // --- Claude API -------------------------------------------------------------
 
-async function callClaude(systemPrompt, messages) {
+// Calls the Anthropic Messages API. When `onChunk` is provided the request is
+// streamed (SSE) and `onChunk(text)` fires for each delta — that lets the HTTP
+// handler emit keep-alive bytes to the client during long generations, which
+// prevents reverse proxies (Cloudflare, nginx, hosting LB) from cutting the
+// connection with a 502 Bad Gateway after their idle timeout.
+async function callClaude(systemPrompt, messages, onChunk) {
   if (!ANTHROPIC_API_KEY) {
     throw new Error('ANTHROPIC_API_KEY ist nicht gesetzt. Bitte Umgebungsvariable setzen und Server neu starten.');
   }
+  const useStream = typeof onChunk === 'function';
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -126,13 +160,48 @@ async function callClaude(systemPrompt, messages) {
       max_tokens: 8192,
       system: systemPrompt,
       messages,
+      ...(useStream ? { stream: true } : {}),
     }),
   });
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error?.message || JSON.stringify(data));
+  if (!useStream) {
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || JSON.stringify(data));
+    return data.content.map(b => b.text || '').join('');
   }
-  return data.content.map(b => b.text || '').join('');
+  if (!res.ok) {
+    let errBody = '';
+    try { errBody = await res.text(); } catch {}
+    throw new Error(`Claude API Fehler (${res.status}): ${errBody.slice(0, 400)}`);
+  }
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+  let text = '';
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let sep;
+    while ((sep = buf.indexOf('\n\n')) !== -1) {
+      const ev = buf.slice(0, sep);
+      buf = buf.slice(sep + 2);
+      let dataStr = '';
+      for (const line of ev.split('\n')) {
+        if (line.startsWith('data:')) dataStr += line.slice(5).trim();
+      }
+      if (!dataStr) continue;
+      let parsed;
+      try { parsed = JSON.parse(dataStr); } catch { continue; }
+      if (parsed.type === 'error') {
+        throw new Error(parsed.error?.message || 'Claude API streaming error');
+      }
+      if (parsed.type === 'content_block_delta' && parsed.delta && typeof parsed.delta.text === 'string') {
+        text += parsed.delta.text;
+        try { onChunk(parsed.delta.text); } catch {}
+      }
+    }
+  }
+  return text;
 }
 
 function extractJson(text) {
@@ -241,7 +310,7 @@ REGELN
 - Bilder und Text durchmischen.
 - heroImageUrl und cardImageUrl MÜSSEN aus den bereitgestellten Medien stammen (exakte URL übernehmen).`;
 
-async function generateDraft(prompt, media) {
+async function generateDraft(prompt, media, onChunk) {
   const mediaList = media
     .map((m, i) => `- [${i}] ${m.type || 'image'}: ${m.url}${m.caption ? ' — "' + m.caption + '"' : ''}`)
     .join('\n');
@@ -256,11 +325,11 @@ Verfügbare Medien (in Upload-Reihenfolge):
 ${mediaList || '(keine Medien hochgeladen)'}
 
 Antworte nur mit dem JSON-Objekt.`;
-  const text = await callClaude(SYSTEM_PROMPT, [{ role: 'user', content: userMessage }]);
+  const text = await callClaude(SYSTEM_PROMPT, [{ role: 'user', content: userMessage }], onChunk);
   return extractJson(text);
 }
 
-async function reviseDraft(currentDraft, revisionPrompt, media) {
+async function reviseDraft(currentDraft, revisionPrompt, media, onChunk) {
   const mediaList = media
     .map((m, i) => `- [${i}] ${m.type || 'image'}: ${m.url}`)
     .join('\n');
@@ -276,7 +345,7 @@ ${revisionPrompt}
 """
 
 Gib den kompletten überarbeiteten Entwurf im selben JSON-Format zurück. Behalte alles, was nicht geändert werden soll, unverändert bei.`;
-  const text = await callClaude(SYSTEM_PROMPT, [{ role: 'user', content: userMessage }]);
+  const text = await callClaude(SYSTEM_PROMPT, [{ role: 'user', content: userMessage }], onChunk);
   return extractJson(text);
 }
 
@@ -596,35 +665,45 @@ async function handle(req, res, url) {
   }
 
   if (req.method === 'POST' && url === '/api/admin/generate') {
-    try {
-      const { prompt, media = [] } = await readJson(req);
-      if (!prompt) { json(res, 400, { error: 'prompt erforderlich' }); return true; }
-      const draft = await generateDraft(prompt, media);
-      const id = crypto.randomBytes(8).toString('hex');
-      saveDraft(id, { ...draft, _media: media, _prompt: prompt });
-      json(res, 200, { ok: true, id, draft });
-    } catch (e) {
-      console.error('[admin] generate error:', e);
-      json(res, 500, { error: e.message });
-    }
+    let body;
+    try { body = await readJson(req); }
+    catch { json(res, 400, { error: 'Ungültiger Request' }); return true; }
+    const { prompt, media = [] } = body;
+    if (!prompt) { json(res, 400, { error: 'prompt erforderlich' }); return true; }
+    await streamJsonResponse(res, async (beat) => {
+      try {
+        const draft = await generateDraft(prompt, media, beat);
+        const id = crypto.randomBytes(8).toString('hex');
+        saveDraft(id, { ...draft, _media: media, _prompt: prompt });
+        return { ok: true, id, draft };
+      } catch (e) {
+        console.error('[admin] generate error:', e);
+        throw e;
+      }
+    });
     return true;
   }
 
   if (req.method === 'POST' && url === '/api/admin/revise') {
-    try {
-      const { id, revisionPrompt } = await readJson(req);
-      if (!id || !revisionPrompt) { json(res, 400, { error: 'id und revisionPrompt erforderlich' }); return true; }
-      const current = loadDraft(id);
-      if (!current) { json(res, 404, { error: 'Entwurf nicht gefunden' }); return true; }
-      const media = current._media || [];
-      const { _media, _prompt, ...cleanDraft } = current;
-      const revised = await reviseDraft(cleanDraft, revisionPrompt, media);
-      saveDraft(id, { ...revised, _media: media, _prompt });
-      json(res, 200, { ok: true, id, draft: revised });
-    } catch (e) {
-      console.error('[admin] revise error:', e);
-      json(res, 500, { error: e.message });
-    }
+    let body;
+    try { body = await readJson(req); }
+    catch { json(res, 400, { error: 'Ungültiger Request' }); return true; }
+    const { id, revisionPrompt } = body;
+    if (!id || !revisionPrompt) { json(res, 400, { error: 'id und revisionPrompt erforderlich' }); return true; }
+    const current = loadDraft(id);
+    if (!current) { json(res, 404, { error: 'Entwurf nicht gefunden' }); return true; }
+    const media = current._media || [];
+    const { _media, _prompt, ...cleanDraft } = current;
+    await streamJsonResponse(res, async (beat) => {
+      try {
+        const revised = await reviseDraft(cleanDraft, revisionPrompt, media, beat);
+        saveDraft(id, { ...revised, _media: media, _prompt });
+        return { ok: true, id, draft: revised };
+      } catch (e) {
+        console.error('[admin] revise error:', e);
+        throw e;
+      }
+    });
     return true;
   }
 
