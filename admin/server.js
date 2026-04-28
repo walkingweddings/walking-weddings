@@ -7,7 +7,7 @@ const {
   readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync, readdirSync, statSync,
 } = require('fs');
 const { join } = require('path');
-const { buildPostHtml, buildBlogCard } = require('./template');
+const { buildPostHtml, buildBlogCard, escapeHtml } = require('./template');
 const { addCacheBusters } = require('../cache-buster');
 
 const ROOT = join(__dirname, '..');
@@ -663,26 +663,31 @@ async function handle(req, res, url) {
       }
       const blogHtmlPath = join(ROOT, 'blog.html');
       let html = readFileSync(blogHtmlPath, 'utf8');
-      // Extract all cards
+      // Extract all individual card blocks safely
       const cardMap = new Map();
-      const cardRe = /(\s*<article class="blog-card reveal">[\s\S]*?<\/article>)/g;
+      const cardRe = /\n?\s*<article class="blog-card reveal">[\s\S]*?<\/article>/g;
       let cm;
       while ((cm = cardRe.exec(html)) !== null) {
-        const hrefMatch = cm[1].match(/href="blog\/([^"]+)\.html"/);
-        if (hrefMatch) cardMap.set(hrefMatch[1], cm[1]);
+        const hrefMatch = cm[0].match(/href="blog\/([^"]+)\.html"/);
+        if (hrefMatch) cardMap.set(hrefMatch[1], cm[0]);
       }
-      // Rebuild the card section in the requested order
-      const gridStart = html.indexOf('<div class="blog-grid">');
-      const gridEnd = html.indexOf('</div>', html.indexOf('</article>', gridStart));
-      if (gridStart === -1 || gridEnd === -1) {
-        json(res, 500, { error: 'blog-grid Struktur nicht gefunden' }); return true;
+      // Find the grid boundaries: from <div class="blog-grid"> to its closing </div>
+      const gridOpenTag = '<div class="blog-grid">';
+      const gridStart = html.indexOf(gridOpenTag);
+      if (gridStart === -1) {
+        json(res, 500, { error: 'blog-grid nicht gefunden' }); return true;
       }
-      const before = html.slice(0, gridStart + '<div class="blog-grid">'.length);
+      // The closing </div> is the one after the last </article>
+      const lastArticleEnd = html.lastIndexOf('</article>');
+      const gridEnd = html.indexOf('</div>', lastArticleEnd);
+      if (gridEnd === -1) {
+        json(res, 500, { error: 'blog-grid End-Tag nicht gefunden' }); return true;
+      }
+      const before = html.slice(0, gridStart + gridOpenTag.length);
       const after = html.slice(gridEnd);
       const orderedCards = slugs
         .filter(s => cardMap.has(s))
         .map(s => cardMap.get(s));
-      // Also include any cards not in the slugs list (safety)
       cardMap.forEach((card, slug) => {
         if (!slugs.includes(slug)) orderedCards.push(card);
       });
@@ -703,13 +708,18 @@ async function handle(req, res, url) {
       const blogHtmlPath = join(ROOT, 'blog.html');
       let html = readFileSync(blogHtmlPath, 'utf8');
       const slugHref = `blog/${slug}.html`;
-      const escapedHref = slugHref.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const cardRe = new RegExp(
-        `(\\s*<article class="blog-card reveal">[\\s\\S]*?${escapedHref}[\\s\\S]*?<\\/article>)`
-      );
-      const match = html.match(cardRe);
-      if (!match) { json(res, 404, { error: 'Card nicht gefunden' }); return true; }
-      let card = match[1];
+      // Safe: iterate all card blocks, find the one containing this slug
+      const cardRe = /\n?\s*<article class="blog-card reveal">[\s\S]*?<\/article>/g;
+      let match;
+      let found = null;
+      while ((match = cardRe.exec(html)) !== null) {
+        if (match[0].includes(slugHref)) {
+          found = { index: match.index, length: match[0].length, text: match[0] };
+          break;
+        }
+      }
+      if (!found) { json(res, 404, { error: 'Card nicht gefunden' }); return true; }
+      let card = found.text;
       if (image != null) {
         card = card.replace(
           /(<div class="blog-card__image">\s*<img\s+src=")[^"]*(")/,
@@ -736,7 +746,7 @@ async function handle(req, res, url) {
       if (tag != null) {
         card = card.replace(/(blog-card__tag">)[^<]*</, '$1' + escapeHtml(tag) + '<');
       }
-      html = html.replace(match[1], card);
+      html = html.slice(0, found.index) + card + html.slice(found.index + found.length);
       writeFileSync(blogHtmlPath, html);
       // Also update sidecar if exists
       const sidecarPath = join(PUBLISHED_DIR, `${slug}.json`);
