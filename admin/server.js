@@ -9,6 +9,7 @@ const {
 const { join } = require('path');
 const { buildPostHtml, buildBlogCard, escapeHtml } = require('./template');
 const { addCacheBusters } = require('../cache-buster');
+const { syncToGitHub } = require('./git-sync');
 
 const ROOT = join(__dirname, '..');
 
@@ -586,6 +587,7 @@ async function handle(req, res, url) {
       const urlPath = `/assets/images/journal/${finalName}`;
       const isVideo = String(contentType || '').startsWith('video/') || /\.(mp4|mov|webm)$/i.test(finalName);
       json(res, 200, { ok: true, url: urlPath, type: isVideo ? 'video' : 'image', filename: finalName });
+      syncToGitHub([`assets/images/journal/${finalName}`], `Admin: upload ${finalName}`);
     } catch (e) {
       console.error('[admin] upload error:', e);
       json(res, 500, { error: e.message });
@@ -694,6 +696,7 @@ async function handle(req, res, url) {
       const newHtml = before + '\n' + orderedCards.join('\n') + '\n        ' + after;
       writeFileSync(blogHtmlPath, newHtml);
       json(res, 200, { ok: true, count: orderedCards.length });
+      syncToGitHub(['blog.html'], 'Admin: reorder journal grid');
     } catch (e) {
       console.error('[admin] reorder error:', e);
       json(res, 500, { error: e.message });
@@ -762,6 +765,11 @@ async function handle(req, res, url) {
         } catch {}
       }
       json(res, 200, { ok: true });
+      const syncFiles = ['blog.html'];
+      if (existsSync(join(PUBLISHED_DIR, `${slug}.json`))) {
+        syncFiles.push(`admin/published/${slug}.json`);
+      }
+      syncToGitHub(syncFiles, `Admin: update card ${slug}`);
     } catch (e) {
       console.error('[admin] update-card error:', e);
       json(res, 500, { error: e.message });
@@ -774,6 +782,7 @@ async function handle(req, res, url) {
       const slug = decodeURIComponent(url.slice('/api/admin/posts/'.length).split('?')[0]);
       const result = deletePost(slug);
       json(res, 200, result);
+      syncToGitHub(['blog.html'], `Admin: delete ${slug}`);
     } catch (e) {
       console.error('[admin] delete post error:', e);
       json(res, 500, { error: e.message });
@@ -797,6 +806,11 @@ async function handle(req, res, url) {
       const postUrl = publishDraft(cleanDraft, cardImageUrl, { media: _media || [], prompt: _prompt || '' });
       deleteDraft(id);
       json(res, 200, { ok: true, url: postUrl });
+      syncToGitHub([
+        'blog.html',
+        `blog/${cleanDraft.slug}.html`,
+        `admin/published/${cleanDraft.slug}.json`,
+      ], `Admin: publish ${cleanDraft.plainTitle || cleanDraft.slug}`);
     } catch (e) {
       console.error('[admin] publish error:', e);
       json(res, 500, { error: e.message });
