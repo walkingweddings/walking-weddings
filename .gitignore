@@ -1,8 +1,7 @@
 node_modules/
 
-# Admin journal creator: drafts in progress and uploaded user media
-admin/drafts/*.json
-!admin/drafts/.gitkeep
+# Admin journal creator: uploaded user media (drafts ARE tracked so they
+# survive Railway redeploys — see syncToGitHub calls in admin/server.js)
 assets/images/journal/*
 !assets/images/journal/.gitkeep
 

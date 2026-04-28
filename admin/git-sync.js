@@ -109,15 +109,14 @@ async function processQueue() {
   processing = true;
   while (queue.length > 0) {
     const job = queue.shift();
-    // Deduplicate: if the same file appears in a later job too, skip it here
-    // (the later job will have fresher content). Only dedupe blog.html since
-    // it's the shared file that causes conflicts.
-    const dominated = queue.some(later =>
-      later.files.includes('blog.html') && job.files.includes('blog.html')
-    );
-    const files = dominated
-      ? job.files.filter(f => f !== 'blog.html')
-      : job.files;
+    // Deduplicate: drop any file from this job that also appears in a later
+    // queued job — the later job has fresher content (we re-read from disk
+    // at commit time anyway). This collapses bursts of draft auto-saves
+    // into a single commit and stops repeat blog.html commits from racing.
+    const laterFiles = new Set();
+    for (const later of queue) for (const f of later.files) laterFiles.add(f);
+    const files = job.files.filter(f => !laterFiles.has(f));
+    if (!files.length) continue;
     for (const fp of files) {
       try {
         await commitFile(fp, job.message);

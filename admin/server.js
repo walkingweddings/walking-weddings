@@ -29,10 +29,18 @@ if (!existsSync(DRAFTS_DIR)) mkdirSync(DRAFTS_DIR, { recursive: true });
 if (!existsSync(PUBLISHED_DIR)) mkdirSync(PUBLISHED_DIR, { recursive: true });
 if (!existsSync(UPLOADS_DIR)) mkdirSync(UPLOADS_DIR, { recursive: true });
 
-// --- Sessions (in-memory) ---------------------------------------------------
+// --- Sessions (stateless HMAC) ---------------------------------------------
+// Tokens are self-contained: payload (`email|issuedAt`) + HMAC signature,
+// base64url-encoded. No server-side state — survives Railway redeploys, which
+// happen on every git-sync commit and previously logged everyone out.
+//
+// The signing secret is derived from ADMIN_PASSWORD so it stays stable across
+// deploys without requiring a new env var. Rotating ADMIN_PASSWORD invalidates
+// every issued token (intended).
 
-const sessions = new Map(); // token -> { email, createdAt }
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
+const SESSION_SECRET = process.env.SESSION_SECRET ||
+  crypto.createHash('sha256').update('ww-admin-session-v1:' + ADMIN_PASSWORD).digest();
 
 function safeCompare(a, b) {
   const ab = Buffer.from(String(a));
@@ -42,20 +50,28 @@ function safeCompare(a, b) {
 }
 
 function createSession(email) {
-  const token = crypto.randomBytes(32).toString('hex');
-  sessions.set(token, { email, createdAt: Date.now() });
-  return token;
+  const issuedAt = Date.now();
+  const payload = `${email}|${issuedAt}`;
+  const sig = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+  return Buffer.from(`${payload}|${sig}`).toString('base64url');
 }
 
 function verifyToken(token) {
   if (!token) return null;
-  const s = sessions.get(token);
-  if (!s) return null;
-  if (Date.now() - s.createdAt > SESSION_TTL) {
-    sessions.delete(token);
-    return null;
-  }
-  return s;
+  let decoded;
+  try { decoded = Buffer.from(token, 'base64url').toString('utf8'); } catch { return null; }
+  const sepIdx = decoded.lastIndexOf('|');
+  if (sepIdx === -1) return null;
+  const payload = decoded.slice(0, sepIdx);
+  const sig = decoded.slice(sepIdx + 1);
+  const expected = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+  if (!safeCompare(sig, expected)) return null;
+  const pipeIdx = payload.lastIndexOf('|');
+  if (pipeIdx === -1) return null;
+  const email = payload.slice(0, pipeIdx);
+  const issuedAt = parseInt(payload.slice(pipeIdx + 1), 10);
+  if (!issuedAt || Date.now() - issuedAt > SESSION_TTL) return null;
+  return { email, createdAt: issuedAt };
 }
 
 function getBearerToken(req) {
@@ -391,9 +407,13 @@ Gib den kompletten überarbeiteten Entwurf im selben JSON-Format zurück. Behalt
 }
 
 // --- Draft storage ----------------------------------------------------------
+// Drafts are persisted to GitHub via syncToGitHub so they survive Railway
+// redeploys (which happen on every admin commit and previously wiped the
+// container's local FS).
 
 function saveDraft(id, data) {
   writeFileSync(join(DRAFTS_DIR, `${id}.json`), JSON.stringify(data, null, 2));
+  syncToGitHub([`admin/drafts/${id}.json`], `Admin: save draft ${id}`);
 }
 
 function loadDraft(id) {
@@ -405,6 +425,8 @@ function loadDraft(id) {
 
 function deleteDraft(id) {
   try { unlinkSync(join(DRAFTS_DIR, `${id}.json`)); } catch {}
+  // We do not delete from GitHub — orphan draft files are harmless and
+  // the GitHub Contents API delete flow would require an extra round-trip.
 }
 
 // --- Publishing -------------------------------------------------------------
@@ -675,8 +697,7 @@ async function handle(req, res, url) {
   }
 
   if (req.method === 'POST' && url === '/api/admin/logout') {
-    const token = getBearerToken(req);
-    if (token) sessions.delete(token);
+    // Tokens are stateless HMAC — client just discards it.
     json(res, 200, { ok: true });
     return true;
   }
