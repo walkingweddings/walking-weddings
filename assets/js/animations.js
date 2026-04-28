@@ -22,6 +22,9 @@ if (revealElements.length > 0) {
 
 // ========================================
 // FILM SHOWCASE — play while visible, stop when scrolled past
+// Nur das Video, das mindestens 50% im Viewport ist, wird geladen.
+// Sobald es darunter fällt, schaltet src auf about:blank und der Stream
+// stoppt — verhindert Bandbreiten-Konflikte und Lag bei den nächsten Videos.
 // ========================================
 
 const filmFrames = document.querySelectorAll('.film-showcase__frame iframe[data-src]');
@@ -43,11 +46,11 @@ if (filmFrames.length > 0) {
 
   const filmFrameObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      setFilmPlaying(entry.target, entry.isIntersecting);
+      setFilmPlaying(entry.target, entry.intersectionRatio >= 0.5);
     });
   }, {
-    threshold: 0,
-    rootMargin: '200px 0px 200px 0px'
+    threshold: [0, 0.5, 1],
+    rootMargin: '0px'
   });
 
   filmFrames.forEach(frame => filmFrameObserver.observe(frame));
