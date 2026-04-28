@@ -19,6 +19,7 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'contact@walkingweddings.com';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Kiranianwalkingweddings2024#';
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-4-5';
+const CLAUDE_MAX_TOKENS = parseInt(process.env.CLAUDE_MAX_TOKENS || '16384', 10);
 const UPLOAD_LIMIT = 200 * 1024 * 1024; // 200 MB per request
 
 const DRAFTS_DIR = join(__dirname, 'drafts');
@@ -157,7 +158,7 @@ async function callClaude(systemPrompt, messages, onChunk) {
     },
     body: JSON.stringify({
       model: CLAUDE_MODEL,
-      max_tokens: 8192,
+      max_tokens: CLAUDE_MAX_TOKENS,
       system: systemPrompt,
       messages,
       ...(useStream ? { stream: true } : {}),
@@ -177,10 +178,13 @@ async function callClaude(systemPrompt, messages, onChunk) {
   const decoder = new TextDecoder();
   let buf = '';
   let text = '';
+  let deltaCount = 0;
+  let stopReason = null;
   while (true) {
     const { value, done } = await reader.read();
     if (done) break;
-    buf += decoder.decode(value, { stream: true });
+    // Normalize CRLF in case an intermediate proxy rewrote line endings
+    buf += decoder.decode(value, { stream: true }).replace(/\r/g, '');
     let sep;
     while ((sep = buf.indexOf('\n\n')) !== -1) {
       const ev = buf.slice(0, sep);
@@ -197,9 +201,20 @@ async function callClaude(systemPrompt, messages, onChunk) {
       }
       if (parsed.type === 'content_block_delta' && parsed.delta && typeof parsed.delta.text === 'string') {
         text += parsed.delta.text;
+        deltaCount++;
         try { onChunk(parsed.delta.text); } catch {}
       }
+      if (parsed.type === 'message_delta' && parsed.delta && parsed.delta.stop_reason) {
+        stopReason = parsed.delta.stop_reason;
+      }
     }
+  }
+  console.log(`[claude] stream done: deltas=${deltaCount}, chars=${text.length}, stop=${stopReason || '?'}`);
+  if (!text.length) {
+    throw new Error(`Claude lieferte keine Inhalte (stop_reason=${stopReason || 'unbekannt'}). Bitte erneut versuchen.`);
+  }
+  if (stopReason === 'max_tokens') {
+    throw new Error('Claude wurde durch das Token-Limit abgeschnitten — die JSON-Antwort ist unvollständig. Briefing kürzen oder weniger Medien einbinden.');
   }
   return text;
 }
@@ -213,7 +228,29 @@ function extractJson(text) {
   if (start === -1 || end === -1) {
     throw new Error('Claude hat keine JSON-Antwort zurückgegeben. Rohtext: ' + text.slice(0, 400));
   }
-  return JSON.parse(t.slice(start, end + 1));
+  try {
+    return JSON.parse(t.slice(start, end + 1));
+  } catch (e) {
+    throw new Error('Claude-Antwort war kein gültiges JSON: ' + e.message + ' — Rohtext: ' + text.slice(0, 400));
+  }
+}
+
+// Walking Weddings drafts must at minimum carry the article body and a title;
+// a parse that succeeds but lacks these means Claude returned a stub object
+// (refusal / empty content / wrong shape). Surface that as a clear error
+// instead of an empty editor form.
+function assertDraftShape(draft, rawText) {
+  const missing = [];
+  if (!draft || typeof draft !== 'object') {
+    throw new Error('Draft ist kein Objekt. Rohtext: ' + (rawText || '').slice(0, 400));
+  }
+  if (!draft.plainTitle && !draft.title) missing.push('plainTitle/title');
+  if (!draft.articleInner) missing.push('articleInner');
+  if (!draft.slug) missing.push('slug');
+  if (missing.length) {
+    console.error('[claude] draft missing fields:', missing, '— raw response (first 1000 chars):', (rawText || '').slice(0, 1000));
+    throw new Error('Claude-Antwort unvollständig (fehlt: ' + missing.join(', ') + '). Bitte erneut versuchen — bei wiederholtem Auftreten Server-Log prüfen.');
+  }
 }
 
 const SYSTEM_PROMPT = `Du bist der Editorial-Director des Walking Weddings Journal und erstellst hochwertige, deutschsprachige Hochzeits-Blog-Beiträge für walkingweddings.com.
@@ -326,7 +363,9 @@ ${mediaList || '(keine Medien hochgeladen)'}
 
 Antworte nur mit dem JSON-Objekt.`;
   const text = await callClaude(SYSTEM_PROMPT, [{ role: 'user', content: userMessage }], onChunk);
-  return extractJson(text);
+  const draft = extractJson(text);
+  assertDraftShape(draft, text);
+  return draft;
 }
 
 async function reviseDraft(currentDraft, revisionPrompt, media, onChunk) {
@@ -346,7 +385,9 @@ ${revisionPrompt}
 
 Gib den kompletten überarbeiteten Entwurf im selben JSON-Format zurück. Behalte alles, was nicht geändert werden soll, unverändert bei.`;
   const text = await callClaude(SYSTEM_PROMPT, [{ role: 'user', content: userMessage }], onChunk);
-  return extractJson(text);
+  const draft = extractJson(text);
+  assertDraftShape(draft, text);
+  return draft;
 }
 
 // --- Draft storage ----------------------------------------------------------
