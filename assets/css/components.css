@@ -1006,8 +1006,18 @@
 .cta__bg {
   position: absolute;
   inset: 0;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
+@media (min-width: 768px) {
+  .cta__bg {
+    background-attachment: fixed;
+  }
+}
+
+/* Legacy <img> child (falls noch in irgendeinem Markup vorhanden) füllt die Box */
 .cta__bg img {
   width: 100%;
   height: 100%;
