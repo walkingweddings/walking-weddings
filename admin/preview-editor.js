@@ -46,6 +46,15 @@
     '.admin-size-panel__chip--active { background: #B8A88A; color: #0B1111; border-color: #B8A88A; }',
     '.admin-size-panel__done { align-self: flex-end; background: #B8A88A; color: #0B1111; border: none; padding: 8px 18px; font-family: "PT Sans", sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; margin-top: 4px; }',
     '.admin-size-panel__done:hover { background: #D4C5A3; }',
+    // Drag handle for tile reordering — small grip at top-left of each
+    // editable tile. Only visible on hover so it doesn't intrude on the
+    // editorial preview. Cursor:move signals the drag affordance.
+    '.admin-drag-handle { position: absolute; top: 8px; left: 8px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: rgba(11, 17, 17, 0.78); color: #B8A88A; border: 1px solid rgba(184, 168, 138, 0.5); font-family: "PT Sans", sans-serif; font-size: 14px; line-height: 1; cursor: move; opacity: 0; transition: opacity .2s ease, background .2s ease; z-index: 25; user-select: none; }',
+    '[data-cms-tile-id]:hover > .admin-drag-handle { opacity: 1; }',
+    '.admin-drag-handle:hover { background: #B8A88A; color: #0B1111; }',
+    '[data-cms-tile-id].admin-tile--dragging { opacity: 0.4; outline: 2px dashed #B8A88A; }',
+    '[data-cms-tile-id].admin-tile--drop-before { box-shadow: -4px 0 0 0 #B8A88A; }',
+    '[data-cms-tile-id].admin-tile--drop-after  { box-shadow:  4px 0 0 0 #B8A88A; }',
     // When hovering an editable container, raise it above any overlapping
     // siblings so the overlay buttons + size panel always receive clicks.
     // The portfolio masonry deliberately overlaps tiles (negative margins
@@ -146,6 +155,11 @@
         }),
       });
     });
+    // Tiles with `data-cms-tile-id` get a drag-handle so the editor can
+    // reorder them. The CSS `order` property on flex children is the only
+    // change — no DOM mutation, the visual order updates instantly and
+    // the parent persists it via PATCH mediaOrdering.
+    document.querySelectorAll('[data-cms-tile-id]').forEach(makeTileReorderable);
     send({ type: 'editor-ready', mode: 'page' });
     return;
   }
@@ -396,6 +410,95 @@
     panel.appendChild(done);
 
     wrap.appendChild(panel);
+  }
+
+  // --- Tile reorder via drag-and-drop ---------------------------------------
+  // Each [data-cms-tile-id] container gets a small drag handle. Drag a tile,
+  // drop it on another tile — we compute the new ordering, apply CSS `order`
+  // locally for instant feedback, and post `reorder-tiles` to the parent so
+  // the JSON gets a bulk PATCH (mediaOrdering).
+  //
+  // Drop position: dropping on the LEFT half of a target inserts before it,
+  // RIGHT half inserts after. Visual cue: gold side-stripe via CSS classes.
+
+  function makeTileReorderable(tile) {
+    if (!tile || tile.dataset.adminReorderable) return;
+    tile.dataset.adminReorderable = '1';
+    if (!tile.style.position) tile.style.position = 'relative';
+
+    const handle = document.createElement('span');
+    handle.className = 'admin-drag-handle';
+    handle.draggable = true;
+    handle.title = 'Ziehen zum Verschieben';
+    handle.textContent = '⋮⋮';
+    tile.appendChild(handle);
+
+    handle.addEventListener('dragstart', (e) => {
+      const cmsId = tile.dataset.cmsTileId;
+      try {
+        e.dataTransfer.setData('text/cms-tile-id', cmsId);
+        e.dataTransfer.effectAllowed = 'move';
+      } catch {}
+      tile.classList.add('admin-tile--dragging');
+    });
+    handle.addEventListener('dragend', () => {
+      tile.classList.remove('admin-tile--dragging');
+      document.querySelectorAll('.admin-tile--drop-before, .admin-tile--drop-after').forEach(el => {
+        el.classList.remove('admin-tile--drop-before', 'admin-tile--drop-after');
+      });
+    });
+
+    // The tile itself is a drop target. We only fire the drop when the
+    // pointer is over THIS tile (handle clicks bubble through here too,
+    // dragover suppresses the browser's default no-drop cursor).
+    tile.addEventListener('dragover', (e) => {
+      // only accept our payload
+      const types = e.dataTransfer && e.dataTransfer.types;
+      if (!types || !Array.from(types).includes('text/cms-tile-id')) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const rect = tile.getBoundingClientRect();
+      const before = (e.clientX - rect.left) < rect.width / 2;
+      tile.classList.toggle('admin-tile--drop-before', before);
+      tile.classList.toggle('admin-tile--drop-after', !before);
+    });
+    tile.addEventListener('dragleave', () => {
+      tile.classList.remove('admin-tile--drop-before', 'admin-tile--drop-after');
+    });
+    tile.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const draggedId = e.dataTransfer.getData('text/cms-tile-id');
+      const targetId = tile.dataset.cmsTileId;
+      const before = tile.classList.contains('admin-tile--drop-before');
+      tile.classList.remove('admin-tile--drop-before', 'admin-tile--drop-after');
+      if (!draggedId || draggedId === targetId) return;
+      reorderTiles(draggedId, targetId, before);
+    });
+  }
+
+  function reorderTiles(draggedId, targetId, insertBefore) {
+    const tiles = Array.from(document.querySelectorAll('[data-cms-tile-id]'));
+    // Establish current ordering (DOM order or CSS-`order` if already set)
+    tiles.sort((a, b) => {
+      const oa = parseInt(a.style.order || '0', 10);
+      const ob = parseInt(b.style.order || '0', 10);
+      if (oa !== ob) return oa - ob;
+      return 0; // stable; DOM order wins for ties
+    });
+    const ids = tiles.map(t => t.dataset.cmsTileId);
+    const fromIdx = ids.indexOf(draggedId);
+    if (fromIdx === -1) return;
+    ids.splice(fromIdx, 1);
+    let toIdx = ids.indexOf(targetId);
+    if (toIdx === -1) return;
+    if (!insertBefore) toIdx += 1;
+    ids.splice(toIdx, 0, draggedId);
+    // Apply CSS order locally for instant visual feedback
+    ids.forEach((id, n) => {
+      const t = document.querySelector('[data-cms-tile-id="' + id + '"]');
+      if (t) t.style.order = String(n);
+    });
+    send({ type: 'reorder-tiles', ordering: ids });
   }
 
   function enterCropMode(img, wrap, dot, context, imageIndex, cmsId) {
