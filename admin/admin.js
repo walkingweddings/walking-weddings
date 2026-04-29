@@ -292,6 +292,13 @@
       patchPage(slug, patch);
       return;
     }
+
+    // Tile reorder via drag-and-drop. The iframe sends the full new ordering
+    // as an array of cmsIds; pages-api applies `order: <n>` to each entry.
+    if (msg.type === 'reorder-tiles' && Array.isArray(msg.ordering)) {
+      patchPage(slug, { mediaOrdering: msg.ordering });
+      return;
+    }
   });
 
   pagesUploadInput.addEventListener('change', async (e) => {

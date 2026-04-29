@@ -68,7 +68,20 @@ function applyPatch(doc, patch) {
     doc.media[id] = cur;
     return;
   }
-  throw new Error('Patch braucht entweder fieldId oder mediaId');
+  // Bulk reorder: array of cmsIds in their new visual order. Each entry's
+  // `order` property is set to its position so the templating pass can write
+  // CSS `order: <n>` on the tile container. Tiles not in the list keep their
+  // current order property (we only assign to those mentioned).
+  if (Array.isArray(patch.mediaOrdering)) {
+    patch.mediaOrdering.forEach((cmsId, n) => {
+      const id = String(cmsId);
+      const cur = doc.media[id] || { type: 'image' };
+      cur.order = n;
+      doc.media[id] = cur;
+    });
+    return;
+  }
+  throw new Error('Patch braucht entweder fieldId, mediaId oder mediaOrdering');
 }
 
 function listPages() {

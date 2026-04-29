@@ -132,18 +132,19 @@ function applyMediaEdits(html, media) {
   return html;
 }
 
-// Apply width / display tweaks to the parent container of a media item via
-// `data-cms-tile-id="ID"`. This is how we let editors override masonry tile
-// widths for the portfolio without restructuring the HTML — the media JSON
-// keeps a single ID, this pass picks up `widthPercent` for the parent and
-// `aspectRatio` is also forwarded as a hint when the parent uses CSS
-// container queries / aspect-driven layouts.
+// Apply width / display / order tweaks to the parent container of a media
+// item via `data-cms-tile-id="ID"`. This is how we let editors override
+// masonry tile widths for the portfolio without restructuring the HTML —
+// the media JSON keeps a single ID, this pass picks up `widthPercent` and
+// `order` for the parent. CSS `order` works on flex children (the portfolio
+// masonry is `display: flex`), so reordering tiles is a stylesheet-level
+// effect, no DOM rewrite needed.
 function applyTileEdits(html, media) {
   if (!media) return html;
   for (const id of Object.keys(media)) {
     const m = media[id];
     if (!m || typeof m !== 'object') continue;
-    if (m.widthPercent == null) continue; // nothing to apply at the tile level
+    if (m.widthPercent == null && m.order == null) continue;
     const idEsc = escapeRegExp(id);
     const re = new RegExp(
       `<([a-zA-Z][a-zA-Z0-9]*)\\b([^>]*\\bdata-cms-tile-id=["']${idEsc}["'][^>]*)>`,
@@ -151,11 +152,16 @@ function applyTileEdits(html, media) {
     );
     html = html.replace(re, (_match, tag, attrs) => {
       let a = stripAttrs(attrs);
-      const w = String(m.widthPercent).replace(/%$/, '');
-      a = setStyleProp(a, 'width', w + '%');
-      // Reset masonry's nth-child margins so the override actually wins.
-      a = setStyleProp(a, 'margin-left', 'auto');
-      a = setStyleProp(a, 'margin-right', 'auto');
+      if (m.widthPercent != null) {
+        const w = String(m.widthPercent).replace(/%$/, '');
+        a = setStyleProp(a, 'width', w + '%');
+        // Reset masonry's nth-child margins so the override actually wins.
+        a = setStyleProp(a, 'margin-left', 'auto');
+        a = setStyleProp(a, 'margin-right', 'auto');
+      }
+      if (m.order != null) {
+        a = setStyleProp(a, 'order', String(m.order));
+      }
       return `<${tag} ${a}>`;
     });
   }
