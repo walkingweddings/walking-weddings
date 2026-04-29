@@ -91,17 +91,18 @@
 }
 
 /* ==========================================================================
-   Opening spread — asymmetric 5fr / 1fr / 6fr grid
+   Opening spread — Bild und Text gleich breit nebeneinander
    ========================================================================== */
 .editorial-spread {
   display: grid;
-  grid-template-columns: 6fr 1fr 5fr;
+  grid-template-columns: 1fr 1fr;
   align-items: start;
-  gap: 0;
+  gap: var(--space-xl);
 }
 
 .editorial-spread__media {
-  grid-column: 3;
+  grid-column: 2;
+  min-width: 0;
 }
 
 .editorial-spread__media img {
@@ -113,6 +114,7 @@
 
 .editorial-spread__text {
   grid-column: 1;
+  min-width: 0;
   color: var(--color-text-dark);
 }
 
