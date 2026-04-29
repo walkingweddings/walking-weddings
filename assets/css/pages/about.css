@@ -96,7 +96,7 @@
 .editorial-spread {
   display: grid;
   grid-template-columns: 6fr 1fr 5fr;
-  align-items: center;
+  align-items: start;
   gap: 0;
 }
 
@@ -334,7 +334,7 @@
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 599px) {
   .about-masthead {
     padding-top: var(--space-xl);
   }
