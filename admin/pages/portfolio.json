@@ -1,11 +1,12 @@
 {
   "_schemaVersion": 1,
-  "_updatedAt": 1777472302020,
+  "_updatedAt": 1777472324875,
   "fields": {},
   "media": {
     "grid.image13": {
       "type": "image",
-      "aspectRatio": "16/9"
+      "aspectRatio": "16/9",
+      "objectPosition": "62% 36%"
     }
   }
 }
