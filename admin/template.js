@@ -16,6 +16,15 @@ function sanitizeTitle(html) {
     .replace(/<(?!\/?em\b)[^>]*>/gi, '');
 }
 
+// Strip an existing "Plate <numeral> — " prefix from a caption so the
+// template can re-prefix without doubling. Claude generated drafts
+// occasionally include "Plate I — …" in heroCaption following the
+// system prompt's "Plate I is reserved for the hero" rule, which led to
+// "Plate I — Plate I — …" output. Defensive on the render side.
+function stripPlatePrefix(txt) {
+  return String(txt || '').replace(/^\s*Plate\s+[IVXLCDM0-9]+\s*[—–-]\s*/i, '');
+}
+
 function toRoman(num) {
   const vals = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
   const syms = ['M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I'];
@@ -140,7 +149,7 @@ function buildPostHtml(draft) {
     </p>
     <figure class="editorial-hero__figure">
       <img src="${escapeHtml(heroImageUrl)}" alt="${escapeHtml(heroImageAlt || coupleNames)}"${heroImagePosition ? ' style="object-position: ' + escapeHtml(heroImagePosition) + '"' : ''} loading="eager">
-      <figcaption>Plate I — ${escapeHtml(heroCaption)}</figcaption>
+      <figcaption>Plate I — ${escapeHtml(stripPlatePrefix(heroCaption))}</figcaption>
     </figure>
   </header>
 
