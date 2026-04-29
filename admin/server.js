@@ -4,14 +4,15 @@
 
 const crypto = require('crypto');
 const {
-  readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync, readdirSync, statSync,
+  readFileSync, writeFileSync, existsSync, unlinkSync, readdirSync, statSync,
 } = require('fs');
 const { join } = require('path');
 const { buildPostHtml, buildBlogCard, escapeHtml } = require('./template');
 const { addCacheBusters } = require('../cache-buster');
 const { syncToGitHub } = require('./git-sync');
+const storage = require('./storage');
 
-const ROOT = join(__dirname, '..');
+const ROOT = storage.REPO_ROOT;
 
 // --- Credentials / config ---------------------------------------------------
 
@@ -22,12 +23,11 @@ const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-4-5';
 const CLAUDE_MAX_TOKENS = parseInt(process.env.CLAUDE_MAX_TOKENS || '16384', 10);
 const UPLOAD_LIMIT = 200 * 1024 * 1024; // 200 MB per request
 
-const DRAFTS_DIR = join(__dirname, 'drafts');
-const PUBLISHED_DIR = join(__dirname, 'published');
-const UPLOADS_DIR = join(ROOT, 'assets', 'images', 'journal');
-if (!existsSync(DRAFTS_DIR)) mkdirSync(DRAFTS_DIR, { recursive: true });
-if (!existsSync(PUBLISHED_DIR)) mkdirSync(PUBLISHED_DIR, { recursive: true });
-if (!existsSync(UPLOADS_DIR)) mkdirSync(UPLOADS_DIR, { recursive: true });
+// Storage paths come from admin/storage.js — see that file for resolution
+// order (STORAGE_DIR env -> /data Railway volume -> repo admin/ for local dev).
+const DRAFTS_DIR = storage.draftsDir();
+const PUBLISHED_DIR = storage.publishedDir();
+const UPLOADS_DIR = storage.uploadsDir();
 
 // --- Sessions (stateless HMAC) ---------------------------------------------
 // Tokens are self-contained: payload (`email|issuedAt`) + HMAC signature,
