@@ -46,6 +46,18 @@
     '.admin-size-panel__chip--active { background: #B8A88A; color: #0B1111; border-color: #B8A88A; }',
     '.admin-size-panel__done { align-self: flex-end; background: #B8A88A; color: #0B1111; border: none; padding: 8px 18px; font-family: "PT Sans", sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; margin-top: 4px; }',
     '.admin-size-panel__done:hover { background: #D4C5A3; }',
+    // When hovering an editable container, raise it above any overlapping
+    // siblings so the overlay buttons + size panel always receive clicks.
+    // The portfolio masonry deliberately overlaps tiles (negative margins
+    // + nth-child z-index up to 2), which would otherwise eat clicks
+    // landing in the overlap regions.
+    '[data-cms-tile-id] { position: relative; }',
+    '[data-cms-tile-id]:hover { z-index: 1000 !important; }',
+    '.admin-image-wrap { z-index: 50; }',
+    // Force-reveal scroll-animated content inside the preview iframe so the
+    // editor never has to scroll past invisible (.reveal opacity:0) tiles
+    // before they accept hover/clicks.
+    '.reveal, .reveal--left, .reveal--right { opacity: 1 !important; transform: none !important; }',
   ].join('\n');
   document.head.appendChild(style);
 
