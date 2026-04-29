@@ -1,7 +1,10 @@
 const { createServer } = require('http');
 const { readFileSync, existsSync, statSync, createReadStream } = require('fs');
-const { join, extname } = require('path');
+const { join, extname, basename } = require('path');
 const admin = require('./admin/server');
+const { renderPage } = require('./admin/page-template');
+const { findBySlug } = require('./admin/pages-registry');
+const { loadPageJson } = require('./admin/pages-api');
 
 const PORT = process.env.PORT || 8082;
 const ROOT = __dirname;
@@ -237,10 +240,21 @@ createServer(async (req, res) => {
   const stat = statSync(file);
   const fileSize = stat.size;
 
-  // For HTML, read into memory and inject cache-busting ?v=<hash> into
-  // <script>/<link> tags so JS/CSS changes propagate without manual bumps.
+  // For HTML, read into memory, apply CMS templating if this is a registered
+  // editable page, then inject cache-busting ?v=<hash> into <script>/<link>
+  // tags so JS/CSS changes propagate without manual bumps.
   if (ext === '.html') {
-    const html = addCacheBusters(readFileSync(file, 'utf8'));
+    let html = readFileSync(file, 'utf8');
+    // Top-level pages (about.html etc) opt into the page-templating pass via
+    // pages-registry. Blog post HTML is generated separately and isn't
+    // registered, so it bypasses this transformation.
+    const baseName = basename(file, '.html');
+    const pageMeta = file === join(ROOT, baseName + '.html') ? findBySlug(baseName) : null;
+    if (pageMeta) {
+      try { html = renderPage(html, loadPageJson(baseName)); }
+      catch (err) { console.error('[cms] renderPage failed for', baseName, ':', err.message); }
+    }
+    html = addCacheBusters(html);
     const buf = Buffer.from(html);
     res.writeHead(200, {
       'Content-Type': 'text/html; charset=utf-8',

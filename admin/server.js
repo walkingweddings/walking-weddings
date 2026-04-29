@@ -11,6 +11,7 @@ const { buildPostHtml, buildBlogCard, escapeHtml } = require('./template');
 const { addCacheBusters } = require('../cache-buster');
 const { syncToGitHub } = require('./git-sync');
 const storage = require('./storage');
+const pagesApi = require('./pages-api');
 
 const ROOT = storage.REPO_ROOT;
 
@@ -617,6 +618,24 @@ function listDrafts() {
 
 // --- HTTP handler -----------------------------------------------------------
 
+// Pages CMS routes are wired via dependency injection so the module stays
+// decoupled from server.js internals. We pass in the auth/HTTP utilities and
+// an editor-source getter; pages-api takes care of route dispatch.
+const pagesHandle = pagesApi.makeHandler({
+  json,
+  readJson,
+  requireAuth,
+  getQueryParam,
+  verifyToken,
+  syncToGitHub,
+  REPO_ROOT: ROOT,
+  addCacheBusters,
+  getPreviewEditorJs: () => {
+    try { return readFileSync(join(__dirname, 'preview-editor.js'), 'utf8'); }
+    catch { return ''; }
+  },
+});
+
 async function handle(req, res, url) {
   // /admin -> /admin/
   if (url === '/admin') {
@@ -624,6 +643,10 @@ async function handle(req, res, url) {
     res.end();
     return true;
   }
+
+  // Pages CMS routes (list/get/patch/preview) — dispatched first so the
+  // page-preview path doesn't collide with the journal-draft preview below.
+  if (await pagesHandle(req, res, url)) return true;
 
   // Preview endpoint (iframe) — auth via ?token=… query param
   if (req.method === 'GET' && url.startsWith('/api/admin/preview/')) {

@@ -154,10 +154,15 @@
   document.querySelectorAll('[data-view]').forEach(el => viewSections.set(el.dataset.view, el));
   document.querySelectorAll('[data-view-link]').forEach(el => viewLinks.set(el.dataset.viewLink, el));
 
+  const viewActivators = {};
+
   function setView(name) {
     if (!VIEWS.includes(name)) name = 'journal';
     viewSections.forEach((el, key) => { el.hidden = (key !== name); });
     viewLinks.forEach((el, key) => { el.classList.toggle('admin-nav__link--active', key === name); });
+    if (viewActivators[name]) {
+      try { viewActivators[name](); } catch (err) { console.error(name, 'activator failed:', err); }
+    }
   }
 
   function readHashView() {
@@ -167,6 +172,162 @@
 
   window.addEventListener('hashchange', () => setView(readHashView()));
   setView(readHashView());
+
+  // --- Pages view (CMS for public pages) ------------------------------------
+
+  const pagesState = {
+    initialized: false,
+    pages: [],
+    activeSlug: null,
+    swapping: null, // { kind: 'media'|'field', cmsId } when waiting on file picker
+  };
+
+  const pagesListEntries = $('pagesListEntries');
+  const pagesPreviewFrame = $('pagesPreviewFrame');
+  const pagesPreviewWrap = $('pagesPreviewWrap');
+  const pagesPreviewPlaceholder = $('pagesPreviewPlaceholder');
+  const pagesPreviewEyebrow = $('pagesPreviewEyebrow');
+  const pagesPreviewCaption = $('pagesPreviewCaption');
+  const pagesRefreshBtn = $('pagesRefreshBtn');
+  const pagesUploadInput = $('pagesUploadInput');
+
+  async function loadPagesList() {
+    try {
+      const data = await api('/api/admin/pages');
+      pagesState.pages = data.pages || [];
+      renderPagesList();
+    } catch (err) {
+      pagesListEntries.innerHTML = '<div class="admin-manage__placeholder">Fehler: ' + escapeHtml(err.message) + '</div>';
+    }
+  }
+
+  function renderPagesList() {
+    if (!pagesState.pages.length) {
+      pagesListEntries.innerHTML = '<div class="admin-manage__placeholder">Keine Seiten registriert.</div>';
+      return;
+    }
+    pagesListEntries.innerHTML = pagesState.pages.map(p => {
+      const stamp = p.updatedAt ? new Date(p.updatedAt).toLocaleString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' }) : 'Noch nicht bearbeitet';
+      const active = p.slug === pagesState.activeSlug ? ' admin-pages-card--active' : '';
+      return `
+        <button type="button" class="admin-pages-card${active}" data-page-slug="${escapeHtml(p.slug)}">
+          <span class="admin-pages-card__eyebrow">${escapeHtml(p.eyebrow || '')}</span>
+          <span class="admin-pages-card__title">${escapeHtml(p.title)}</span>
+          <span class="admin-pages-card__sub">${escapeHtml(p.description || '')}</span>
+          <span class="admin-pages-card__meta">Zuletzt: ${escapeHtml(stamp)}</span>
+        </button>`;
+    }).join('');
+    pagesListEntries.querySelectorAll('[data-page-slug]').forEach(btn => {
+      btn.addEventListener('click', () => openPage(btn.dataset.pageSlug));
+    });
+  }
+
+  function openPage(slug) {
+    const meta = pagesState.pages.find(p => p.slug === slug);
+    if (!meta) return;
+    pagesState.activeSlug = slug;
+    pagesPreviewEyebrow.textContent = meta.eyebrow || meta.title;
+    pagesPreviewCaption.textContent = 'Live-Vorschau · /' + meta.slug + '.html';
+    pagesPreviewPlaceholder.hidden = true;
+    pagesPreviewFrame.hidden = false;
+    pagesRefreshBtn.disabled = false;
+    pagesPreviewFrame.src = '/api/admin/preview/page/' + encodeURIComponent(slug) +
+      '?token=' + encodeURIComponent(token) + '&t=' + Date.now();
+    renderPagesList(); // re-render to highlight active card
+  }
+
+  function refreshPagesPreview() {
+    if (!pagesState.activeSlug) return;
+    pagesPreviewFrame.src = '/api/admin/preview/page/' + encodeURIComponent(pagesState.activeSlug) +
+      '?token=' + encodeURIComponent(token) + '&t=' + Date.now();
+  }
+  pagesRefreshBtn.addEventListener('click', refreshPagesPreview);
+
+  document.querySelectorAll('[data-page-device]').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('[data-page-device]').forEach(t => t.classList.remove('admin-tab--active'));
+      tab.classList.add('admin-tab--active');
+      pagesPreviewWrap.dataset.device = tab.dataset.pageDevice;
+    });
+  });
+
+  // postMessage from preview iframe
+  window.addEventListener('message', (e) => {
+    if (!pagesState.activeSlug || !e.data || typeof e.data !== 'object') return;
+    if (e.source !== pagesPreviewFrame.contentWindow) return; // only handle our pages iframe
+    const msg = e.data;
+    const slug = pagesState.activeSlug;
+
+    if (msg.type === 'edit-field' && msg.cmsId) {
+      // For headings (single line) we trust plainValue; for prose we keep HTML.
+      // The decision is heuristic: if innerHTML has tags we don't recognize as
+      // text-only (em, strong, br), use plainValue. Otherwise html.
+      const html = String(msg.value || '');
+      const hasInline = /<(em|strong|br|i|b|span|a)\b/i.test(html);
+      const hasOther = /<(?!\/?(em|strong|br|i|b|span|a)\b)[a-z]/i.test(html);
+      const useHtml = hasInline && !hasOther;
+      const value = useHtml ? html : (msg.plainValue || '').trim();
+      patchPage(slug, { fieldId: msg.cmsId, fieldType: useHtml ? 'html' : 'text', value });
+      return;
+    }
+
+    if (msg.type === 'swap-image' && msg.cmsId) {
+      pagesState.swapping = { kind: 'media', cmsId: msg.cmsId };
+      pagesUploadInput.click();
+      return;
+    }
+
+    if (msg.type === 'crop-image' && msg.cmsId && msg.position) {
+      patchPage(slug, { mediaId: msg.cmsId, objectPosition: msg.position });
+      return;
+    }
+  });
+
+  pagesUploadInput.addEventListener('change', async (e) => {
+    const file = (e.target.files || [])[0];
+    pagesUploadInput.value = '';
+    if (!file || !pagesState.swapping || !pagesState.activeSlug) return;
+    const swap = pagesState.swapping;
+    pagesState.swapping = null;
+    showOverlay('Bild wird hochgeladen…');
+    try {
+      const b64 = await fileToBase64(file);
+      const up = await api('/api/admin/upload', {
+        method: 'POST',
+        body: JSON.stringify({ filename: file.name, contentType: file.type, dataBase64: b64 }),
+      });
+      const mediaType = up.type === 'video' ? 'video' : 'image';
+      await patchPage(pagesState.activeSlug, {
+        mediaId: swap.cmsId,
+        url: up.url,
+        mediaType,
+      });
+      refreshPagesPreview();
+      showToast('Medium ausgetauscht', 'success');
+    } catch (err) {
+      showToast('Upload fehlgeschlagen: ' + err.message, 'error', 6000);
+    } finally {
+      hideOverlay();
+    }
+  });
+
+  async function patchPage(slug, patch) {
+    try {
+      await api('/api/admin/pages/' + encodeURIComponent(slug), {
+        method: 'PATCH',
+        body: JSON.stringify(patch),
+      });
+    } catch (err) {
+      showToast('Speichern fehlgeschlagen: ' + err.message, 'error', 6000);
+    }
+  }
+
+  viewActivators.pages = function () {
+    if (!pagesState.initialized) {
+      pagesState.initialized = true;
+      loadPagesList();
+    }
+  };
 
   // --- Media upload ---------------------------------------------------------
 
