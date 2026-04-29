@@ -12,6 +12,7 @@ const { addCacheBusters } = require('../cache-buster');
 const { syncToGitHub } = require('./git-sync');
 const storage = require('./storage');
 const pagesApi = require('./pages-api');
+const leadsApi = require('./leads-api');
 
 const ROOT = storage.REPO_ROOT;
 
@@ -636,6 +637,9 @@ const pagesHandle = pagesApi.makeHandler({
   },
 });
 
+// Inquiries / leads routes — same DI pattern.
+const leadsHandle = leadsApi.makeHandler({ json, readJson, requireAuth });
+
 async function handle(req, res, url) {
   // /admin -> /admin/
   if (url === '/admin') {
@@ -647,6 +651,9 @@ async function handle(req, res, url) {
   // Pages CMS routes (list/get/patch/preview) — dispatched first so the
   // page-preview path doesn't collide with the journal-draft preview below.
   if (await pagesHandle(req, res, url)) return true;
+
+  // Inquiries / leads routes
+  if (await leadsHandle(req, res, url)) return true;
 
   // Preview endpoint (iframe) — auth via ?token=… query param
   if (req.method === 'GET' && url.startsWith('/api/admin/preview/')) {

@@ -329,6 +329,221 @@
     }
   };
 
+  // --- Inquiries view -------------------------------------------------------
+
+  const inquiriesState = {
+    initialized: false,
+    filter: 'new',  // 'new' | 'contacted' | 'all'
+    items: [],
+    activeId: null,
+    activeRecord: null,
+  };
+
+  const inquiriesListEntries = $('inquiriesListEntries');
+  const inquiriesPane = $('inquiriesPane');
+  const inquiriesPlaceholder = $('inquiriesPlaceholder');
+  const inqCountNewBadge = $('inqCountNew');
+  const navInquiriesBadge = $('navInquiriesBadge');
+
+  function updateInquiriesBadge(unread) {
+    const n = unread || 0;
+    inqCountNewBadge.textContent = String(n);
+    if (n > 0) {
+      navInquiriesBadge.textContent = String(n);
+      navInquiriesBadge.hidden = false;
+    } else {
+      navInquiriesBadge.hidden = true;
+    }
+  }
+
+  async function loadInquiriesList() {
+    try {
+      const params = new URLSearchParams();
+      if (inquiriesState.filter !== 'all') params.set('status', inquiriesState.filter);
+      const data = await api('/api/admin/leads' + (params.toString() ? '?' + params : ''));
+      inquiriesState.items = data.items || [];
+      updateInquiriesBadge(data.unreadCount);
+      renderInquiriesList();
+    } catch (err) {
+      inquiriesListEntries.innerHTML = '<div class="admin-manage__placeholder">Fehler: ' + escapeHtml(err.message) + '</div>';
+    }
+  }
+
+  function renderInquiriesList() {
+    if (!inquiriesState.items.length) {
+      inquiriesListEntries.innerHTML = '<div class="admin-manage__placeholder">Keine Anfragen in dieser Ansicht.</div>';
+      return;
+    }
+    inquiriesListEntries.innerHTML = inquiriesState.items.map(it => {
+      const date = new Date(it.createdAt).toLocaleDateString('de-DE', { day:'2-digit', month:'short', year:'2-digit' });
+      const time = new Date(it.createdAt).toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
+      const active = it.id === inquiriesState.activeId ? ' admin-inquiry-card--active' : '';
+      const statusBadge = it.status === 'new' ? '<span class="admin-inquiry-card__pill admin-inquiry-card__pill--new">Neu</span>'
+        : it.status === 'contacted' ? '<span class="admin-inquiry-card__pill admin-inquiry-card__pill--contacted">Kontaktiert</span>'
+        : '<span class="admin-inquiry-card__pill admin-inquiry-card__pill--archived">Archiviert</span>';
+      const pkg = it.summary && it.summary.package ? '<span class="admin-inquiry-card__tag">' + escapeHtml(it.summary.package) + '</span>' : '';
+      return `
+        <button type="button" class="admin-inquiry-card${active}" data-inquiry-id="${escapeHtml(it.id)}">
+          <span class="admin-inquiry-card__top">${statusBadge}<span class="admin-inquiry-card__date">${escapeHtml(date)} · ${escapeHtml(time)}</span></span>
+          <span class="admin-inquiry-card__name">${escapeHtml((it.summary && it.summary.name) || '—')}</span>
+          <span class="admin-inquiry-card__email">${escapeHtml((it.summary && it.summary.email) || '')}</span>
+          <span class="admin-inquiry-card__meta">${escapeHtml((it.summary && it.summary.eventType) || '')}${pkg}</span>
+        </button>`;
+    }).join('');
+    inquiriesListEntries.querySelectorAll('[data-inquiry-id]').forEach(btn => {
+      btn.addEventListener('click', () => openInquiry(btn.dataset.inquiryId));
+    });
+  }
+
+  document.querySelectorAll('[data-inquiry-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-inquiry-filter]').forEach(b => b.classList.remove('admin-inquiries-filter__btn--active'));
+      btn.classList.add('admin-inquiries-filter__btn--active');
+      inquiriesState.filter = btn.dataset.inquiryFilter;
+      loadInquiriesList();
+    });
+  });
+
+  async function openInquiry(id) {
+    inquiriesState.activeId = id;
+    renderInquiriesList();
+    inquiriesPlaceholder.hidden = true;
+    inquiriesPane.hidden = false;
+    inquiriesPane.innerHTML = '<div class="admin-manage__placeholder">Lade…</div>';
+    try {
+      const data = await api('/api/admin/leads/' + encodeURIComponent(id));
+      inquiriesState.activeRecord = data.lead;
+      renderInquiryDetail(data.lead);
+    } catch (err) {
+      inquiriesPane.innerHTML = '<div class="admin-manage__placeholder">Fehler: ' + escapeHtml(err.message) + '</div>';
+    }
+  }
+
+  function renderInquiryDetail(rec) {
+    const lead = rec.lead || {};
+    const created = new Date(rec.createdAt).toLocaleString('de-DE');
+    const updated = new Date(rec.lastUpdatedAt).toLocaleString('de-DE');
+    function row(label, value) {
+      return value ? `<tr><th>${escapeHtml(label)}</th><td>${escapeHtml(value)}</td></tr>` : '';
+    }
+    const refs = lead.referral && (
+      lead.referral === 'Wedding Planner' && lead.referralPlanner ? `${lead.referral} — ${lead.referralPlanner}`
+      : lead.referral === 'Hochzeit' && lead.referralWedding ? `${lead.referral} — ${lead.referralWedding}`
+      : lead.referral === 'Sonstiges' && lead.referralOther ? `${lead.referral} — ${lead.referralOther}`
+      : lead.referral
+    );
+
+    inquiriesPane.innerHTML = `
+      <header class="admin-inquiry-detail__header">
+        <div>
+          <p class="admin-section__eyebrow">${escapeHtml(rec.status === 'new' ? 'Neue Anfrage' : rec.status === 'contacted' ? 'Kontaktiert' : 'Archiviert')}</p>
+          <h2 class="admin-inquiry-detail__title">${escapeHtml(lead.name || '—')}</h2>
+          <p class="admin-inquiry-detail__sub">${escapeHtml(created)} · ${escapeHtml(lead.email || '')}</p>
+        </div>
+        <div class="admin-inquiry-detail__actions">
+          <select id="inqStatus" class="admin-inquiry-detail__select">
+            <option value="new" ${rec.status==='new'?'selected':''}>Neu</option>
+            <option value="contacted" ${rec.status==='contacted'?'selected':''}>Kontaktiert</option>
+            <option value="archived" ${rec.status==='archived'?'selected':''}>Archiviert</option>
+          </select>
+          <button class="admin-btn admin-btn--ghost admin-btn--small" id="inqDelete">Verwerfen</button>
+        </div>
+      </header>
+
+      <div class="admin-inquiry-detail__grid">
+        <div class="admin-inquiry-detail__col">
+          <h3 class="admin-inquiry-detail__sectionTitle">Kontakt</h3>
+          <table class="admin-inquiry-detail__table">
+            ${row('Anfrage von', lead.role === 'planner' ? 'Wedding Planner' : 'Hochzeitspaar')}
+            ${row('Name', lead.name)}
+            ${row('Firma', lead.company)}
+            ${row('Telefon', lead.phone)}
+            ${row('E-Mail', lead.email)}
+            ${row('Woher', refs)}
+          </table>
+        </div>
+        <div class="admin-inquiry-detail__col">
+          <h3 class="admin-inquiry-detail__sectionTitle">Veranstaltung</h3>
+          <table class="admin-inquiry-detail__table">
+            ${row('Art', lead.eventType)}
+            ${row('Paket', lead.package)}
+            ${row('Datum', lead.noDate ? 'Noch kein fixes Datum' : (lead.dates||[]).join(', '))}
+            ${row('Location', lead.noLocation ? 'Noch keine Location' : (lead.locations||[]).join(', '))}
+            ${row('Interesse', (lead.interesse||[]).join(', '))}
+            ${row('Zusatzprodukte', (lead.zusatz||[]).join(', '))}
+            ${row('Stunden', lead.hours)}
+            ${row('Budget', lead.budget)}
+          </table>
+        </div>
+      </div>
+
+      ${lead.message ? `<div class="admin-inquiry-detail__message">
+        <h3 class="admin-inquiry-detail__sectionTitle">Nachricht</h3>
+        <p>${escapeHtml(lead.message).replace(/\n/g,'<br>')}</p>
+      </div>` : ''}
+
+      <div class="admin-inquiry-detail__notes">
+        <h3 class="admin-inquiry-detail__sectionTitle">Notizen</h3>
+        <textarea id="inqNotes" class="admin-textarea" rows="4" placeholder="Interne Notizen…">${escapeHtml(rec.notes || '')}</textarea>
+        <p class="admin-inquiry-detail__updated">Zuletzt aktualisiert: ${escapeHtml(updated)}</p>
+      </div>
+    `;
+
+    document.getElementById('inqStatus').addEventListener('change', async (e) => {
+      const newStatus = e.target.value;
+      try {
+        const data = await api('/api/admin/leads/' + encodeURIComponent(rec.id), {
+          method: 'PATCH', body: JSON.stringify({ status: newStatus }),
+        });
+        inquiriesState.activeRecord = data.lead;
+        updateInquiriesBadge(data.unreadCount);
+        showToast('Status aktualisiert', 'success');
+        loadInquiriesList();
+      } catch (err) { showToast('Fehler: ' + err.message, 'error'); }
+    });
+
+    let notesTimer = null;
+    document.getElementById('inqNotes').addEventListener('input', (e) => {
+      clearTimeout(notesTimer);
+      const v = e.target.value;
+      notesTimer = setTimeout(async () => {
+        try {
+          await api('/api/admin/leads/' + encodeURIComponent(rec.id), {
+            method: 'PATCH', body: JSON.stringify({ notes: v }),
+          });
+        } catch (err) { showToast('Notiz speichern fehlgeschlagen: ' + err.message, 'error'); }
+      }, 700);
+    });
+
+    document.getElementById('inqDelete').addEventListener('click', async () => {
+      if (!confirm('Diese Anfrage ins Archiv verschieben?')) return;
+      try {
+        const data = await api('/api/admin/leads/' + encodeURIComponent(rec.id), { method: 'DELETE' });
+        updateInquiriesBadge(data.unreadCount);
+        inquiriesState.activeId = null;
+        inquiriesState.activeRecord = null;
+        inquiriesPane.hidden = true;
+        inquiriesPlaceholder.hidden = false;
+        showToast('Anfrage archiviert', 'success');
+        loadInquiriesList();
+      } catch (err) { showToast('Fehler: ' + err.message, 'error'); }
+    });
+  }
+
+  viewActivators.inquiries = function () {
+    if (!inquiriesState.initialized) {
+      inquiriesState.initialized = true;
+    }
+    loadInquiriesList();
+  };
+
+  // Background poll for unread badge — updates the nav rail counter even when
+  // the Inquiries view isn't open. Lightweight: one GET every 60s.
+  api('/api/admin/leads?status=new&limit=1').then(d => updateInquiriesBadge(d.unreadCount)).catch(() => {});
+  setInterval(() => {
+    api('/api/admin/leads?status=new&limit=1').then(d => updateInquiriesBadge(d.unreadCount)).catch(() => {});
+  }, 60000);
+
   // --- Media upload ---------------------------------------------------------
 
   dropzone.addEventListener('click', () => fileInput.click());

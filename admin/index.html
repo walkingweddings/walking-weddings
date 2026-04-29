@@ -307,12 +307,29 @@
       </div>
     </section>
 
-    <!-- View: Inquiries — placeholder for Phase 4 -->
-    <section class="admin-view admin-view--placeholder" data-view="inquiries" hidden>
-      <div class="admin-placeholder">
-        <p class="admin-placeholder__eyebrow">Anfragen-Dashboard</p>
-        <h2 class="admin-placeholder__title">In Vorbereitung</h2>
-        <p class="admin-placeholder__sub">Hier landen Anfragen aus dem Kontaktformular, sobald die Persistenz aktiviert ist.</p>
+    <!-- View: Inquiries -->
+    <section class="admin-view admin-view--inquiries" data-view="inquiries" hidden>
+      <aside class="admin-inquiries-list">
+        <div class="admin-inquiries-list__header">
+          <p class="admin-section__eyebrow">Posteingang</p>
+          <h2 class="admin-pages-list__title">Anfragen</h2>
+          <div class="admin-inquiries-filter">
+            <button class="admin-inquiries-filter__btn admin-inquiries-filter__btn--active" data-inquiry-filter="new">Neu <span id="inqCountNew" class="admin-inquiries-filter__count">0</span></button>
+            <button class="admin-inquiries-filter__btn" data-inquiry-filter="contacted">Kontaktiert</button>
+            <button class="admin-inquiries-filter__btn" data-inquiry-filter="all">Alle</button>
+          </div>
+        </div>
+        <div id="inquiriesListEntries" class="admin-inquiries-list__entries">
+          <div class="admin-manage__placeholder">Lade Anfragen…</div>
+        </div>
+      </aside>
+      <div class="admin-inquiries-detail" id="inquiriesDetail">
+        <div class="admin-inquiries-detail__placeholder" id="inquiriesPlaceholder">
+          <p class="admin-preview__plate">Plate I</p>
+          <p>Keine Anfrage ausgewählt</p>
+          <p class="admin-preview__hint">Wähle links eine Anfrage, um Details zu sehen und den Status zu setzen.</p>
+        </div>
+        <div class="admin-inquiries-detail__pane" id="inquiriesPane" hidden></div>
       </div>
     </section>
 
