@@ -1733,10 +1733,17 @@
       const imgPos = p.imagePosition || '';
       const posStyle = imgPos ? ' style="object-position: ' + escapeHtml(imgPos) + '"' : '';
 
+      // No `loading="lazy"` here on purpose — the modal sits in its own
+      // scroll context and the IntersectionObserver behind native lazy
+      // loading occasionally fails to fire for cards that are out-of-viewport
+      // when the modal opens, leaving them stuck on the dark placeholder.
+      // Eager loading is fine; the editor only ever shows ~20 cards.
+      // `onerror` swaps in a clear placeholder so a truly broken URL is
+      // distinguishable from a still-loading image.
       card.innerHTML =
         '<div class="admin-grid-card__image">' +
           (p.image
-            ? '<img src="' + escapeHtml(p.image) + '" alt=""' + posStyle + ' loading="lazy">'
+            ? '<img src="' + escapeHtml(p.image) + '" alt=""' + posStyle + ' loading="eager" decoding="async" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'admin-grid-card__noimage\',textContent:\'⚠ broken\'}))">'
             : '<div class="admin-grid-card__noimage">—</div>') +
           '<span class="admin-grid-card__num">' + (idx + 1) + '</span>' +
           '<div class="admin-grid-card__dot" style="left:' + (parseInt(imgPos) || 50) + '%;top:' + (parseInt((imgPos || '').split(' ')[1]) || 50) + '%"></div>' +
