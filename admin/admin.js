@@ -567,6 +567,21 @@
   const mediaGridEl = $('mediaGrid');
   const mediaCountEl = $('mediaCount');
   const mediaRefreshBtn = $('mediaRefreshBtn');
+  const mediaFiltersEl = $('mediaFilters');
+
+  const mediaState = {
+    all: [],
+    filter: 'all', // 'all' | 'journal' | 'portfolio' | 'about' | 'logo' | 'video'
+  };
+
+  const SOURCE_LABELS = {
+    all: 'Alle',
+    journal: 'Journal',
+    portfolio: 'Portfolio',
+    about: 'About',
+    logo: 'Logo',
+    video: 'Videos',
+  };
 
   function fmtSize(bytes) {
     if (bytes < 1024) return bytes + ' B';
@@ -577,17 +592,50 @@
   async function loadMediaGrid() {
     try {
       const data = await api('/api/admin/media');
-      renderMediaGrid(data.items || []);
+      mediaState.all = data.items || [];
+      renderMediaFilters();
+      renderMediaGrid();
     } catch (err) {
       mediaGridEl.innerHTML = '<div class="admin-manage__placeholder">Fehler: ' + escapeHtml(err.message) + '</div>';
       mediaCountEl.textContent = '';
     }
   }
 
-  function renderMediaGrid(items) {
-    mediaCountEl.textContent = items.length + ' ' + (items.length === 1 ? 'Datei' : 'Dateien');
+  function renderMediaFilters() {
+    if (!mediaFiltersEl) return;
+    // Count per source
+    const counts = { all: mediaState.all.length };
+    for (const it of mediaState.all) {
+      counts[it.source] = (counts[it.source] || 0) + 1;
+    }
+    const order = ['all', 'journal', 'portfolio', 'about', 'logo', 'video'];
+    mediaFiltersEl.innerHTML = order
+      .filter(k => k === 'all' || counts[k])
+      .map(k => {
+        const active = k === mediaState.filter ? ' admin-inquiries-filter__btn--active' : '';
+        const label = SOURCE_LABELS[k] || k;
+        const count = counts[k] || 0;
+        return `<button type="button" class="admin-inquiries-filter__btn${active}" data-media-filter="${escapeHtml(k)}">${escapeHtml(label)} <span class="admin-inquiries-filter__count">${count}</span></button>`;
+      }).join('');
+    mediaFiltersEl.querySelectorAll('[data-media-filter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        mediaState.filter = btn.dataset.mediaFilter;
+        renderMediaFilters();
+        renderMediaGrid();
+      });
+    });
+  }
+
+  function renderMediaGrid() {
+    const items = mediaState.filter === 'all'
+      ? mediaState.all
+      : mediaState.all.filter(it => it.source === mediaState.filter);
+
+    const totalSize = items.reduce((s, it) => s + it.size, 0);
+    mediaCountEl.textContent = `${items.length} ${items.length === 1 ? 'Datei' : 'Dateien'} · ${fmtSize(totalSize)}`;
+
     if (!items.length) {
-      mediaGridEl.innerHTML = '<div class="admin-manage__placeholder">Keine Medien hochgeladen.</div>';
+      mediaGridEl.innerHTML = '<div class="admin-manage__placeholder">Keine Medien in dieser Ansicht.</div>';
       return;
     }
     mediaGridEl.innerHTML = items.map(it => {
@@ -595,14 +643,17 @@
       const preview = it.type === 'video'
         ? `<video src="${escapeHtml(it.url)}" muted></video>`
         : `<img src="${escapeHtml(it.url)}" alt="" loading="lazy">`;
+      const sourceTag = `<span class="admin-media-card__source admin-media-card__source--${escapeHtml(it.source)}">${escapeHtml(SOURCE_LABELS[it.source] || it.source)}</span>`;
       return `
-        <div class="admin-media-card" data-media-filename="${escapeHtml(it.filename)}" data-media-url="${escapeHtml(it.url)}">
+        <div class="admin-media-card" data-media-path="${escapeHtml(it.path)}" data-media-url="${escapeHtml(it.url)}" data-media-filename="${escapeHtml(it.filename)}">
           <div class="admin-media-card__preview">${preview}</div>
           <div class="admin-media-card__meta">
+            ${sourceTag}
             <span class="admin-media-card__type">${it.type === 'video' ? 'Video' : 'Bild'}</span>
             <span class="admin-media-card__size">${fmtSize(it.size)}</span>
             <span class="admin-media-card__date">${escapeHtml(date)}</span>
           </div>
+          <div class="admin-media-card__filename" title="${escapeHtml(it.path)}">${escapeHtml(it.filename)}</div>
           <div class="admin-media-card__actions">
             <button class="admin-btn admin-btn--ghost admin-btn--small" data-media-action="copy">URL kopieren</button>
             <button class="admin-btn admin-btn--ghost admin-btn--small" data-media-action="delete">Löschen</button>
@@ -612,9 +663,10 @@
 
     mediaGridEl.querySelectorAll('[data-media-action]').forEach(btn => {
       btn.addEventListener('click', async (e) => {
-        const card = e.target.closest('[data-media-filename]');
-        const filename = card.dataset.mediaFilename;
+        const card = e.target.closest('[data-media-path]');
+        const path = card.dataset.mediaPath;
         const url = card.dataset.mediaUrl;
+        const filename = card.dataset.mediaFilename;
         if (e.target.dataset.mediaAction === 'copy') {
           try {
             await navigator.clipboard.writeText(url);
@@ -623,17 +675,17 @@
           return;
         }
         if (e.target.dataset.mediaAction === 'delete') {
-          await deleteMediaFile(filename);
+          await deleteMediaFile(path, filename);
         }
       });
     });
   }
 
-  async function deleteMediaFile(filename) {
+  async function deleteMediaFile(path, filename) {
     // Step 1: ask the server which posts/pages reference this URL
     let refs = [];
     try {
-      const data = await api('/api/admin/media/' + encodeURIComponent(filename) + '/refs');
+      const data = await api('/api/admin/media/' + encodeURIComponent(path) + '/refs');
       refs = data.refs || [];
     } catch (err) {
       showToast('Reference-Check fehlgeschlagen: ' + err.message, 'error');
@@ -650,7 +702,7 @@
       if (!confirm(`"${filename}" endgültig löschen? Die Datei wird auch aus dem Repo entfernt.`)) return;
     }
     try {
-      await api('/api/admin/media/' + encodeURIComponent(filename) + (force ? '?force=1' : ''), { method: 'DELETE' });
+      await api('/api/admin/media/' + encodeURIComponent(path) + (force ? '?force=1' : ''), { method: 'DELETE' });
       showToast('Datei gelöscht', 'success');
       loadMediaGrid();
     } catch (err) {
