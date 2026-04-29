@@ -17,14 +17,17 @@
   <link rel="icon" href="assets/images/logo/favicon.svg" type="image/svg+xml">
 
   <style>
-    /* Guide-specific styles */
+    /* Hochzeitsguide — light editorial style matching the rest of the site */
+
+    body { background: var(--color-bg-light); color: var(--color-text-dark); }
+
     .guide-hero {
       min-height: 70vh;
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
-      background: var(--color-bg-dark);
+      background: var(--color-bg-light);
       padding: calc(var(--nav-height) + var(--space-xl)) var(--section-padding) var(--space-xl);
       position: relative;
       overflow: hidden;
@@ -40,7 +43,20 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      opacity: 0.3;
+      /* Faint warm wash on the hero — keeps the photo readable but lets the
+         editorial type sit cleanly on the light cream background. */
+      opacity: 0.18;
+      filter: saturate(0.85);
+    }
+    .guide-hero::after {
+      /* Soft fade from the image edges into the cream bg so the section
+         doesn't have a hard rectangle of imagery. */
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(247, 247, 245, 0) 40%, var(--color-bg-light) 100%);
+      z-index: 0;
+      pointer-events: none;
     }
 
     .guide-hero__content {
@@ -65,7 +81,7 @@
       font-size: var(--text-4xl);
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: var(--color-text-light);
+      color: var(--color-text-dark);
       line-height: 1.1;
       margin-bottom: var(--space-sm);
     }
@@ -141,7 +157,7 @@
       font-size: var(--text-xl);
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: var(--color-text-light);
+      color: var(--color-text-dark);
       margin-bottom: var(--space-xs);
     }
 
@@ -385,7 +401,7 @@
       <img data-cms-id="hero.bg" src="assets/images/portfolio/hero-hochzeit.jpg" alt="">
     </div>
     <div class="guide-hero__content">
-      <img src="assets/images/logo/ww_logoWhite_wtagline.svg" alt="Walking Weddings" style="width: 360px; max-width: 80%; margin: 0 auto var(--space-lg); display: block;">
+      <img src="assets/images/logo/ww_logoBlack_wtagline.svg" alt="Walking Weddings" style="width: 360px; max-width: 80%; margin: 0 auto var(--space-lg); display: block;">
       <span class="guide-badge" data-cms-id="hero.badge">Euer Hochzeitsguide</span>
       <h1 data-cms-id="hero.headline">Euer Fahrplan für die Hochzeit <em>2027</em></h1>
       <div style="width: 60px; height: 1px; background: var(--color-accent); margin: var(--space-md) auto;"></div>
@@ -394,7 +410,7 @@
   </section>
 
   <!-- INTRO -->
-  <section class="section section--dark">
+  <section class="section section--light">
     <div class="guide-intro">
       <p data-cms-id="intro.text">
         Herzlichen Glückwunsch! Ihr habt euch entschieden, 2027 <span class="highlight">"Ja"</span> zu sagen.
@@ -406,7 +422,7 @@
   </section>
 
   <!-- TIPS 1 & 2 -->
-  <section class="section section--dark">
+  <section class="section section--light">
     <div class="guide-tips">
 
       <div class="guide-tip reveal">
@@ -429,7 +445,7 @@
   </section>
 
   <!-- FOTO VS VIDEO COMPARISON -->
-  <section class="section section--dark">
+  <section class="section section--light">
     <div class="guide-comparison">
       <div class="guide-comparison__item">
         <img data-cms-id="comparison.photo" src="assets/images/portfolio/foto-stil.jpg" alt="Fotografie — Jennise & Florian">
@@ -443,7 +459,7 @@
   </section>
 
   <!-- TIP 3 -->
-  <section class="section section--dark">
+  <section class="section section--light">
     <div class="guide-tips">
       <div class="guide-tip reveal">
         <div class="guide-tip__number">3</div>
@@ -461,7 +477,7 @@
   </div>
 
   <!-- TIPS 4 & 5 -->
-  <section class="section section--dark">
+  <section class="section section--light">
     <div class="guide-tips" style="padding-top: var(--space-xl);">
 
       <div class="guide-tip reveal">
@@ -484,7 +500,7 @@
   </section>
 
   <!-- CAROUSEL -->
-  <section class="section section--dark">
+  <section class="section section--light">
     <div class="guide-carousel" id="carousel">
       <div class="guide-carousel__track" id="carouselTrack">
         <div class="guide-carousel__slide">
