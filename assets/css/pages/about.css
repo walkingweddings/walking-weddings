@@ -91,18 +91,28 @@
 }
 
 /* ==========================================================================
-   Opening spread — Bild und Text gleich breit nebeneinander
+   Opening spread — Bild und Text gleichgroß nebeneinander (Flexbox)
    ========================================================================== */
 .editorial-spread {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: start;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
   gap: var(--space-xl);
 }
 
-.editorial-spread__media {
-  grid-column: 2;
+.editorial-spread__media,
+.editorial-spread__text {
+  flex: 1 1 0;
   min-width: 0;
+}
+
+.editorial-spread__media {
+  order: 2;
+}
+
+.editorial-spread__text {
+  order: 1;
+  color: var(--color-text-dark);
 }
 
 .editorial-spread__media img {
@@ -110,12 +120,6 @@
   aspect-ratio: 4/5;
   object-fit: cover;
   display: block;
-}
-
-.editorial-spread__text {
-  grid-column: 1;
-  min-width: 0;
-  color: var(--color-text-dark);
 }
 
 .editorial-spread__text h2 {
@@ -341,15 +345,21 @@
     padding-top: var(--space-xl);
   }
 
-  .editorial-spread,
-  .editorial-portrait {
-    grid-template-columns: 1fr;
+  .editorial-spread {
+    flex-direction: column;
     gap: var(--space-md);
   }
 
   .editorial-spread__media,
   .editorial-spread__text {
-    grid-column: 1;
+    flex: none;
+    order: initial;
+    width: 100%;
+  }
+
+  .editorial-portrait {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
   }
 
   .editorial-portrait--reverse .editorial-portrait__media,
