@@ -653,6 +653,55 @@
 
   mediaRefreshBtn.addEventListener('click', loadMediaGrid);
 
+  // Duplicate detection + consolidation. Two-step: preview, then execute.
+  // The server hashes every upload, groups by content, picks the oldest as
+  // canonical and rewrites all references in JSON sources + rendered blog
+  // HTML before deleting the duplicates. So no image goes missing.
+  const mediaDedupeBtn = $('mediaDedupeBtn');
+  mediaDedupeBtn.addEventListener('click', async () => {
+    showOverlay('Suche Duplikate…');
+    let plan;
+    try {
+      plan = await api('/api/admin/media/duplicates');
+    } catch (err) {
+      hideOverlay();
+      showToast('Fehler: ' + err.message, 'error', 6000);
+      return;
+    }
+    hideOverlay();
+    if (!plan.totalGroups) {
+      showToast('Keine Duplikate gefunden.', 'success');
+      return;
+    }
+    const sample = plan.groups.slice(0, 6).map(g => {
+      const dupNames = g.duplicates.map(d => d.filename.slice(-40)).join(', ');
+      return `· bleibt: ${g.canonical.filename.slice(-40)}\n  ersetzt: ${dupNames}`;
+    }).join('\n');
+    const more = plan.groups.length > 6 ? `\n…und ${plan.groups.length - 6} weitere Gruppen` : '';
+    const proceed = confirm(
+      `${plan.totalGroups} Duplikat-Gruppen gefunden.\n` +
+      `${plan.totalDupes} Dateien werden gelöscht (~${(plan.sizeReclaimed/1024/1024).toFixed(1)} MB).\n` +
+      `Verweise in Pages, Posts, Drafts und Blog-HTML werden vorher auf das Original umgebogen — kein Bild geht verloren.\n\n` +
+      `${sample}${more}\n\n` +
+      `Bereinigung jetzt durchführen?`
+    );
+    if (!proceed) return;
+
+    showOverlay('Verweise umbiegen und Duplikate löschen…');
+    try {
+      const report = await api('/api/admin/media/dedupe', { method: 'POST' });
+      showToast(
+        `Fertig: ${report.filesDeleted.length} Dateien gelöscht, ${report.filesUpdated.length} Quelldateien aktualisiert.`,
+        'success', 6000
+      );
+      loadMediaGrid();
+    } catch (err) {
+      showToast('Fehler: ' + err.message, 'error', 6000);
+    } finally {
+      hideOverlay();
+    }
+  });
+
   viewActivators.media = function () { loadMediaGrid(); };
 
   // --- Media upload ---------------------------------------------------------

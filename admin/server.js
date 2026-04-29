@@ -642,7 +642,7 @@ const pagesHandle = pagesApi.makeHandler({
 const leadsHandle = leadsApi.makeHandler({ json, readJson, requireAuth });
 
 // Media library routes
-const mediaHandle = mediaApi.makeHandler({ json, readJson, requireAuth, syncDeleteToGitHub });
+const mediaHandle = mediaApi.makeHandler({ json, readJson, requireAuth, syncToGitHub, syncDeleteToGitHub });
 
 async function handle(req, res, url) {
   // /admin -> /admin/

@@ -8,7 +8,8 @@
 
 'use strict';
 
-const { readFileSync, readdirSync, statSync, unlinkSync, existsSync } = require('fs');
+const crypto = require('crypto');
+const { readFileSync, writeFileSync, readdirSync, statSync, unlinkSync, existsSync } = require('fs');
 const { join } = require('path');
 const storage = require('./storage');
 
@@ -69,14 +70,180 @@ function deleteMedia(filename) {
   unlinkSync(full);
 }
 
+// --- Duplicate detection + consolidation ----------------------------------
+//
+// Uploads accumulate duplicates because the upload endpoint mints a fresh
+// timestamped filename for every request — re-uploading the same image
+// twice produces two distinct files with identical bytes. Over time the
+// gallery fills with redundant entries.
+//
+// findDuplicates() groups files by SHA-256 of their content and returns
+// only the groups with more than one entry. Within each group the oldest
+// file (lowest mtime) is the canonical version we'll keep — older usually
+// means "the one already linked from posts". The newer ones can be
+// deleted after we redirect their references.
+
+function hashFile(path) {
+  const h = crypto.createHash('sha256');
+  h.update(readFileSync(path));
+  return h.digest('hex');
+}
+
+function findDuplicates() {
+  const items = listMedia();
+  const groups = new Map(); // hash -> [items]
+  for (const it of items) {
+    let hash;
+    try { hash = hashFile(join(storage.uploadsDir(), it.filename)); }
+    catch { continue; }
+    if (!groups.has(hash)) groups.set(hash, []);
+    groups.get(hash).push(it);
+  }
+  const dupes = [];
+  for (const [hash, members] of groups) {
+    if (members.length < 2) continue;
+    // Oldest first → that one stays as canonical.
+    members.sort((a, b) => a.mtime - b.mtime);
+    dupes.push({
+      hash,
+      canonical: members[0],
+      duplicates: members.slice(1),
+      sizeReclaimed: members.slice(1).reduce((sum, m) => sum + m.size, 0),
+    });
+  }
+  return dupes;
+}
+
+// Replace every occurrence of any string in `replacements` (Map<from, to>)
+// inside the JSON files of pages/published/drafts and the rendered blog HTML.
+// Returns the list of file paths (repo-relative) that were changed so the
+// caller can git-sync them as one batch.
+function rewriteReferences(replacements) {
+  if (!replacements.size) return [];
+  const changed = [];
+
+  function process(filePath, relPath) {
+    let content;
+    try { content = readFileSync(filePath, 'utf8'); } catch { return; }
+    let next = content;
+    for (const [from, to] of replacements) {
+      // Plain string replace — file paths in our JSON/HTML appear verbatim
+      // (no encoding) and the timestamp+random prefix means the match is
+      // unique enough that substring collisions are not a concern.
+      next = next.split(from).join(to);
+    }
+    if (next !== content) {
+      writeFileSync(filePath, next);
+      changed.push(relPath);
+    }
+  }
+
+  function walk(dir, relPrefix, predicate) {
+    if (!existsSync(dir)) return;
+    let files = [];
+    try { files = readdirSync(dir); } catch { return; }
+    for (const f of files) {
+      if (!predicate(f)) continue;
+      process(join(dir, f), relPrefix + f);
+    }
+  }
+
+  // JSON sources of truth (pages content, published sidecars, active drafts)
+  walk(storage.pagesDir(), 'pages/', f => f.endsWith('.json'));
+  walk(storage.publishedDir(), 'admin/published/', f => f.endsWith('.json'));
+  walk(storage.draftsDir(), 'admin/drafts/', f => f.endsWith('.json'));
+
+  // Rendered blog HTML — old timestamps in there were baked at publish time,
+  // they need to be redirected too or readers see broken images.
+  walk(join(storage.REPO_ROOT, 'blog'), 'blog/', f => f.endsWith('.html'));
+
+  // The journal grid landing page (blog.html at repo root) carries thumbnails
+  // referencing journal uploads.
+  process(join(storage.REPO_ROOT, 'blog.html'), 'blog.html');
+
+  return changed;
+}
+
+// Plan + execute consolidation. Returns a report with counts.
+function consolidateDuplicates() {
+  const groups = findDuplicates();
+  if (!groups.length) return { groups: 0, filesUpdated: [], filesDeleted: [] };
+
+  // Build replacement map: every duplicate URL → canonical URL
+  const replacements = new Map();
+  const toDelete = [];
+  for (const g of groups) {
+    const canonicalUrl = PUBLIC_PREFIX + g.canonical.filename;
+    for (const d of g.duplicates) {
+      replacements.set(PUBLIC_PREFIX + d.filename, canonicalUrl);
+      toDelete.push(d.filename);
+    }
+  }
+
+  // 1) Rewrite all references first — never delete a file before its
+  //    references point elsewhere.
+  const filesUpdated = rewriteReferences(replacements);
+
+  // 2) Delete the duplicate files locally.
+  const filesDeleted = [];
+  for (const f of toDelete) {
+    try { unlinkSync(join(storage.uploadsDir(), f)); filesDeleted.push(f); }
+    catch (err) { console.error('[media-dedupe] delete failed', f, err.message); }
+  }
+
+  return {
+    groups: groups.length,
+    filesUpdated,
+    filesDeleted,
+    sizeReclaimed: groups.reduce((s, g) => s + g.sizeReclaimed, 0),
+    replacements: Array.from(replacements.entries()).map(([from, to]) => ({ from, to })),
+  };
+}
+
 function makeHandler(deps) {
-  const { json, readJson, requireAuth, syncDeleteToGitHub } = deps;
+  const { json, readJson, requireAuth, syncToGitHub, syncDeleteToGitHub } = deps;
 
   return async function handle(req, res, url) {
     // List
     if (req.method === 'GET' && url === '/api/admin/media') {
       if (!requireAuth(req, res)) return true;
       json(res, 200, { ok: true, items: listMedia() });
+      return true;
+    }
+
+    // Find duplicates (read-only preview before consolidation)
+    if (req.method === 'GET' && url === '/api/admin/media/duplicates') {
+      if (!requireAuth(req, res)) return true;
+      try {
+        const groups = findDuplicates();
+        const totalDupes = groups.reduce((s, g) => s + g.duplicates.length, 0);
+        const sizeReclaimed = groups.reduce((s, g) => s + g.sizeReclaimed, 0);
+        json(res, 200, { ok: true, groups, totalGroups: groups.length, totalDupes, sizeReclaimed });
+      } catch (e) {
+        json(res, 500, { error: e.message });
+      }
+      return true;
+    }
+
+    // Consolidate: rewrite references then delete duplicate files
+    if (req.method === 'POST' && url === '/api/admin/media/dedupe') {
+      if (!requireAuth(req, res)) return true;
+      try {
+        const report = consolidateDuplicates();
+        json(res, 200, { ok: true, ...report });
+        // Sync the rewritten files (text content changes) AND the deletes
+        // in one batched commit.
+        if (report.filesUpdated && report.filesUpdated.length) {
+          syncToGitHub(report.filesUpdated, `Admin: dedupe — rewrite references in ${report.filesUpdated.length} Dateien`);
+        }
+        if (report.filesDeleted && report.filesDeleted.length) {
+          const paths = report.filesDeleted.map(f => `assets/images/journal/${f}`);
+          syncDeleteToGitHub(paths, `Admin: dedupe — entferne ${paths.length} Duplikate`);
+        }
+      } catch (e) {
+        console.error('[media-dedupe] error:', e);
+        json(res, 500, { error: e.message });
+      }
       return true;
     }
 
@@ -130,5 +297,8 @@ module.exports = {
   makeHandler,
   listMedia,
   findReferences,
+  findDuplicates,
+  consolidateDuplicates,
+  rewriteReferences,
   deleteMedia,
 };
