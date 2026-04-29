@@ -85,29 +85,39 @@ async function updateRef(commitSha) {
   });
 }
 
-// Single batched commit covering all listed files. Re-reads each file from
-// disk so concurrent writes between enqueue and flush are picked up. Retries
-// the ref update if another commit slipped in (non-fast-forward).
-async function commitBatch(filePaths, message) {
+// Single batched commit covering all listed items. Each item is either
+//   { path, action: 'add' }    — read fresh from disk, create blob, set tree
+//   { path, action: 'delete' } — emit a tree entry with sha:null (Git Data
+//                                API treats null sha as "remove this path")
+//
+// For backward compatibility callers can pass a plain array of strings,
+// which we treat as 'add'. Re-reads each add-file from disk so concurrent
+// writes between enqueue and flush are picked up. Retries the ref update
+// if another commit slipped in (non-fast-forward).
+async function commitBatch(items, message) {
   if (!GITHUB_TOKEN) {
     console.warn('[git-sync] GITHUB_TOKEN nicht gesetzt — skip');
     return false;
   }
-  // Materialize blobs first (these don't move the branch and can be reused
-  // across ref-update retries).
+  const normalized = items.map(it => typeof it === 'string' ? { path: it, action: 'add' } : it);
   const entries = [];
-  for (const fp of filePaths) {
-    const fullPath = join(ROOT, fp);
+  for (const it of normalized) {
+    if (it.action === 'delete') {
+      // Removing a path: tree entry with sha:null. No disk read or blob needed.
+      entries.push({ path: it.path, mode: '100644', type: 'blob', sha: null });
+      continue;
+    }
+    const fullPath = join(ROOT, it.path);
     if (!existsSync(fullPath)) {
-      console.warn('[git-sync] Datei nicht gefunden, skip:', fp);
+      console.warn('[git-sync] Datei nicht gefunden, skip:', it.path);
       continue;
     }
     const contentB64 = readFileSync(fullPath).toString('base64');
     try {
       const blob = await createBlob(contentB64);
-      entries.push({ path: fp, mode: '100644', type: 'blob', sha: blob.sha });
+      entries.push({ path: it.path, mode: '100644', type: 'blob', sha: blob.sha });
     } catch (err) {
-      console.error('[git-sync] blob fail', fp, ':', err.message);
+      console.error('[git-sync] blob fail', it.path, ':', err.message);
     }
   }
   if (!entries.length) return false;
@@ -137,11 +147,12 @@ async function commitBatch(filePaths, message) {
 }
 
 // --- Debounced batch queue --------------------------------------------------
-// Multiple syncToGitHub() calls within DEBOUNCE_MS coalesce into one commit.
-// Each call's files + message accumulate; the most-recent message wins for
-// the combined commit (file paths are deduped via the Map).
+// Multiple syncToGitHub() / syncDeleteToGitHub() calls within DEBOUNCE_MS
+// coalesce into one commit. Each call's path + action + message accumulate;
+// the most-recent action for a given path wins (so a write-then-delete
+// in the same window correctly removes the file).
 
-const pending = new Map(); // filePath -> string (per-file message)
+const pending = new Map(); // filePath -> 'add' | 'delete'
 let lastMessage = '';
 let flushTimer = null;
 let inFlight = null; // Promise of the current flush, or null
@@ -152,44 +163,51 @@ function scheduleFlush() {
 }
 
 async function flush() {
-  // If a flush is already running, wait for it; new pending entries will be
-  // picked up by a follow-up flush scheduled by the next syncToGitHub call.
   if (inFlight) return inFlight;
   if (pending.size === 0) return;
 
-  // Snapshot and clear so additional enqueues during the in-flight commit
-  // accumulate into the next batch.
-  const filePaths = Array.from(pending.keys());
+  const items = Array.from(pending.entries()).map(([path, action]) => ({ path, action }));
   pending.clear();
-  const message = summarizeMessage(filePaths, lastMessage);
+  const message = summarizeMessage(items, lastMessage);
   lastMessage = '';
 
   inFlight = (async () => {
     try {
-      await commitBatch(filePaths, message);
+      await commitBatch(items, message);
     } catch (err) {
       console.error('[git-sync] flush error:', err.message);
     } finally {
       inFlight = null;
-      // If anything queued during the in-flight commit, schedule another flush
       if (pending.size > 0) scheduleFlush();
     }
   })();
   return inFlight;
 }
 
-function summarizeMessage(filePaths, fallback) {
-  if (filePaths.length === 1) return fallback || `Admin: update ${filePaths[0]}`;
-  // For batches, prefer a concise summary that still hints at the trigger
-  return `${fallback || 'Admin: batch update'} (+${filePaths.length - 1} weitere Dateien)`;
+function summarizeMessage(items, fallback) {
+  if (items.length === 1) {
+    const it = items[0];
+    return fallback || `Admin: ${it.action === 'delete' ? 'delete' : 'update'} ${it.path}`;
+  }
+  return `${fallback || 'Admin: batch update'} (+${items.length - 1} weitere Dateien)`;
 }
 
 // Fire-and-forget: enqueues files for the next batched commit.
 function syncToGitHub(filePaths, message) {
   if (!GITHUB_TOKEN) return;
-  for (const fp of filePaths) pending.set(fp, message);
+  for (const fp of filePaths) pending.set(fp, 'add');
   if (message) lastMessage = message;
   scheduleFlush();
 }
 
-module.exports = { syncToGitHub, commitBatch, _flushNow: flush };
+// Removes file paths from the repo on the next flush. Use when an admin
+// action deletes media or other tracked content — otherwise the file would
+// reappear on the next deploy because it still exists in git history HEAD.
+function syncDeleteToGitHub(filePaths, message) {
+  if (!GITHUB_TOKEN) return;
+  for (const fp of filePaths) pending.set(fp, 'delete');
+  if (message) lastMessage = message;
+  scheduleFlush();
+}
+
+module.exports = { syncToGitHub, syncDeleteToGitHub, commitBatch, _flushNow: flush };

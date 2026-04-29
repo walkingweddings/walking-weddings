@@ -333,12 +333,18 @@
       </div>
     </section>
 
-    <!-- View: Media library — placeholder for Phase 5 -->
-    <section class="admin-view admin-view--placeholder" data-view="media" hidden>
-      <div class="admin-placeholder">
-        <p class="admin-placeholder__eyebrow">Medien-Bibliothek</p>
-        <h2 class="admin-placeholder__title">In Vorbereitung</h2>
-        <p class="admin-placeholder__sub">Übersicht aller hochgeladenen Bilder und Videos.</p>
+    <!-- View: Media library -->
+    <section class="admin-view admin-view--media" data-view="media" hidden>
+      <header class="admin-media-header">
+        <div>
+          <p class="admin-section__eyebrow">Mediathek</p>
+          <h2 class="admin-pages-list__title">Medien</h2>
+          <p class="admin-pages-list__sub" id="mediaCount">Lade…</p>
+        </div>
+        <button id="mediaRefreshBtn" class="admin-btn admin-btn--ghost admin-btn--small">↻ Neu laden</button>
+      </header>
+      <div id="mediaGrid" class="admin-media-grid">
+        <div class="admin-manage__placeholder">Lade…</div>
       </div>
     </section>
 
