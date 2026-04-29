@@ -96,6 +96,31 @@
   const cmsModeMeta = document.querySelector('meta[name="cms-mode"]');
   const cmsMode = cmsModeMeta ? cmsModeMeta.content : 'post';
 
+  // --- Module-level state shared by both modes ------------------------------
+  // These have to be declared BEFORE the page-mode early return below.
+  // makeImageSwappable's click handlers reference them via closure but
+  // function declarations only hoist the function object, not the bodies of
+  // any `let`/`const` they read. If the page-mode return skips past their
+  // declaration line, accessing them later throws a Temporal Dead Zone error
+  // ("Cannot access 'activeCrop' / 'WIDTH_PRESETS' before initialization").
+
+  let activeCrop = null; // { img, wrap, dot, context, imageIndex, cmsId }
+
+  const WIDTH_PRESETS = [
+    { label: 'Auto', value: null },
+    { label: 'S 30%', value: '30' },
+    { label: 'M 42%', value: '42' },
+    { label: 'L 60%', value: '60' },
+    { label: 'XL 80%', value: '80' },
+  ];
+  const ASPECT_PRESETS = [
+    { label: 'Auto', value: null },
+    { label: '4:3 ▭', value: '4/3' },
+    { label: '3:4 ▯', value: '3/4' },
+    { label: '1:1 □', value: '1/1' },
+    { label: '16:9', value: '16/9' },
+  ];
+
   if (cmsMode === 'page') {
     document.querySelectorAll('[data-cms-id]').forEach(el => {
       const cmsId = el.dataset.cmsId;
@@ -214,8 +239,7 @@
   }
 
   // --- Image swap + crop (focal-point) --------------------------------------
-
-  let activeCrop = null; // { img, wrap, dot, context }
+  // (`activeCrop` is declared at the top of the IIFE.)
 
   function makeImageSwappable(img, context, imageIndex, cmsId) {
     if (img.closest('[data-admin-image]')) return;
@@ -298,22 +322,8 @@
   // Lives inside the image wrap. Two rows of chips: Width and Aspect ratio.
   // Each click applies the style locally for instant feedback AND fires a
   // postMessage to the parent so the JSON gets patched. Click "Fertig" or
-  // outside to close.
-
-  const WIDTH_PRESETS = [
-    { label: 'Auto', value: null },
-    { label: 'S 30%', value: '30' },
-    { label: 'M 42%', value: '42' },
-    { label: 'L 60%', value: '60' },
-    { label: 'XL 80%', value: '80' },
-  ];
-  const ASPECT_PRESETS = [
-    { label: 'Auto', value: null },
-    { label: '4:3 ▭', value: '4/3' },
-    { label: '3:4 ▯', value: '3/4' },
-    { label: '1:1 □', value: '1/1' },
-    { label: '16:9', value: '16/9' },
-  ];
+  // outside to close. (`WIDTH_PRESETS` and `ASPECT_PRESETS` are declared at
+  // the top of the IIFE so the page-mode early return doesn't hide them.)
 
   function toggleSizePanel(img, wrap, cmsId) {
     const existing = wrap.querySelector('.admin-size-panel');
