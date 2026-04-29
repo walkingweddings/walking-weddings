@@ -1698,6 +1698,107 @@ code {
   letter-spacing: 0;
 }
 
+/* ==========================================================================
+   Pages CMS view (Phase 2)
+   Two-column: list of editable pages on the left, live preview on the right.
+   ========================================================================== */
+
+.admin-view--pages {
+  display: grid;
+  grid-template-columns: minmax(320px, 380px) 1fr;
+}
+
+.admin-pages-list {
+  border-right: 1px solid var(--admin-border);
+  padding: 36px 28px 60px;
+  overflow-y: auto;
+  background: var(--admin-bg);
+}
+.admin-pages-list__header {
+  margin-bottom: 32px;
+}
+.admin-pages-list__title {
+  font-family: "Italiana", serif;
+  font-size: 32px;
+  font-weight: 400;
+  color: var(--admin-text);
+  margin: 6px 0 12px;
+  letter-spacing: 1px;
+}
+.admin-pages-list__sub {
+  color: var(--admin-text-dim);
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.admin-pages-list__entries {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-pages-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 18px 20px;
+  background: var(--admin-bg-card);
+  border: 1px solid var(--admin-border);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s ease, transform 0.18s ease, background 0.18s ease;
+  font-family: inherit;
+}
+.admin-pages-card:hover {
+  border-color: var(--admin-accent);
+  transform: translateY(-1px);
+}
+.admin-pages-card--active {
+  border-color: var(--admin-accent);
+  background: var(--admin-bg-alt);
+  box-shadow: var(--admin-shadow-lift);
+}
+.admin-pages-card__eyebrow {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--admin-accent);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.admin-pages-card__title {
+  font-family: "Italiana", serif;
+  font-size: 22px;
+  color: var(--admin-text);
+  letter-spacing: 0.5px;
+}
+.admin-pages-card__sub {
+  font-size: 13px;
+  color: var(--admin-text-dim);
+  line-height: 1.5;
+}
+.admin-pages-card__meta {
+  font-size: 10px;
+  color: var(--admin-text-dim);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.admin-pages-stage {
+  display: flex;
+  flex-direction: column;
+  background: var(--admin-bg-alt);
+  max-height: calc(100vh - 73px);
+}
+
+@media (max-width: 1024px) {
+  .admin-view--pages { grid-template-columns: 1fr; }
+  .admin-pages-list { border-right: 0; border-bottom: 1px solid var(--admin-border); max-height: 50vh; }
+}
+
 /* Placeholder views — used for sections still in development */
 .admin-view--placeholder {
   display: flex;

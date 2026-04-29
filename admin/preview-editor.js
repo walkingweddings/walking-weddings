@@ -67,6 +67,43 @@
     return String(txt || '').replace(/^\s*Plate\s+[IVXLCDM0-9]+\s*[—–-]\s*/i, '');
   }
 
+  // --- Mode detection -------------------------------------------------------
+  // The post editor (journal drafts) hard-codes selectors like
+  // .editorial-hero__title because every post is rendered from one template.
+  // For arbitrary public pages we instead look for `data-cms-id` annotations.
+  // The server signals which mode to use via <meta name="cms-mode">.
+  const cmsModeMeta = document.querySelector('meta[name="cms-mode"]');
+  const cmsMode = cmsModeMeta ? cmsModeMeta.content : 'post';
+
+  if (cmsMode === 'page') {
+    document.querySelectorAll('[data-cms-id]').forEach(el => {
+      const cmsId = el.dataset.cmsId;
+      if (!cmsId) return;
+      const tag = el.tagName;
+      if (tag === 'IMG' || tag === 'VIDEO') {
+        makeImageSwappable(el, 'page', null, cmsId);
+        return;
+      }
+      const isInlineHeading = /^H[1-6]$/.test(tag) || tag === 'STRONG' || tag === 'EM' || tag === 'SPAN';
+      makeEditable(el, {
+        key: cmsId,
+        singleLine: isInlineHeading,
+        onBlur: () => send({
+          type: 'edit-field',
+          cmsId,
+          // Send both the rendered HTML and the plain text. The admin frontend
+          // picks one based on whether the original markup contains inline
+          // tags (em, strong, br) — for plain headlines we want plainValue,
+          // for prose paragraphs we want innerHTML.
+          value: el.innerHTML,
+          plainValue: el.textContent,
+        }),
+      });
+    });
+    send({ type: 'editor-ready', mode: 'page' });
+    return;
+  }
+
   // --- Hero fields ----------------------------------------------------------
 
   const heroEyebrow = document.querySelector('.editorial-hero__eyebrow');
@@ -159,7 +196,7 @@
 
   let activeCrop = null; // { img, wrap, dot, context }
 
-  function makeImageSwappable(img, context, imageIndex) {
+  function makeImageSwappable(img, context, imageIndex, cmsId) {
     if (img.closest('[data-admin-image]')) return;
     if (img.tagName === 'VIDEO') {
       // Videos only get swap, no crop
@@ -175,13 +212,14 @@
       wrap.appendChild(overlay);
       wrap.addEventListener('click', (e) => {
         e.preventDefault(); e.stopPropagation();
-        send({ type: 'swap-image', url: img.currentSrc || img.src, context, imageIndex });
+        send({ type: 'swap-image', url: img.currentSrc || img.src, context, imageIndex, cmsId });
       });
       return;
     }
 
     img.dataset.adminImageContext = context;
     img.dataset.adminImageIndex = imageIndex != null ? imageIndex : '';
+    if (cmsId) img.dataset.adminCmsId = cmsId;
     const wrap = document.createElement('span');
     wrap.className = 'admin-image-wrap';
     wrap.setAttribute('data-admin-image', context);
@@ -206,18 +244,18 @@
 
     overlay.querySelector('[data-role="swap"]').addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation();
-      send({ type: 'swap-image', url: img.currentSrc || img.src, context, imageIndex });
+      send({ type: 'swap-image', url: img.currentSrc || img.src, context, imageIndex, cmsId });
     });
 
     overlay.querySelector('[data-role="crop"]').addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation();
-      enterCropMode(img, wrap, dot, context, imageIndex);
+      enterCropMode(img, wrap, dot, context, imageIndex, cmsId);
     });
   }
 
-  function enterCropMode(img, wrap, dot, context, imageIndex) {
+  function enterCropMode(img, wrap, dot, context, imageIndex, cmsId) {
     if (activeCrop) exitCropMode(false);
-    activeCrop = { img, wrap, dot, context, imageIndex };
+    activeCrop = { img, wrap, dot, context, imageIndex, cmsId };
     wrap.classList.add('admin-image-wrap--crop');
     dot.classList.add('admin-focal-dot--active');
     badge.textContent = '✛ Komposition — klicke auf den gewünschten Bildmittelpunkt';
@@ -273,7 +311,7 @@
 
   function exitCropMode(save) {
     if (!activeCrop) return;
-    const { img, wrap, dot, context, imageIndex } = activeCrop;
+    const { img, wrap, dot, context, imageIndex, cmsId } = activeCrop;
     wrap.classList.remove('admin-image-wrap--crop');
     dot.classList.remove('admin-focal-dot--active');
     badge.textContent = '✎ Editieren — klicke auf Text oder Bild';
@@ -299,6 +337,7 @@
         position: pos,
         context,
         imageIndex,
+        cmsId,
       });
       if (context === 'article') sendArticleUpdate();
     }

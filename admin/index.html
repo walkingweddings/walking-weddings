@@ -271,11 +271,39 @@
     </section><!-- /.admin-view--journal -->
 
     <!-- View: Pages — placeholder for Phase 2 -->
-    <section class="admin-view admin-view--placeholder" data-view="pages" hidden>
-      <div class="admin-placeholder">
-        <p class="admin-placeholder__eyebrow">Seiten-Editor</p>
-        <h2 class="admin-placeholder__title">In Vorbereitung</h2>
-        <p class="admin-placeholder__sub">Hier wirst du bald die öffentlichen Seiten direkt bearbeiten — Texte, Bilder, Videos austauschen, mit Live-Preview.</p>
+    <section class="admin-view admin-view--pages" data-view="pages" hidden>
+      <aside class="admin-pages-list">
+        <div class="admin-pages-list__header">
+          <p class="admin-section__eyebrow">Public Site</p>
+          <h2 class="admin-pages-list__title">Seiten</h2>
+          <p class="admin-pages-list__sub">Wähle eine Seite, um Texte und Medien direkt im Live-Layout zu ändern.</p>
+        </div>
+        <div id="pagesListEntries" class="admin-pages-list__entries">
+          <div class="admin-manage__placeholder">Lade Seiten…</div>
+        </div>
+      </aside>
+      <div class="admin-pages-stage">
+        <div class="admin-preview__bar">
+          <div class="admin-preview__label">
+            <span class="admin-preview__eyebrow" id="pagesPreviewEyebrow">Wähle eine Seite</span>
+            <span class="admin-preview__caption" id="pagesPreviewCaption">Klicke links auf eine Seite, um die Live-Vorschau zu öffnen.</span>
+          </div>
+          <div class="admin-preview__tabs" id="pagesDeviceTabs">
+            <button class="admin-tab admin-tab--active" data-page-device="desktop">Desktop</button>
+            <button class="admin-tab" data-page-device="tablet">Tablet</button>
+            <button class="admin-tab" data-page-device="mobile">Mobile</button>
+          </div>
+          <button id="pagesRefreshBtn" class="admin-btn admin-btn--ghost admin-btn--small" disabled>↻ Aktualisieren</button>
+        </div>
+        <div class="admin-preview__frame" id="pagesPreviewWrap">
+          <div class="admin-preview__placeholder" id="pagesPreviewPlaceholder">
+            <p class="admin-preview__plate">Plate I</p>
+            <p>Keine Seite ausgewählt</p>
+            <p class="admin-preview__hint">Wähle links eine Seite zum Bearbeiten.</p>
+          </div>
+          <iframe id="pagesPreviewFrame" title="Page Preview" hidden></iframe>
+        </div>
+        <input type="file" id="pagesUploadInput" accept="image/*,video/*" hidden>
       </div>
     </section>
 
