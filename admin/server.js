@@ -9,10 +9,11 @@ const {
 const { join } = require('path');
 const { buildPostHtml, buildBlogCard, escapeHtml } = require('./template');
 const { addCacheBusters } = require('../cache-buster');
-const { syncToGitHub } = require('./git-sync');
+const { syncToGitHub, syncDeleteToGitHub } = require('./git-sync');
 const storage = require('./storage');
 const pagesApi = require('./pages-api');
 const leadsApi = require('./leads-api');
+const mediaApi = require('./media-api');
 
 const ROOT = storage.REPO_ROOT;
 
@@ -640,6 +641,9 @@ const pagesHandle = pagesApi.makeHandler({
 // Inquiries / leads routes — same DI pattern.
 const leadsHandle = leadsApi.makeHandler({ json, readJson, requireAuth });
 
+// Media library routes
+const mediaHandle = mediaApi.makeHandler({ json, readJson, requireAuth, syncDeleteToGitHub });
+
 async function handle(req, res, url) {
   // /admin -> /admin/
   if (url === '/admin') {
@@ -654,6 +658,9 @@ async function handle(req, res, url) {
 
   // Inquiries / leads routes
   if (await leadsHandle(req, res, url)) return true;
+
+  // Media library routes
+  if (await mediaHandle(req, res, url)) return true;
 
   // Preview endpoint (iframe) — auth via ?token=… query param
   if (req.method === 'GET' && url.startsWith('/api/admin/preview/')) {

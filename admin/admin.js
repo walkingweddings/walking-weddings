@@ -544,6 +544,106 @@
     api('/api/admin/leads?status=new&limit=1').then(d => updateInquiriesBadge(d.unreadCount)).catch(() => {});
   }, 60000);
 
+  // --- Media library view ---------------------------------------------------
+
+  const mediaGridEl = $('mediaGrid');
+  const mediaCountEl = $('mediaCount');
+  const mediaRefreshBtn = $('mediaRefreshBtn');
+
+  function fmtSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+    return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+  }
+
+  async function loadMediaGrid() {
+    try {
+      const data = await api('/api/admin/media');
+      renderMediaGrid(data.items || []);
+    } catch (err) {
+      mediaGridEl.innerHTML = '<div class="admin-manage__placeholder">Fehler: ' + escapeHtml(err.message) + '</div>';
+      mediaCountEl.textContent = '';
+    }
+  }
+
+  function renderMediaGrid(items) {
+    mediaCountEl.textContent = items.length + ' ' + (items.length === 1 ? 'Datei' : 'Dateien');
+    if (!items.length) {
+      mediaGridEl.innerHTML = '<div class="admin-manage__placeholder">Keine Medien hochgeladen.</div>';
+      return;
+    }
+    mediaGridEl.innerHTML = items.map(it => {
+      const date = new Date(it.mtime).toLocaleDateString('de-DE', { day:'2-digit', month:'short', year:'2-digit' });
+      const preview = it.type === 'video'
+        ? `<video src="${escapeHtml(it.url)}" muted></video>`
+        : `<img src="${escapeHtml(it.url)}" alt="" loading="lazy">`;
+      return `
+        <div class="admin-media-card" data-media-filename="${escapeHtml(it.filename)}" data-media-url="${escapeHtml(it.url)}">
+          <div class="admin-media-card__preview">${preview}</div>
+          <div class="admin-media-card__meta">
+            <span class="admin-media-card__type">${it.type === 'video' ? 'Video' : 'Bild'}</span>
+            <span class="admin-media-card__size">${fmtSize(it.size)}</span>
+            <span class="admin-media-card__date">${escapeHtml(date)}</span>
+          </div>
+          <div class="admin-media-card__actions">
+            <button class="admin-btn admin-btn--ghost admin-btn--small" data-media-action="copy">URL kopieren</button>
+            <button class="admin-btn admin-btn--ghost admin-btn--small" data-media-action="delete">Löschen</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    mediaGridEl.querySelectorAll('[data-media-action]').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const card = e.target.closest('[data-media-filename]');
+        const filename = card.dataset.mediaFilename;
+        const url = card.dataset.mediaUrl;
+        if (e.target.dataset.mediaAction === 'copy') {
+          try {
+            await navigator.clipboard.writeText(url);
+            showToast('URL kopiert', 'success', 1800);
+          } catch { showToast('Kopieren fehlgeschlagen — bitte manuell', 'error'); }
+          return;
+        }
+        if (e.target.dataset.mediaAction === 'delete') {
+          await deleteMediaFile(filename);
+        }
+      });
+    });
+  }
+
+  async function deleteMediaFile(filename) {
+    // Step 1: ask the server which posts/pages reference this URL
+    let refs = [];
+    try {
+      const data = await api('/api/admin/media/' + encodeURIComponent(filename) + '/refs');
+      refs = data.refs || [];
+    } catch (err) {
+      showToast('Reference-Check fehlgeschlagen: ' + err.message, 'error');
+      return;
+    }
+    let force = false;
+    if (refs.length) {
+      const list = refs.map(r => `· ${r.source}/${r.file}`).join('\n');
+      if (!confirm(
+        `Diese Datei wird noch verwendet in:\n\n${list}\n\nTrotzdem löschen?`
+      )) return;
+      force = true;
+    } else {
+      if (!confirm(`"${filename}" endgültig löschen? Die Datei wird auch aus dem Repo entfernt.`)) return;
+    }
+    try {
+      await api('/api/admin/media/' + encodeURIComponent(filename) + (force ? '?force=1' : ''), { method: 'DELETE' });
+      showToast('Datei gelöscht', 'success');
+      loadMediaGrid();
+    } catch (err) {
+      showToast('Löschen fehlgeschlagen: ' + err.message, 'error', 6000);
+    }
+  }
+
+  mediaRefreshBtn.addEventListener('click', loadMediaGrid);
+
+  viewActivators.media = function () { loadMediaGrid(); };
+
   // --- Media upload ---------------------------------------------------------
 
   dropzone.addEventListener('click', () => fileInput.click());
