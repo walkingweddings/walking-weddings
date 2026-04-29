@@ -141,6 +141,33 @@
     window.location.href = 'login.html';
   });
 
+  // --- View router ----------------------------------------------------------
+  // Hash-based routing keeps everything in this single SPA file. Switching
+  // views just shows/hides the matching <section data-view="..."> and toggles
+  // the active class on the corresponding nav link. The journal view remains
+  // the default; placeholders for other views are wired up here so navigating
+  // works today, even before their real UIs exist.
+
+  const VIEWS = ['journal', 'pages', 'inquiries', 'media'];
+  const viewSections = new Map();
+  const viewLinks = new Map();
+  document.querySelectorAll('[data-view]').forEach(el => viewSections.set(el.dataset.view, el));
+  document.querySelectorAll('[data-view-link]').forEach(el => viewLinks.set(el.dataset.viewLink, el));
+
+  function setView(name) {
+    if (!VIEWS.includes(name)) name = 'journal';
+    viewSections.forEach((el, key) => { el.hidden = (key !== name); });
+    viewLinks.forEach((el, key) => { el.classList.toggle('admin-nav__link--active', key === name); });
+  }
+
+  function readHashView() {
+    const m = String(window.location.hash || '').match(/^#\/(\w+)/);
+    return m && VIEWS.includes(m[1]) ? m[1] : 'journal';
+  }
+
+  window.addEventListener('hashchange', () => setView(readHashView()));
+  setView(readHashView());
+
   // --- Media upload ---------------------------------------------------------
 
   dropzone.addEventListener('click', () => fileInput.click());
