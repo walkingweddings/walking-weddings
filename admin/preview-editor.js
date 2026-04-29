@@ -271,23 +271,27 @@
     dot.style.top = parts[1] || '50%';
     wrap.appendChild(dot);
 
-    overlay.querySelector('[data-role="swap"]').addEventListener('click', (e) => {
-      e.preventDefault(); e.stopPropagation();
-      send({ type: 'swap-image', url: img.currentSrc || img.src, context, imageIndex, cmsId });
-    });
-
-    overlay.querySelector('[data-role="crop"]').addEventListener('click', (e) => {
-      e.preventDefault(); e.stopPropagation();
-      enterCropMode(img, wrap, dot, context, imageIndex, cmsId);
-    });
-
-    const sizeBtn = overlay.querySelector('[data-role="size"]');
-    if (sizeBtn) {
-      sizeBtn.addEventListener('click', (e) => {
-        e.preventDefault(); e.stopPropagation();
+    // ONE delegated listener on the overlay handles all three buttons. We use
+    // `closest('[data-role]')` so a click on a button or any of its inner
+    // text nodes still resolves to the role. Earlier this code had three
+    // separate addEventListener calls — Austauschen worked for the user but
+    // Komposition / Größe didn't, which can happen if querySelector returned
+    // a different node than expected after some DOM mutation. Delegation
+    // sidesteps that whole class of bugs.
+    overlay.addEventListener('click', (e) => {
+      const btn = e.target && e.target.closest && e.target.closest('[data-role]');
+      if (!btn || !overlay.contains(btn)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const role = btn.dataset.role;
+      if (role === 'swap') {
+        send({ type: 'swap-image', url: img.currentSrc || img.src, context, imageIndex, cmsId });
+      } else if (role === 'crop') {
+        enterCropMode(img, wrap, dot, context, imageIndex, cmsId);
+      } else if (role === 'size') {
         toggleSizePanel(img, wrap, cmsId);
-      });
-    }
+      }
+    });
   }
 
   // --- Size panel (page-mode images only) ----------------------------------
