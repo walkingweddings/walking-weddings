@@ -281,6 +281,17 @@
       patchPage(slug, { mediaId: msg.cmsId, objectPosition: msg.position });
       return;
     }
+
+    // Tile resize from the page-mode "Größe" panel. Either widthPercent or
+    // aspectRatio (or both) may be present; an explicit `null` resets the
+    // override (see applyPatch in pages-api.js).
+    if (msg.type === 'resize-tile' && msg.cmsId) {
+      const patch = { mediaId: msg.cmsId };
+      if ('widthPercent' in msg) patch.widthPercent = msg.widthPercent;
+      if ('aspectRatio' in msg) patch.aspectRatio = msg.aspectRatio;
+      patchPage(slug, patch);
+      return;
+    }
   });
 
   pagesUploadInput.addEventListener('change', async (e) => {

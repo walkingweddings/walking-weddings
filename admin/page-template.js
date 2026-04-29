@@ -98,8 +98,13 @@ function applyFieldEdits(html, fields) {
   return html;
 }
 
-// Replace src/alt/object-position on every <img|video ... data-cms-id="ID" ...>.
-// Both self-closing (`<img />`) and unclosed (`<img>`) variants are supported.
+// Replace src/alt/object-position/aspect-ratio on every
+// <img|video ... data-cms-id="ID" ...>. Both self-closing (`<img />`) and
+// unclosed (`<img>`) variants are supported.
+//
+// When `aspectRatio` is set, the img is forced into that ratio with
+// object-fit: cover so object-position becomes meaningful (otherwise the img
+// renders at natural ratio and crop has no visible effect).
 function applyMediaEdits(html, media) {
   if (!media) return html;
   for (const id of Object.keys(media)) {
@@ -115,6 +120,42 @@ function applyMediaEdits(html, media) {
       if (m.url) a = setAttr(a, 'src', m.url);
       if (m.alt != null) a = setAttr(a, 'alt', m.alt);
       if (m.objectPosition) a = setStyleProp(a, 'object-position', m.objectPosition);
+      if (m.aspectRatio) {
+        a = setStyleProp(a, 'aspect-ratio', m.aspectRatio);
+        a = setStyleProp(a, 'object-fit', 'cover');
+        a = setStyleProp(a, 'width', '100%');
+        a = setStyleProp(a, 'height', 'auto');
+      }
+      return `<${tag} ${a}>`;
+    });
+  }
+  return html;
+}
+
+// Apply width / display tweaks to the parent container of a media item via
+// `data-cms-tile-id="ID"`. This is how we let editors override masonry tile
+// widths for the portfolio without restructuring the HTML — the media JSON
+// keeps a single ID, this pass picks up `widthPercent` for the parent and
+// `aspectRatio` is also forwarded as a hint when the parent uses CSS
+// container queries / aspect-driven layouts.
+function applyTileEdits(html, media) {
+  if (!media) return html;
+  for (const id of Object.keys(media)) {
+    const m = media[id];
+    if (!m || typeof m !== 'object') continue;
+    if (m.widthPercent == null) continue; // nothing to apply at the tile level
+    const idEsc = escapeRegExp(id);
+    const re = new RegExp(
+      `<([a-zA-Z][a-zA-Z0-9]*)\\b([^>]*\\bdata-cms-tile-id=["']${idEsc}["'][^>]*)>`,
+      'gi'
+    );
+    html = html.replace(re, (_match, tag, attrs) => {
+      let a = stripAttrs(attrs);
+      const w = String(m.widthPercent).replace(/%$/, '');
+      a = setStyleProp(a, 'width', w + '%');
+      // Reset masonry's nth-child margins so the override actually wins.
+      a = setStyleProp(a, 'margin-left', 'auto');
+      a = setStyleProp(a, 'margin-right', 'auto');
       return `<${tag} ${a}>`;
     });
   }
@@ -125,6 +166,7 @@ function renderPage(html, pageJson) {
   if (!html || !pageJson || typeof pageJson !== 'object') return html;
   let out = applyFieldEdits(html, pageJson.fields);
   out = applyMediaEdits(out, pageJson.media);
+  out = applyTileEdits(out, pageJson.media);
   return out;
 }
 
@@ -136,4 +178,5 @@ module.exports = {
   _setStyleProp: setStyleProp,
   _applyFieldEdits: applyFieldEdits,
   _applyMediaEdits: applyMediaEdits,
+  _applyTileEdits: applyTileEdits,
 };

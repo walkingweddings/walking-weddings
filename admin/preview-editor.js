@@ -37,6 +37,15 @@
     '.admin-image-wrap--crop img { cursor: crosshair; }',
     '.admin-crop-done { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: #B8A88A; color: #0B1111; border: none; padding: 10px 28px; font-family: "PT Sans", sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; cursor: pointer; z-index: 10; }',
     '.admin-crop-done:hover { background: #D4C5A3; }',
+    '.admin-size-panel { position: absolute; left: 12px; right: 12px; bottom: 12px; background: rgba(11, 17, 17, 0.92); backdrop-filter: blur(8px); padding: 14px 16px; z-index: 20; display: flex; flex-direction: column; gap: 10px; border: 1px solid rgba(184, 168, 138, 0.35); }',
+    '.admin-size-panel__row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }',
+    '.admin-size-panel__label { color: #B8A88A; font-family: "PT Sans", sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; min-width: 56px; }',
+    '.admin-size-panel__chips { display: flex; gap: 4px; flex-wrap: wrap; }',
+    '.admin-size-panel__chip { background: transparent; color: #F5F2EC; border: 1px solid rgba(184, 168, 138, 0.4); padding: 6px 12px; font-family: "PT Sans", sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all .18s; }',
+    '.admin-size-panel__chip:hover { border-color: #B8A88A; color: #B8A88A; }',
+    '.admin-size-panel__chip--active { background: #B8A88A; color: #0B1111; border-color: #B8A88A; }',
+    '.admin-size-panel__done { align-self: flex-end; background: #B8A88A; color: #0B1111; border: none; padding: 8px 18px; font-family: "PT Sans", sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; margin-top: 4px; }',
+    '.admin-size-panel__done:hover { background: #D4C5A3; }',
   ].join('\n');
   document.head.appendChild(style);
 
@@ -228,9 +237,17 @@
 
     const overlay = document.createElement('span');
     overlay.className = 'admin-image-overlay';
-    overlay.innerHTML =
+    // Page-mode images (with cmsId) get a third button — Größe — that opens
+    // an inline panel with width + aspect-ratio chips. Post-mode (Journal
+    // drafts) keeps the original two-button layout because tiles there are
+    // template-driven and resizing a single one breaks the editorial flow.
+    let btnsHtml =
       '<span class="admin-ol-btn" data-role="swap">↑ Austauschen</span>' +
       '<span class="admin-ol-btn" data-role="crop">✛ Komposition</span>';
+    if (cmsId && context === 'page') {
+      btnsHtml += '<span class="admin-ol-btn" data-role="size">↔ Größe</span>';
+    }
+    overlay.innerHTML = btnsHtml;
     wrap.appendChild(overlay);
 
     // Focal-point dot (hidden by default)
@@ -251,6 +268,108 @@
       e.preventDefault(); e.stopPropagation();
       enterCropMode(img, wrap, dot, context, imageIndex, cmsId);
     });
+
+    const sizeBtn = overlay.querySelector('[data-role="size"]');
+    if (sizeBtn) {
+      sizeBtn.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        toggleSizePanel(img, wrap, cmsId);
+      });
+    }
+  }
+
+  // --- Size panel (page-mode images only) ----------------------------------
+  // Lives inside the image wrap. Two rows of chips: Width and Aspect ratio.
+  // Each click applies the style locally for instant feedback AND fires a
+  // postMessage to the parent so the JSON gets patched. Click "Fertig" or
+  // outside to close.
+
+  const WIDTH_PRESETS = [
+    { label: 'Auto', value: null },
+    { label: 'S 30%', value: '30' },
+    { label: 'M 42%', value: '42' },
+    { label: 'L 60%', value: '60' },
+    { label: 'XL 80%', value: '80' },
+  ];
+  const ASPECT_PRESETS = [
+    { label: 'Auto', value: null },
+    { label: '4:3 ▭', value: '4/3' },
+    { label: '3:4 ▯', value: '3/4' },
+    { label: '1:1 □', value: '1/1' },
+    { label: '16:9', value: '16/9' },
+  ];
+
+  function toggleSizePanel(img, wrap, cmsId) {
+    const existing = wrap.querySelector('.admin-size-panel');
+    if (existing) { existing.remove(); return; }
+    const panel = document.createElement('div');
+    panel.className = 'admin-size-panel';
+    panel.addEventListener('click', e => e.stopPropagation());
+
+    function row(label, presets, current, onPick) {
+      const r = document.createElement('div');
+      r.className = 'admin-size-panel__row';
+      r.innerHTML = '<span class="admin-size-panel__label">' + label + '</span>';
+      const chips = document.createElement('div');
+      chips.className = 'admin-size-panel__chips';
+      for (const p of presets) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'admin-size-panel__chip' + (current === p.value ? ' admin-size-panel__chip--active' : '');
+        b.textContent = p.label;
+        b.dataset.value = p.value == null ? '' : p.value;
+        b.addEventListener('click', () => {
+          chips.querySelectorAll('.admin-size-panel__chip').forEach(c => c.classList.remove('admin-size-panel__chip--active'));
+          b.classList.add('admin-size-panel__chip--active');
+          onPick(p.value);
+        });
+        chips.appendChild(b);
+      }
+      r.appendChild(chips);
+      return r;
+    }
+
+    // Determine current values from inline style — best-effort
+    const tile = img.parentElement && img.parentElement.closest('[data-cms-tile-id="' + cmsId + '"]');
+    const curWidth = tile && tile.style.width ? tile.style.width.replace('%', '') : null;
+    const curAspect = img.style.aspectRatio || null;
+
+    panel.appendChild(row('Breite', WIDTH_PRESETS, curWidth, value => {
+      // Apply locally for instant feedback
+      if (tile) {
+        if (value == null) {
+          tile.style.removeProperty('width');
+          tile.style.removeProperty('margin-left');
+          tile.style.removeProperty('margin-right');
+        } else {
+          tile.style.width = value + '%';
+          tile.style.marginLeft = 'auto';
+          tile.style.marginRight = 'auto';
+        }
+      }
+      send({ type: 'resize-tile', cmsId, widthPercent: value });
+    }));
+
+    panel.appendChild(row('Format', ASPECT_PRESETS, curAspect, value => {
+      // Local preview
+      if (value == null) {
+        img.style.removeProperty('aspect-ratio');
+        img.style.removeProperty('object-fit');
+      } else {
+        img.style.aspectRatio = value;
+        img.style.objectFit = 'cover';
+      }
+      send({ type: 'resize-tile', cmsId, aspectRatio: value });
+    }));
+
+    const done = document.createElement('button');
+    done.type = 'button';
+    done.className = 'admin-size-panel__done';
+    done.textContent = '✓ Fertig';
+    done.addEventListener('click', () => panel.remove());
+    panel.appendChild(done);
+
+    wrap.appendChild(panel);
   }
 
   function enterCropMode(img, wrap, dot, context, imageIndex, cmsId) {

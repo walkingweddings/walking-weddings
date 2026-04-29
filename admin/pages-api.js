@@ -36,9 +36,13 @@ function savePageJson(slug, doc) {
   writeFileSync(p, JSON.stringify(doc, null, 2));
 }
 
-// `value` is a string for fields. `media` updates carry url / alt / objectPosition.
-// We accept partial media updates so the editor can change just the focal point
-// without re-asserting the URL.
+// `value` is a string for fields. `media` updates carry
+// url / alt / objectPosition / aspectRatio / widthPercent. All optional —
+// partial media updates let the editor tweak one property at a time
+// (e.g. just the focal point or just the tile width).
+//
+// Setting a property to `null` (not `undefined`) explicitly clears it; this is
+// how the "Auto" / reset buttons in the inline editor remove an override.
 function applyPatch(doc, patch) {
   if (patch.fieldId) {
     const id = String(patch.fieldId);
@@ -53,6 +57,14 @@ function applyPatch(doc, patch) {
     if (patch.alt != null) cur.alt = String(patch.alt);
     if (patch.objectPosition != null) cur.objectPosition = String(patch.objectPosition);
     if (patch.mediaType) cur.type = String(patch.mediaType);
+    if ('aspectRatio' in patch) {
+      if (patch.aspectRatio === null || patch.aspectRatio === '') delete cur.aspectRatio;
+      else cur.aspectRatio = String(patch.aspectRatio);
+    }
+    if ('widthPercent' in patch) {
+      if (patch.widthPercent === null || patch.widthPercent === '') delete cur.widthPercent;
+      else cur.widthPercent = String(patch.widthPercent);
+    }
     doc.media[id] = cur;
     return;
   }
