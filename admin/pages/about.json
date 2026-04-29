@@ -1,0 +1,12 @@
+{
+  "_schemaVersion": 1,
+  "_updatedAt": 1777472480499,
+  "fields": {},
+  "media": {
+    "spread.image": {
+      "type": "image",
+      "objectPosition": "53% 19%",
+      "aspectRatio": "1/1"
+    }
+  }
+}
