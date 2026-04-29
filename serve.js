@@ -5,6 +5,7 @@ const admin = require('./admin/server');
 const { renderPage } = require('./admin/page-template');
 const { findBySlug } = require('./admin/pages-registry');
 const { loadPageJson } = require('./admin/pages-api');
+const { persistLead } = require('./admin/leads-api');
 
 const PORT = process.env.PORT || 8082;
 const ROOT = __dirname;
@@ -213,6 +214,16 @@ createServer(async (req, res) => {
         } catch (err) {
           console.error('Couple email failed:', err.message);
         }
+      }
+
+      // Persist for the admin Inquiries dashboard. Wrapped so a failure here
+      // (e.g. volume not mounted yet) never breaks the response — emails are
+      // the source of truth.
+      try {
+        const saved = persistLead(lead, results);
+        console.log(`Lead persisted: ${saved.id}`);
+      } catch (err) {
+        console.error('Lead persistence failed:', err.message);
       }
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
