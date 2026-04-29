@@ -95,13 +95,13 @@
    ========================================================================== */
 .editorial-spread {
   display: grid;
-  grid-template-columns: 5fr 1fr 6fr;
+  grid-template-columns: 6fr 1fr 5fr;
   align-items: center;
   gap: 0;
 }
 
 .editorial-spread__media {
-  grid-column: 1;
+  grid-column: 3;
 }
 
 .editorial-spread__media img {
@@ -112,7 +112,7 @@
 }
 
 .editorial-spread__text {
-  grid-column: 3;
+  grid-column: 1;
   color: var(--color-text-dark);
 }
 
