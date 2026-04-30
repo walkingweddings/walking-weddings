@@ -29,7 +29,7 @@ const PAGES = [
     file: 'portfolio.html',
     title: 'Works',
     eyebrow: 'N° 02 — Portfolio',
-    description: '13 Hochzeitsbilder im Masonry-Grid',
+    description: '28 Hochzeitsbilder im Masonry-Grid',
     sections: ['Hero', 'Grid', 'CTA'],
   },
   {
