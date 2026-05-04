@@ -24,7 +24,108 @@
   "galleryUrl": "https://walkingweddings.pic-time.com/gO9Aa1ARwNycZ",
   "articleInner": "<section class=\"editorial-chapter editorial-chapter--intro\">\n      <p class=\"editorial-chapter__label\">Kapitel I<br>Prolog</p>\n      <div class=\"editorial-chapter__body\">\n        <p>Ein ganzes Wochenende voller Liebe, eingebettet in die sanften Hügel italienischer Weinberge — Jennise und Florian haben sich für ihre Destination Wedding einen Ort ausgesucht, der wie aus einem Traum wirkt. Von Wien aus ging die Reise nach Italien, wo Romantik und dolce vita aufeinandertrafen.</p>\n      </div>\n    </section>\n\n    <section class=\"editorial-duo\">\n      <figure class=\"editorial-figure editorial-duo__primary\">\n        <img src=\"../assets/images/portfolio/jenniseflorian-396.jpg\" alt=\"Jennise & Florian — Weinberge\" loading=\"lazy\">\n        <figcaption>Plate II — Weinberge so weit das Auge reicht</figcaption>\n      </figure>\n      <figure class=\"editorial-figure editorial-duo__secondary\">\n        <img src=\"../assets/images/portfolio/jenniseflorian-396.jpg\" alt=\"Jennise & Florian — Details\" loading=\"lazy\">\n        <figcaption>Plate III — Rustikale Holztüren</figcaption>\n      </figure>\n    </section>\n\n    <section class=\"editorial-chapter\">\n      <p class=\"editorial-chapter__label\">Kapitel II<br>Die Idee</p>\n      <div class=\"editorial-chapter__body\">\n        <p>Die Idee, in Italien zu heiraten, entstand bei einem gemeinsamen Urlaub in der Toskana. Was als flüchtige Idee begann, wurde schnell zu einem konkreten Plan. Jennise und Florian wollten keine gewöhnliche Hochzeit — sie wollten ein Erlebnis, das ihre Gäste für immer in Erinnerung behalten würden. Ein historisches Weingut mit alten Steinmauern und endlosen Reihen von Rebstöcken wurde zur Kulisse ihres Versprechens.</p>\n      </div>\n    </section>\n\n    <blockquote class=\"editorial-quote\">\n      <p>Jennises Kleid schimmerte im Gegenlicht, und Florians gerührter Blick sagte mehr als jede Rede.</p>\n      <cite>— Walking Weddings</cite>\n    </blockquote>\n\n    <section class=\"editorial-triptych\">\n      <figure class=\"editorial-figure\">\n        <img src=\"../assets/images/portfolio/jenniseflorian-396.jpg\" alt=\"Jennise & Florian — Zeremonie\" loading=\"lazy\">\n        <figcaption>Plate IV — Zeremonie zwischen Reben</figcaption>\n      </figure>\n      <figure class=\"editorial-figure\">\n        <img src=\"../assets/images/portfolio/jenniseflorian-396.jpg\" alt=\"Jennise & Florian — Brautpaar\" loading=\"lazy\">\n        <figcaption>Plate V — Brautpaar im Abendlicht</figcaption>\n      </figure>\n      <figure class=\"editorial-figure\">\n        <img src=\"../assets/images/portfolio/jenniseflorian-396.jpg\" alt=\"Jennise & Florian — Gäste\" loading=\"lazy\">\n        <figcaption>Plate VI — Reden in drei Sprachen</figcaption>\n      </figure>\n    </section>\n\n    <section class=\"editorial-chapter\">\n      <p class=\"editorial-chapter__label\">Kapitel III<br>Das Wochenende</p>\n      <div class=\"editorial-chapter__body\">\n        <p>Die Feierlichkeiten erstreckten sich über ein ganzes Wochenende. Am Vorabend trafen sich alle zu einem entspannten Abendessen unter freiem Himmel, bei dem die ersten Freudentränen flossen. Der Hochzeitstag selbst begann mit einer intimen Zeremonie zwischen den Weinreben, als das Nachmittagslicht alles in warmes Gold tauchte. Jennises Kleid schimmerte im Gegenlicht, und Florians gerührter Blick sagte mehr als jede Rede.</p>\n      </div>\n    </section>\n\n    <figure class=\"editorial-fullbleed\">\n      <img src=\"../assets/images/portfolio/jenniseflorian-396.jpg\" alt=\"Jennise & Florian — Lichterketten\" loading=\"lazy\">\n      <figcaption>Plate VII — Abendessen unter Lichterketten</figcaption>\n    </figure>\n\n    <section class=\"editorial-chapter\">\n      <p class=\"editorial-chapter__label\">Kapitel IV<br>Ein Abenteuer</p>\n      <div class=\"editorial-chapter__body\">\n        <p>Als Destination Wedding Fotografen aus Wien war es für uns ein besonderes Abenteuer. Die italienische Landschaft bot an jeder Ecke ein neues Motiv — von den rustikalen Holztüren des Weinguts bis hin zu den endlosen Weinreben, die sich bis zum Horizont erstreckten. Das Abendessen unter Lichterketten, die Reden in drei Sprachen und der ausgelassene Tanz bis spät in die Nacht machten diesen Tag zu einem, den wir nie vergessen werden.</p>\n      </div>\n    </section>",
   "_migratedFromLegacy": true,
-  "_media": [],
+  "_media": [
+    {
+      "url": "/assets/images/journal/1777903056556-8bb4b5b5-champagne-wedding-italy.jpg",
+      "type": "image",
+      "filename": "champagne-wedding-italy.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903057472-0e6c4550-cake-cutting-sunset-couple.jpg",
+      "type": "image",
+      "filename": "cake-cutting-sunset-couple.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903058442-92f9b7e0-sunset-wedding-cake.jpg",
+      "type": "image",
+      "filename": "sunset-wedding-cake.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903058777-ad074a3b-bridesmaids-umbrella-wedding.jpg",
+      "type": "image",
+      "filename": "bridesmaids-umbrella-wedding.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903059143-4e011002-trieste-couple-umbrella-wedding-bw.jpg",
+      "type": "image",
+      "filename": "trieste-couple-umbrella-wedding-bw.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903059353-f70decc9-italy-rain-couple-wedding.jpg",
+      "type": "image",
+      "filename": "italy-rain-couple-wedding.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903060401-4c8aafa3-ring-finger-wedding-couple.jpg",
+      "type": "image",
+      "filename": "ring-finger-wedding-couple.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903061432-21501116-italy-wedding-gelato.jpg",
+      "type": "image",
+      "filename": "italy-wedding-gelato.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903061703-096f643a-send-off-bride-groom.jpg",
+      "type": "image",
+      "filename": "send-off-bride-groom.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903062051-e76f4b56-send-off-church-italy-rice.jpg",
+      "type": "image",
+      "filename": "send-off-church-italy-rice.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903063085-6471a2d4-groom-altar-wedding.jpg",
+      "type": "image",
+      "filename": "groom-altar-wedding.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903064138-e6f59396-bride-entrance-church-italy.jpg",
+      "type": "image",
+      "filename": "bride-entrance-church-italy.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903065213-31d19479-wedding-first-look-father-brother.jpg",
+      "type": "image",
+      "filename": "wedding-first-look-father-brother.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903065556-dbcf0c34-trieste-sea-wedding.jpg",
+      "type": "image",
+      "filename": "trieste-sea-wedding.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903065747-d19d5f4a-trieste-mare-first-look.jpg",
+      "type": "image",
+      "filename": "trieste-mare-first-look.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903065945-139822e8-austrian-groom-wedding-italy.jpg",
+      "type": "image",
+      "filename": "austrian-groom-wedding-italy.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903066838-24a42970-austrian-bride-italy-wedding.jpg",
+      "type": "image",
+      "filename": "austrian-bride-italy-wedding.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903067037-c2de4057-wedding-amore-white-dress.jpg",
+      "type": "image",
+      "filename": "wedding-amore-white-dress.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903068021-070a77d1-wedding-trieste-rings-details.jpg",
+      "type": "image",
+      "filename": "wedding-trieste-rings-details.jpg"
+    },
+    {
+      "url": "/assets/images/journal/1777903069055-91a3e82c-cake-cutting-kiss-wedding.jpg",
+      "type": "image",
+      "filename": "cake-cutting-kiss-wedding.jpg"
+    }
+  ],
   "_prompt": "",
   "_sourceSlug": "jennise-florian"
 }
