@@ -367,7 +367,7 @@
       var params = new URLSearchParams(window.location.search);
       var pkg = params.get('package');
       if (!pkg) return;
-      var allowed = ['Plus', 'Premium', 'Luxury'];
+      var allowed = ['The Day', 'The Story', 'The Legacy'];
       if (allowed.indexOf(pkg) === -1) return;
       document.getElementById('package').value = pkg;
       document.getElementById('packageNoticeName').textContent = pkg + ' — Paket';
