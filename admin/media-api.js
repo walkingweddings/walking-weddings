@@ -16,7 +16,7 @@
 'use strict';
 
 const crypto = require('crypto');
-const { readFileSync, writeFileSync, readdirSync, statSync, unlinkSync, existsSync } = require('fs');
+const { readFileSync, writeFileSync, readdirSync, statSync, unlinkSync, existsSync, renameSync } = require('fs');
 const { join, posix } = require('path');
 const storage = require('./storage');
 
@@ -133,6 +133,38 @@ function deleteMedia(relPath) {
   const full = join(ASSETS_DIR, relPath);
   if (!existsSync(full)) throw new Error('Datei nicht gefunden');
   unlinkSync(full);
+}
+
+function renameMedia(relPath, newName) {
+  if (!isSafeRelPath(relPath)) throw new Error('Ungültiger Pfad');
+  if (!newName || typeof newName !== 'string') throw new Error('Kein Name angegeben');
+  // Only allow safe filename characters
+  if (!/^[a-zA-Z0-9._-]+$/.test(newName)) throw new Error('Name enthält ungültige Zeichen (erlaubt: a-z, 0-9, - _ .)');
+  if (newName.includes('..')) throw new Error('Ungültiger Name');
+
+  const oldExt = relPath.split('.').pop().toLowerCase();
+  const newExt = newName.split('.').pop().toLowerCase();
+  if (oldExt !== newExt) throw new Error(`Dateiendung kann nicht geändert werden (.${oldExt})`);
+
+  const dir = relPath.split('/').slice(0, -1).join('/');
+  const newRelPath = dir + '/' + newName;
+
+  if (!isSafeRelPath(newRelPath)) throw new Error('Ungültiger neuer Pfad');
+
+  const oldFull = join(ASSETS_DIR, relPath);
+  const newFull = join(ASSETS_DIR, newRelPath);
+
+  if (!existsSync(oldFull)) throw new Error('Datei nicht gefunden');
+  if (existsSync(newFull)) throw new Error('Eine Datei mit diesem Namen existiert bereits');
+
+  renameSync(oldFull, newFull);
+
+  const oldUrl = '/assets/' + relPath;
+  const newUrl = '/assets/' + newRelPath;
+  const replacements = new Map([[oldUrl, newUrl]]);
+  const filesUpdated = rewriteReferences(replacements);
+
+  return { oldPath: relPath, newPath: newRelPath, oldUrl, newUrl, filesUpdated };
 }
 
 // --- Duplicate detection + consolidation (journal uploads only) -----------
@@ -279,6 +311,27 @@ function makeHandler(deps) {
       return true;
     }
 
+    // Rename
+    const renameMatch = req.method === 'PATCH' && url.match(/^\/api\/admin\/media\/([^/]+)$/);
+    if (renameMatch) {
+      if (!requireAuth(req, res)) return true;
+      const relPath = decodeURIComponent(renameMatch[1]);
+      if (!isSafeRelPath(relPath)) { json(res, 400, { error: 'Ungültiger Pfad' }); return true; }
+      try {
+        const body = await readJson(req);
+        const newName = (body && body.newName || '').trim();
+        if (!newName) { json(res, 400, { error: 'Kein Name angegeben' }); return true; }
+        const result = renameMedia(relPath, newName);
+        json(res, 200, { ok: true, ...result });
+        const syncFiles = ['assets/' + result.newPath, ...result.filesUpdated.map(f => f)];
+        syncToGitHub(syncFiles, `Admin: rename media ${result.oldPath} → ${result.newPath}`);
+        syncDeleteToGitHub(['assets/' + result.oldPath], `Admin: rename media (delete old) ${result.oldPath}`);
+      } catch (e) {
+        json(res, 500, { error: e.message });
+      }
+      return true;
+    }
+
     // Delete
     const delMatch = req.method === 'DELETE' && url.match(/^\/api\/admin\/media\/([^/]+)$/);
     if (delMatch) {
@@ -317,4 +370,5 @@ module.exports = {
   consolidateDuplicates,
   rewriteReferences,
   deleteMedia,
+  renameMedia,
 };
