@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 8082;
 const ROOT = __dirname;
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 const FROM_EMAIL = process.env.FROM_EMAIL || 'Walking Weddings <onboarding@resend.dev>';
-const SITE_URL = process.env.SITE_URL || 'https://walkingweddings.com';
+const SITE_URL = process.env.SITE_URL || 'https://www.walkingweddings.com';
 
 const MIME = {
   '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
@@ -282,12 +282,14 @@ createServer(async (req, res) => {
 
   const url = req.url.split('?')[0];
 
-  // Canonical host: www.walkingweddings.com → walkingweddings.com (301).
-  // Both domains point at this app on Railway; we collapse to the apex so there
-  // is one canonical host for SEO. Skip for localhost/preview hosts.
+  // Canonical host: walkingweddings.com → www.walkingweddings.com (301).
+  // www is the canonical host (apex stays on Hetzner with its own HTTP redirect
+  // to www, so apex never reaches Railway in production). We only collapse if
+  // someone explicitly hits the bare apex on Railway (e.g. via direct IP or a
+  // future DNS misconfig). Other hosts (localhost, *.up.railway.app) untouched.
   const host = (req.headers.host || '').toLowerCase();
-  if (host.startsWith('www.')) {
-    res.writeHead(301, { Location: `https://${host.slice(4)}${req.url}` });
+  if (host === 'walkingweddings.com') {
+    res.writeHead(301, { Location: `https://www.walkingweddings.com${req.url}` });
     res.end();
     return;
   }
