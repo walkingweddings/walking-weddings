@@ -3,9 +3,10 @@ const { readFileSync, existsSync, statSync, createReadStream } = require('fs');
 const { join, extname, basename } = require('path');
 const admin = require('./admin/server');
 const { renderPage } = require('./admin/page-template');
-const { findBySlug } = require('./admin/pages-registry');
+const { findBySlug, PAGES } = require('./admin/pages-registry');
 const { loadPageJson } = require('./admin/pages-api');
 const { persistLead } = require('./admin/leads-api');
+const i18n = require('./admin/i18n');
 
 const PORT = process.env.PORT || 8082;
 const ROOT = __dirname;
@@ -24,6 +25,47 @@ const { addCacheBusters } = require('./cache-buster');
 
 function esc(str) {
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Dynamic sitemap with hreflang alternates. Static pages always have an
+// English mirror; blog posts only when a pre-built `<slug>.en.html` exists.
+// Each language URL is emitted as its own <url> listing the full alternate set
+// (Google's recommended bidirectional form).
+function buildSitemap() {
+  const base = SITE_URL.replace(/\/$/, '');
+  const entries = [];
+  for (const p of PAGES) entries.push({ path: p.slug === 'index' ? '/' : `/${p.slug}.html`, en: true });
+  for (const lp of ['impressum', 'privacy', 'agb']) entries.push({ path: `/${lp}.html`, en: true });
+  try {
+    const blogHtml = readFileSync(join(ROOT, 'blog.html'), 'utf8');
+    const seen = new Set();
+    const re = /href="blog\/([a-z0-9-]+)\.html"/gi;
+    let m;
+    while ((m = re.exec(blogHtml))) {
+      if (seen.has(m[1])) continue;
+      seen.add(m[1]);
+      entries.push({ path: `/blog/${m[1]}.html`, en: existsSync(join(ROOT, 'blog', `${m[1]}.en.html`)) });
+    }
+  } catch {}
+
+  const urlBlock = (loc, alts) =>
+    `  <url>\n    <loc>${loc}</loc>\n` +
+    alts.map(a => `    <xhtml:link rel="alternate" hreflang="${a.lang}" href="${a.href}"/>`).join('\n') +
+    `\n  </url>\n`;
+
+  let body = '';
+  for (const { path, en } of entries) {
+    const deUrl = base + path;
+    const enUrl = base + '/en' + (path === '/' ? '/' : path);
+    const alts = [{ lang: 'de', href: deUrl }];
+    if (en) alts.push({ lang: 'en', href: enUrl });
+    alts.push({ lang: 'x-default', href: deUrl });
+    body += urlBlock(deUrl, alts);
+    if (en) body += urlBlock(enUrl, alts);
+  }
+  return `<?xml version="1.0" encoding="UTF-8"?>\n` +
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n` +
+    body + `</urlset>\n`;
 }
 
 function parseBody(req) {
@@ -83,6 +125,7 @@ async function sendTeamEmail(lead) {
         <div style="padding:30px 20px;">
           <h2 style="font-family:Georgia,serif;color:#393e3f;margin:0 0 20px;">Neue Anfrage über die Website</h2>
           <table style="border-collapse:collapse;width:100%;font-size:14px;">
+            <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;width:180px;">Sprache der Anfrage</td><td style="padding:10px 12px;border:1px solid #d4c4a8;"><strong>${lead.lang === 'en' ? 'Englisch — bitte auf Englisch antworten' : 'Deutsch'}</strong></td></tr>
             <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;width:180px;">Anfrage von</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(roleStr)}</td></tr>
             <tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Name</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(lead.name)}</td></tr>
             ${lead.company ? `<tr><td style="padding:10px 12px;border:1px solid #d4c4a8;font-weight:bold;background:#f5f0e8;">Firmenname</td><td style="padding:10px 12px;border:1px solid #d4c4a8;">${esc(lead.company)}</td></tr>` : ''}
@@ -105,7 +148,67 @@ async function sendTeamEmail(lead) {
   });
 }
 
+async function sendCoupleEmailEn(lead) {
+  const dateStr = lead.noDate ? 'No fixed date yet' : (lead.dates?.join(', ') || '-');
+  const locStr = lead.noLocation ? 'No location yet' : (lead.locations?.join(', ') || '-');
+
+  return sendEmail({
+    to: lead.email,
+    replyTo: 'contact@walkingweddings.com',
+    subject: 'Thank you for your enquiry — Walking Weddings',
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#393e3f;">
+        <div style="text-align:center;padding:30px 0;background:#393e3f;">
+          <img src="${SITE_URL}/assets/images/logo/ww_logoWhite.svg" alt="Walking Weddings" style="width:220px;height:auto;margin:0 auto;" />
+        </div>
+        <div style="padding:30px 20px;">
+          <p style="font-size:16px;">Dear ${esc(lead.name)},</p>
+          <p>thank you so much for your enquiry with Walking Weddings!</p>
+          <p>We're delighted by your interest and will be in touch shortly to arrange a no-obligation introductory call.</p>
+
+          <div style="background:#f5f0e8;border:1px solid #d4c4a8;padding:20px;margin:24px 0;">
+            <p style="font-family:Georgia,serif;font-size:16px;margin:0 0 12px;letter-spacing:2px;text-transform:uppercase;">Your details</p>
+            <table style="border-collapse:collapse;width:100%;font-size:14px;">
+              ${lead.package ? `<tr><td style="padding:6px 8px;font-weight:bold;vertical-align:top;width:140px;">Package</td><td style="padding:6px 8px;">${esc(lead.package)}</td></tr>` : ''}
+              <tr><td style="padding:6px 8px;font-weight:bold;vertical-align:top;width:140px;">Date</td><td style="padding:6px 8px;">${esc(dateStr)}</td></tr>
+              <tr><td style="padding:6px 8px;font-weight:bold;vertical-align:top;">Location</td><td style="padding:6px 8px;">${esc(locStr)}</td></tr>
+              <tr><td style="padding:6px 8px;font-weight:bold;vertical-align:top;">Interest</td><td style="padding:6px 8px;">${esc(lead.interesse?.join(', ') || '-')}</td></tr>
+              ${lead.hours ? `<tr><td style="padding:6px 8px;font-weight:bold;vertical-align:top;">Hours</td><td style="padding:6px 8px;">${esc(lead.hours)}</td></tr>` : ''}
+              ${lead.zusatz?.length ? `<tr><td style="padding:6px 8px;font-weight:bold;vertical-align:top;">Add-ons</td><td style="padding:6px 8px;">${esc(lead.zusatz.join(', '))}</td></tr>` : ''}
+              ${lead.budget ? `<tr><td style="padding:6px 8px;font-weight:bold;vertical-align:top;">Budget</td><td style="padding:6px 8px;">${esc(lead.budget)}</td></tr>` : ''}
+              ${lead.message ? `<tr><td style="padding:6px 8px;font-weight:bold;vertical-align:top;">Notes</td><td style="padding:6px 8px;">${esc(lead.message)}</td></tr>` : ''}
+            </table>
+          </div>
+
+          <p>In the meantime, we've prepared something special for you — our <strong>Wedding Guide</strong> with tips, inspiration and everything you need for your planning:</p>
+          <p style="text-align:center;margin:24px 0;">
+            <a href="${SITE_URL}/en/hochzeitsguide.html" style="display:inline-block;padding:14px 32px;background:#B8A88A;color:#131B1B;text-decoration:none;letter-spacing:2px;font-size:14px;text-transform:uppercase;font-weight:bold;">Your Wedding Guide</a>
+          </p>
+
+          <p>Feel free to explore our website or follow us on Instagram:</p>
+          <p style="text-align:center;margin:24px 0;">
+            <a href="${SITE_URL}/en/" style="display:inline-block;padding:12px 28px;background:#131B1B;color:#fff;text-decoration:none;letter-spacing:2px;font-size:13px;text-transform:uppercase;">Our Website</a>
+          </p>
+          <p style="text-align:center;">
+            <a href="https://www.instagram.com/walkingweddings" style="color:#6B7374;text-decoration:none;">@walkingweddings on Instagram</a>
+          </p>
+
+          <p>We can't wait to hear about your wedding!</p>
+          <div style="margin-top:30px;padding-top:20px;border-top:1px solid #d4c4a8;">
+            <p style="margin:0;font-weight:bold;">Walking Weddings OG</p>
+            <p style="margin:4px 0;color:#6B7374;">Kiran: +43 660 4822420</p>
+            <p style="margin:4px 0;color:#6B7374;">Ian: +43 660 6357799</p>
+            <p style="margin:4px 0;color:#6B7374;">contact@walkingweddings.com</p>
+            <p style="margin:4px 0;color:#6B7374;">www.walkingweddings.com</p>
+          </div>
+        </div>
+      </div>
+    `
+  });
+}
+
 async function sendCoupleEmail(lead) {
+  if (lead.lang === 'en') return sendCoupleEmailEn(lead);
   const dateStr = lead.noDate ? 'Noch kein fixes Datum' : (lead.dates?.join(', ') || '-');
   const locStr = lead.noLocation ? 'Noch keine Location' : (lead.locations?.join(', ') || '-');
 
@@ -236,11 +339,39 @@ createServer(async (req, res) => {
     return;
   }
 
+  // Dynamic sitemap + robots
+  if (url === '/sitemap.xml') {
+    const xml = buildSitemap();
+    const buf = Buffer.from(xml);
+    res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8', 'Content-Length': buf.length });
+    res.end(buf);
+    return;
+  }
+
+  // English mirror: /en/<path> renders the same source file with an English
+  // overlay. logicalPath is the language-agnostic path used for canonical /
+  // hreflang / the language switch.
+  const isEn = url === '/en' || url.startsWith('/en/');
+  const logicalPath = isEn ? (url.replace(/^\/en/, '') || '/') : url;
+
   // Static files
-  let filePath = url;
+  let filePath = logicalPath;
   if (filePath === '/') filePath = '/index.html';
   else if (filePath.endsWith('/')) filePath += 'index.html';
-  const file = join(ROOT, decodeURIComponent(filePath));
+
+  // For English blog posts we serve the pre-built `<slug>.en.html` sibling when
+  // it exists (generated at publish time); otherwise we fall through to the
+  // German source + (empty) i18n pass.
+  let enBlogFile = null;
+  if (isEn) {
+    const m = filePath.match(/^\/blog\/([a-z0-9-]+)\.html$/i);
+    if (m) {
+      const cand = join(ROOT, 'blog', `${m[1]}.en.html`);
+      if (existsSync(cand) && statSync(cand).isFile()) enBlogFile = cand;
+    }
+  }
+
+  const file = enBlogFile || join(ROOT, decodeURIComponent(filePath));
   if (!existsSync(file) || !statSync(file).isFile()) {
     res.writeHead(404);
     res.end('Not found');
@@ -265,6 +396,18 @@ createServer(async (req, res) => {
       try { html = renderPage(html, loadPageJson(baseName)); }
       catch (err) { console.error('[cms] renderPage failed for', baseName, ':', err.message); }
     }
+    // English overlay. Pre-built blog .en.html files are already English, so
+    // they only need link localisation; everything else gets the dictionary
+    // pass. Order matters: CMS (DE) → i18n text → lang → link rewrite →
+    // hreflang/lang-switch (injected last so their absolute URLs aren't
+    // touched by localizeLinks).
+    if (isEn) {
+      if (!enBlogFile) html = i18n.applyI18n(html, i18n.getEnDict());
+      html = i18n.setHtmlLang(html, 'en');
+      html = i18n.localizeLinks(html, logicalPath);
+    }
+    html = i18n.injectHreflang(html, { logicalPath, locale: isEn ? 'en' : 'de', siteUrl: SITE_URL });
+    html = i18n.renderLangSwitch(html, { logicalPath, locale: isEn ? 'en' : 'de' });
     html = addCacheBusters(html);
     const buf = Buffer.from(html);
     res.writeHead(200, {
