@@ -1,6 +1,6 @@
 {
   "_schemaVersion": 1,
-  "_updatedAt": 1782317308827,
+  "_updatedAt": 1782317318751,
   "fields": {},
   "media": {
     "spread.image": {
@@ -12,6 +12,10 @@
       "type": "image",
       "url": "/assets/images/journal/1782317294687-bfb6d613-kiran-walking-weddings.jpg",
       "aspectRatio": "3/4"
+    },
+    "ian.image": {
+      "type": "image",
+      "url": "/assets/images/journal/1782317318567-91e9ebac-ian-walking-weddings.jpg"
     }
   }
 }
