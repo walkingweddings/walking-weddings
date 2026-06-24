@@ -656,6 +656,7 @@
           <div class="admin-media-card__filename" title="${escapeHtml(it.path)}">${escapeHtml(it.filename)}</div>
           <div class="admin-media-card__actions">
             <button class="admin-btn admin-btn--ghost admin-btn--small" data-media-action="copy">URL kopieren</button>
+            <button class="admin-btn admin-btn--ghost admin-btn--small" data-media-action="rename">Umbenennen</button>
             <button class="admin-btn admin-btn--ghost admin-btn--small" data-media-action="delete">Löschen</button>
           </div>
         </div>`;
@@ -672,6 +673,10 @@
             await navigator.clipboard.writeText(url);
             showToast('URL kopiert', 'success', 1800);
           } catch { showToast('Kopieren fehlgeschlagen — bitte manuell', 'error'); }
+          return;
+        }
+        if (e.target.dataset.mediaAction === 'rename') {
+          await renameMediaFile(path, filename);
           return;
         }
         if (e.target.dataset.mediaAction === 'delete') {
@@ -707,6 +712,35 @@
       loadMediaGrid();
     } catch (err) {
       showToast('Löschen fehlgeschlagen: ' + err.message, 'error', 6000);
+    }
+  }
+
+  async function renameMediaFile(path, currentFilename) {
+    const dotIdx = currentFilename.lastIndexOf('.');
+    const ext = dotIdx >= 0 ? currentFilename.slice(dotIdx + 1) : '';
+    const baseName = dotIdx >= 0 ? currentFilename.slice(0, dotIdx) : currentFilename;
+    const newBase = prompt(
+      `SEO-Dateiname eingeben (ohne Erweiterung .${ext}):\nTipp: Verwende Bindestriche statt Leerzeichen, z.B. hochzeit-muenchen-2024`,
+      baseName
+    );
+    if (newBase === null) return;
+    const trimmed = newBase.trim();
+    if (!trimmed) { showToast('Kein Name eingegeben', 'error'); return; }
+    if (!/^[a-zA-Z0-9._-]+$/.test(trimmed)) {
+      showToast('Ungültige Zeichen (erlaubt: a-z, 0-9, Bindestrich, Unterstrich)', 'error', 5000);
+      return;
+    }
+    const newName = ext ? trimmed + '.' + ext : trimmed;
+    if (newName === currentFilename) { showToast('Name unverändert', 'success', 1500); return; }
+    try {
+      await api('/api/admin/media/' + encodeURIComponent(path), {
+        method: 'PATCH',
+        body: JSON.stringify({ newName }),
+      });
+      showToast(`Umbenannt: ${newName}`, 'success', 3000);
+      loadMediaGrid();
+    } catch (err) {
+      showToast('Umbenennen fehlgeschlagen: ' + err.message, 'error', 6000);
     }
   }
 
