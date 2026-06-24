@@ -7,6 +7,7 @@ const { findBySlug, PAGES } = require('./admin/pages-registry');
 const { loadPageJson } = require('./admin/pages-api');
 const { persistLead } = require('./admin/leads-api');
 const i18n = require('./admin/i18n');
+const { resolveRedirect } = require('./admin/redirects');
 
 const PORT = process.env.PORT || 8082;
 const ROOT = __dirname;
@@ -280,6 +281,26 @@ createServer(async (req, res) => {
   }
 
   const url = req.url.split('?')[0];
+
+  // Canonical host: www.walkingweddings.com → walkingweddings.com (301).
+  // Both domains point at this app on Railway; we collapse to the apex so there
+  // is one canonical host for SEO. Skip for localhost/preview hosts.
+  const host = (req.headers.host || '').toLowerCase();
+  if (host.startsWith('www.')) {
+    res.writeHead(301, { Location: `https://${host.slice(4)}${req.url}` });
+    res.end();
+    return;
+  }
+
+  // Legacy WordPress (WPML /en/ + /de/ slugs) → new URLs. 301 so Google
+  // transfers ranking. Unknown legacy paths fall back to the language home
+  // instead of 404. New /en/…html URLs are never matched here.
+  const redirectTo = resolveRedirect(url);
+  if (redirectTo) {
+    res.writeHead(301, { Location: redirectTo });
+    res.end();
+    return;
+  }
 
   // Admin / Journal Creator routes (auth, upload, Claude, publish)
   try {
