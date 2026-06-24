@@ -35,7 +35,33 @@ function toRoman(num) {
   return r;
 }
 
-function buildPostHtml(draft) {
+// Static chrome strings per language. The article body itself (articleInner)
+// is already in the target language (German from generation, English from
+// translateDraft); these labels cover the surrounding template furniture.
+const POST_LABELS = {
+  de: {
+    credits: 'Die Credits', couple: 'Paar', location: 'Location', services: 'Services',
+    gallery: '→ Zur vollständigen Galerie', signature: 'mit Liebe festgehalten von Walking Weddings',
+    ctaEyebrow: 'Eure Geschichte', ctaTitle: 'Eure eigene Liebesgeschichte verdient es, erzählt zu werden.',
+    ctaText: 'Wir freuen uns darauf, euch kennenzulernen und euren besonderen Tag festzuhalten.',
+    ctaBtn: 'Jetzt anfragen', menuAria: 'Menü öffnen',
+    footerTagline: 'Euer Hochzeits-Foto & Video Team aus Wien.', navHeading: 'Navigation', contactHeading: 'Contact',
+    rights: 'Alle Rechte vorbehalten.', imprint: 'Impressum', privacy: 'Datenschutz', terms: 'AGB',
+  },
+  en: {
+    credits: 'Credits', couple: 'Couple', location: 'Location', services: 'Services',
+    gallery: '→ View the full gallery', signature: 'lovingly captured by Walking Weddings',
+    ctaEyebrow: 'Your Story', ctaTitle: 'Your own love story deserves to be told.',
+    ctaText: 'We would be delighted to meet you and capture your special day.',
+    ctaBtn: 'Get in touch', menuAria: 'Open menu',
+    footerTagline: 'Your wedding photo & film team from Vienna.', navHeading: 'Navigation', contactHeading: 'Contact',
+    rights: 'All rights reserved.', imprint: 'Legal Notice', privacy: 'Privacy Policy', terms: 'Terms',
+  },
+};
+
+function buildPostHtml(draft, opts) {
+  const lang = (opts && opts.lang === 'en') ? 'en' : 'de';
+  const L = POST_LABELS[lang];
   const {
     plainTitle = 'Walking Weddings Journal',
     title = '',
@@ -56,7 +82,9 @@ function buildPostHtml(draft) {
   } = draft;
 
   const year = new Date().getFullYear();
-  const canonical = `https://walkingweddings.com/blog/${slug}.html`;
+  const canonical = lang === 'en'
+    ? `https://walkingweddings.com/en/blog/${slug}.html`
+    : `https://walkingweddings.com/blog/${slug}.html`;
   const tags = Array.isArray(marqueeTags) && marqueeTags.length ? marqueeTags : [coupleNames, eyebrow, 'Walking Weddings', 'Journal'];
   const marqueeSpans = [...tags, ...tags]
     .map(t => `      <span>${escapeHtml(t)}</span>`)
@@ -64,7 +92,7 @@ function buildPostHtml(draft) {
   const locationCity = (location || '').split(',')[0].trim() || location || '';
 
   return `<!DOCTYPE html>
-<html lang="de">
+<html lang="${lang}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -78,7 +106,7 @@ function buildPostHtml(draft) {
   <meta property="og:image" content="${escapeHtml(heroImageUrl)}">
   <meta property="og:url" content="${canonical}">
   <meta property="og:type" content="article">
-  <meta property="og:locale" content="de_AT">
+  <meta property="og:locale" content="${lang === 'en' ? 'en_US' : 'de_AT'}">
 
   <!-- CSS -->
   <link rel="stylesheet" href="../assets/css/reset.css">
@@ -122,7 +150,7 @@ function buildPostHtml(draft) {
       <a href="../contact.html" class="nav__link">Contact</a>
     </div>
   <nav class="nav" id="nav">
-    <button class="nav__hamburger" id="navHamburger" aria-label="Menü öffnen">
+    <button class="nav__hamburger" id="navHamburger" aria-label="${L.menuAria}">
       <span></span><span></span><span></span>
     </button>
   </nav>
@@ -164,36 +192,36 @@ ${articleInner}
 
     <aside class="editorial-ticket">
       <div class="editorial-ticket__stamp">№ ${escapeHtml(issueNumber)} · ${escapeHtml(locationCity)}</div>
-      <p class="editorial-ticket__heading">Die Credits</p>
+      <p class="editorial-ticket__heading">${L.credits}</p>
       <dl class="editorial-ticket__list">
         <div>
-          <dt>Paar</dt>
+          <dt>${L.couple}</dt>
           <dd>${escapeHtml(coupleNames)}</dd>
         </div>
         <div>
-          <dt>Location</dt>
+          <dt>${L.location}</dt>
           <dd>${escapeHtml(location)}</dd>
         </div>
         <div>
-          <dt>Services</dt>
+          <dt>${L.services}</dt>
           <dd>${escapeHtml(services)}</dd>
         </div>
       </dl>
-${galleryUrl ? `      <a href="${escapeHtml(galleryUrl)}" target="_blank" rel="noopener" class="editorial-ticket__link">→ Zur vollständigen Galerie</a>` : ''}
+${galleryUrl ? `      <a href="${escapeHtml(galleryUrl)}" target="_blank" rel="noopener" class="editorial-ticket__link">${L.gallery}</a>` : ''}
     </aside>
 
     <div class="editorial-signature">
-      <p>mit Liebe festgehalten von Walking Weddings</p>
+      <p>${L.signature}</p>
     </div>
 
   </article>
 
   <section class="editorial-cta">
     <div class="editorial-cta__inner">
-      <p class="editorial-cta__eyebrow">Eure Geschichte</p>
-      <h2 class="editorial-cta__title">Eure eigene Liebesgeschichte verdient es, erzählt zu werden.</h2>
-      <p class="editorial-cta__text">Wir freuen uns darauf, euch kennenzulernen und euren besonderen Tag festzuhalten.</p>
-      <a href="../contact.html" class="btn btn--light">Jetzt anfragen</a>
+      <p class="editorial-cta__eyebrow">${L.ctaEyebrow}</p>
+      <h2 class="editorial-cta__title">${L.ctaTitle}</h2>
+      <p class="editorial-cta__text">${L.ctaText}</p>
+      <a href="../contact.html" class="btn btn--light">${L.ctaBtn}</a>
     </div>
   </section>
 
@@ -203,10 +231,10 @@ ${galleryUrl ? `      <a href="${escapeHtml(galleryUrl)}" target="_blank" rel="n
       <div class="footer__top">
         <div class="footer__brand">
           <img src="../assets/images/logo/ww_logoWhite.svg" alt="Walking Weddings" style="width: 200px; height: auto;">
-          <p>Euer Hochzeits-Foto & Video Team aus Wien.</p>
+          <p>${L.footerTagline}</p>
         </div>
         <div class="footer__nav">
-          <p class="footer__heading">Navigation</p>
+          <p class="footer__heading">${L.navHeading}</p>
           <a href="../about.html" class="footer__link">About</a>
           <a href="../portfolio.html" class="footer__link">Works</a>
           <a href="../filme.html" class="footer__link">Motion</a>
@@ -215,7 +243,7 @@ ${galleryUrl ? `      <a href="${escapeHtml(galleryUrl)}" target="_blank" rel="n
           <a href="../contact.html" class="footer__link">Contact</a>
         </div>
         <div class="footer__contact">
-          <p class="footer__heading">Contact</p>
+          <p class="footer__heading">${L.contactHeading}</p>
           <a href="mailto:contact@walkingweddings.com" class="footer__link">contact@walkingweddings.com</a>
           <a href="tel:+43660482420" class="footer__link">+43 660 4822420</a>
           <div class="footer__social mt-sm">
@@ -232,11 +260,11 @@ ${galleryUrl ? `      <a href="${escapeHtml(galleryUrl)}" target="_blank" rel="n
         </div>
       </div>
       <div class="footer__bottom">
-        <p>&copy; ${year} Walking Weddings. Alle Rechte vorbehalten.</p>
+        <p>&copy; ${year} Walking Weddings. ${L.rights}</p>
         <div class="footer__legal">
-          <a href="../impressum.html" class="footer__link">Impressum</a>
-          <a href="../privacy.html" class="footer__link">Datenschutz</a>
-          <a href="../agb.html" class="footer__link">AGB</a>
+          <a href="../impressum.html" class="footer__link">${L.imprint}</a>
+          <a href="../privacy.html" class="footer__link">${L.privacy}</a>
+          <a href="../agb.html" class="footer__link">${L.terms}</a>
         </div>
       </div>
     </div>
@@ -260,10 +288,10 @@ function buildBlogCard(draft, cardImageUrl) {
               <img src="${escapeHtml(img)}" alt="${escapeHtml(cardTitle)}"${pos ? ' style="object-position: ' + escapeHtml(pos) + '"' : ''} loading="lazy">
             </div>
             <div class="blog-card__content">
-              <p class="blog-card__tag">${escapeHtml(draft.tag || 'Hochzeit')}</p>
-              <h2 class="blog-card__title">${escapeHtml(cardTitle)}</h2>
-              <p class="blog-card__excerpt">${escapeHtml(draft.excerpt || '')}</p>
-              <span class="blog-card__readmore">Weiterlesen</span>
+              <p class="blog-card__tag" data-i18n="post.${escapeHtml(draft.slug)}.tag">${escapeHtml(draft.tag || 'Hochzeit')}</p>
+              <h2 class="blog-card__title" data-i18n="post.${escapeHtml(draft.slug)}.cardTitle">${escapeHtml(cardTitle)}</h2>
+              <p class="blog-card__excerpt" data-i18n="post.${escapeHtml(draft.slug)}.excerpt">${escapeHtml(draft.excerpt || '')}</p>
+              <span class="blog-card__readmore" data-i18n="shared.readmore">Weiterlesen</span>
             </div>
           </a>
         </article>
