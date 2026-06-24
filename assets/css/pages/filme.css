@@ -16,6 +16,7 @@
   padding: 0 3vw;
   display: grid;
   grid-template-areas:
+    "chapter chapter chapter"
     "name name name"
     "location video caption";
   grid-template-columns: minmax(min-content, 1fr) auto minmax(min-content, 1fr);
@@ -24,18 +25,32 @@
   align-items: center;
 }
 
-/* Couple name — large, full-width across the grid */
+/* Editorial eyebrow — Chapter I, II, III … */
+.film-showcase__chapter {
+  grid-area: chapter;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--color-accent);
+  margin: 0 0 var(--space-sm);
+}
+
+/* Theme headline — editorial title in place of couple name */
 .film-showcase__name {
   grid-area: name;
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 9vw, 8rem);
+  font-size: clamp(2.5rem, 7vw, 6rem);
   font-weight: 400;
   letter-spacing: 0.02em;
   line-height: 1;
-  white-space: nowrap;
+  white-space: normal;
+  max-width: 18ch;
   color: var(--color-text-dark);
   text-transform: none;
-  margin: 0;
+  margin: 0 auto;
   text-align: center;
 }
 
@@ -97,6 +112,7 @@
 
   .film-showcase__stage {
     grid-template-areas:
+      "chapter"
       "name"
       "video"
       "location"
@@ -108,7 +124,7 @@
   }
 
   .film-showcase__name {
-    font-size: clamp(2rem, 9vw, 4rem);
+    font-size: clamp(2rem, 8vw, 3.5rem);
     white-space: normal;
   }
 
