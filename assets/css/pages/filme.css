@@ -16,10 +16,11 @@
   padding: 0 3vw;
   display: grid;
   grid-template-areas:
-    "chapter chapter chapter"
-    "name name name"
-    "location video caption";
-  grid-template-columns: minmax(min-content, 1fr) auto minmax(min-content, 1fr);
+    "chapter chapter"
+    "name name"
+    "video video"
+    "location caption";
+  grid-template-columns: 1fr 1fr;
   column-gap: var(--space-lg);
   row-gap: var(--space-xl);
   align-items: center;
@@ -42,42 +43,45 @@
 .film-showcase__name {
   grid-area: name;
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 7vw, 6rem);
+  font-size: clamp(2.2rem, 6vw, 5rem);
   font-weight: 400;
-  letter-spacing: 0.02em;
-  line-height: 1;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
   white-space: normal;
   max-width: 18ch;
   color: var(--color-text-dark);
-  text-transform: none;
+  text-transform: uppercase;
   margin: 0 auto;
   text-align: center;
 }
 
-/* Location (left) + caption (right) flank the video */
+/* Meta-block under video — location (left half) + caption (right half) */
 .film-showcase__location {
   grid-area: location;
-  justify-self: end;
+  justify-self: start;
+  align-self: start;
+  max-width: 38ch;
   font-family: var(--font-body);
   font-size: var(--text-xs);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   line-height: 1.8;
   text-align: left;
-  white-space: nowrap;
+  white-space: normal;
   color: var(--color-secondary);
   margin: 0;
 }
 
 .film-showcase__caption {
   grid-area: caption;
-  justify-self: start;
-  max-width: 32ch;
+  justify-self: end;
+  align-self: start;
+  max-width: 38ch;
   font-family: var(--font-accent);
   font-style: italic;
   font-size: var(--text-lg);
   line-height: 1.7;
-  text-align: right;
+  text-align: left;
   color: var(--color-secondary);
   margin: 0;
 }
@@ -86,7 +90,8 @@
 .film-showcase__frame {
   grid-area: video;
   position: relative;
-  width: clamp(420px, 56vw, 900px);
+  width: clamp(480px, 64vw, 1000px);
+  margin: 0 auto;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   background: transparent;
@@ -124,13 +129,14 @@
   }
 
   .film-showcase__name {
-    font-size: clamp(2rem, 8vw, 3.5rem);
+    font-size: clamp(1.8rem, 7vw, 3rem);
     white-space: normal;
   }
 
   .film-showcase__location,
   .film-showcase__caption {
     justify-self: center;
+    align-self: center;
     text-align: center;
     max-width: none;
   }
