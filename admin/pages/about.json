@@ -1,6 +1,6 @@
 {
   "_schemaVersion": 1,
-  "_updatedAt": 1782317512182,
+  "_updatedAt": 1782317522302,
   "fields": {},
   "media": {
     "spread.image": {
@@ -15,7 +15,9 @@
     },
     "ian.image": {
       "type": "image",
-      "url": "/assets/images/journal/1782317511993-956f581b-ian-walking-weddings.jpg"
+      "url": "/assets/images/journal/1782317511993-956f581b-ian-walking-weddings.jpg",
+      "objectPosition": "54% 24%",
+      "aspectRatio": "3/4"
     }
   }
 }
