@@ -1,12 +1,16 @@
 {
   "_schemaVersion": 1,
-  "_updatedAt": 1777472494192,
+  "_updatedAt": 1782317294870,
   "fields": {},
   "media": {
     "spread.image": {
       "type": "image",
       "objectPosition": "53% 19%",
       "aspectRatio": "1/1"
+    },
+    "kiran.image": {
+      "type": "image",
+      "url": "/assets/images/journal/1782317294687-bfb6d613-kiran-walking-weddings.jpg"
     }
   }
 }
