@@ -471,6 +471,73 @@ function updateBlogGrid(draft, cardImageUrl) {
   writeFileSync(blogHtmlPath, html);
 }
 
+// --- English translation (auto-generated at publish) -----------------------
+
+const TRANSLATE_SYSTEM = `You are a professional translator for Walking Weddings, a luxury wedding photography & film studio in Vienna. You translate German wedding-journal posts into elegant, natural English with an editorial magazine voice (Vogue / The Gentlewoman / Kinfolk).
+
+You receive a single JSON object describing a blog post. Respond with ONLY a single valid JSON object (no code fences, no prose before or after) containing EXACTLY the same keys as the input, where:
+
+TRANSLATE to English: plainTitle, title (keep the <em>…</em> tags around the same emphasised words), eyebrow, metaDescription (max 160 characters), location (translate country/region words such as Österreich→Austria, Wien→Vienna; keep proper venue/place names), services (e.g. "Foto + Film" → "Photo + Film"), excerpt, cardTitle, tag (Hochzeit→Wedding, Pre-Wedding→Pre-Wedding, Engagement→Engagement), heroImageAlt, heroCaption, and EVERY element of the marqueeTags array.
+
+articleInner (HTML string): translate ONLY the human-visible text and the alt="" and <figcaption> text. PRESERVE EVERY HTML TAG, attribute, class name and URL EXACTLY — do not add, remove, reorder or restyle any markup. Keep the chapter labels but render "Kapitel" as "Chapter" (keep the Roman numerals and any "<br>Prolog"/subtitle on its own line, translating the subtitle). Keep "Plate II", "Plate III" … labels unchanged.
+
+COPY UNCHANGED (verbatim, do not translate): slug, issueNumber, coupleNames, heroImageUrl, cardImageUrl, cardImagePosition, heroImagePosition, galleryUrl.
+
+Return the complete object with all original keys present.`;
+
+async function translateDraft(draft, onChunk) {
+  const { _media, _prompt, _publishedAt, _sourceSlug, ...clean } = draft;
+  const userMessage = 'Translate this Walking Weddings journal post JSON to English:\n\n' + JSON.stringify(clean, null, 2);
+  const text = await callClaude(TRANSLATE_SYSTEM, [{ role: 'user', content: userMessage }], onChunk);
+  const en = extractJson(text);
+  // Re-assert invariants the model must never alter, regardless of drift.
+  en.slug = draft.slug;
+  en.issueNumber = draft.issueNumber;
+  en.coupleNames = draft.coupleNames;
+  en.heroImageUrl = draft.heroImageUrl;
+  en.cardImageUrl = draft.cardImageUrl;
+  if (draft.galleryUrl !== undefined) en.galleryUrl = draft.galleryUrl;
+  if (draft.heroImagePosition !== undefined) en.heroImagePosition = draft.heroImagePosition;
+  if (draft.cardImagePosition !== undefined) en.cardImagePosition = draft.cardImagePosition;
+  assertDraftShape(en, text);
+  return en;
+}
+
+const POSTS_I18N_FILE = join(__dirname, 'i18n', 'posts.en.json');
+
+// Merge this post's English card strings into admin/i18n/posts.en.json so the
+// /en/blog.html grid card renders translated (the grid HTML is shared DE/EN).
+function writePostCardTranslations(enDraft) {
+  let dict = {};
+  try { dict = JSON.parse(readFileSync(POSTS_I18N_FILE, 'utf8')); } catch {}
+  const slug = enDraft.slug;
+  dict[`post.${slug}.tag`] = enDraft.tag || 'Wedding';
+  dict[`post.${slug}.cardTitle`] = enDraft.cardTitle || enDraft.plainTitle || '';
+  dict[`post.${slug}.excerpt`] = enDraft.excerpt || '';
+  writeFileSync(POSTS_I18N_FILE, JSON.stringify(dict, null, 2) + '\n');
+}
+
+// Build + persist the English mirror of a freshly published post. Returns the
+// repo-relative paths that changed (for the git sync), or [] on failure. Never
+// throws — the German publish must succeed even if translation fails.
+async function buildEnglishPost(deDraft) {
+  try {
+    const enDraft = await translateDraft(deDraft);
+    const enHtml = buildPostHtml(enDraft, { lang: 'en' });
+    writeFileSync(join(ROOT, 'blog', `${deDraft.slug}.en.html`), enHtml);
+    writeFileSync(join(PUBLISHED_DIR, `${deDraft.slug}.en.json`), JSON.stringify(enDraft, null, 2));
+    writePostCardTranslations(enDraft);
+    return [
+      `blog/${deDraft.slug}.en.html`,
+      `admin/published/${deDraft.slug}.en.json`,
+      'admin/i18n/posts.en.json',
+    ];
+  } catch (e) {
+    console.error('[i18n] English post build failed for', deDraft.slug, ':', e.message);
+    return [];
+  }
+}
+
 function publishDraft(draft, cardImageUrl, meta) {
   if (!draft.slug || !/^[a-z0-9-]+$/.test(draft.slug)) {
     throw new Error('Ungültiger Slug (nur a-z, 0-9, Bindestriche erlaubt)');
@@ -581,6 +648,17 @@ function deletePost(slug) {
     removedFile = true;
   }
   deletePublishedSidecar(slug);
+  // Remove the English mirror (file, sidecar, card-translation keys) too.
+  try { unlinkSync(join(ROOT, 'blog', `${slug}.en.html`)); } catch {}
+  try { unlinkSync(join(PUBLISHED_DIR, `${slug}.en.json`)); } catch {}
+  try {
+    const dict = JSON.parse(readFileSync(POSTS_I18N_FILE, 'utf8'));
+    let changed = false;
+    for (const k of [`post.${slug}.tag`, `post.${slug}.cardTitle`, `post.${slug}.excerpt`]) {
+      if (k in dict) { delete dict[k]; changed = true; }
+    }
+    if (changed) writeFileSync(POSTS_I18N_FILE, JSON.stringify(dict, null, 2) + '\n');
+  } catch {}
   if (!removedFromGrid && !removedFile) {
     throw new Error('Beitrag nicht gefunden');
   }
@@ -989,6 +1067,13 @@ async function handle(req, res, url) {
         `blog/${cleanDraft.slug}.html`,
         `admin/published/${cleanDraft.slug}.json`,
       ], `Admin: publish ${cleanDraft.plainTitle || cleanDraft.slug}`);
+      // English mirror runs in the background so the publish response stays
+      // fast; a translation failure never blocks the German post going live.
+      buildEnglishPost(cleanDraft).then((enFiles) => {
+        if (enFiles.length) {
+          syncToGitHub(enFiles, `Admin: publish ${cleanDraft.slug} (English version)`);
+        }
+      }).catch((err) => console.error('[i18n] EN build error:', err.message));
     } catch (e) {
       console.error('[admin] publish error:', e);
       json(res, 500, { error: e.message });

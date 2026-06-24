@@ -298,6 +298,40 @@
   color: var(--color-accent);
 }
 
+/* Language switch — injected server-side before </footer>. Real <a> links to
+   the mirror URL (crawlable), so it doubles as an hreflang signal. */
+.lang-switch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding-top: var(--space-md);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.lang-switch__btn {
+  color: var(--color-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.lang-switch__btn:hover {
+  color: var(--color-accent);
+}
+
+.lang-switch__btn.is-active {
+  color: var(--color-text-dark);
+  font-weight: 700;
+}
+
+.lang-switch__sep {
+  color: var(--color-secondary);
+  opacity: 0.5;
+}
+
 /* ========================================
    HERO
    ======================================== */

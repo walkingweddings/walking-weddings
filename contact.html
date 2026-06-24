@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contact — Walking Weddings</title>
-  <meta name="description" content="Kontaktiert uns für ein unverbindliches Beratungsgespräch — Walking Weddings, Wien.">
+  <title data-i18n="meta.contact.title">Contact — Walking Weddings</title>
+  <meta name="description" content="Kontaktiert uns für ein unverbindliches Beratungsgespräch — Walking Weddings, Wien." data-i18n-attr="content:meta.contact.desc">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Italiana&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
@@ -32,7 +32,7 @@
       <a href="contact.html" class="nav__link nav__link--active">Contact</a>
     </div>
   <nav class="nav" id="nav">
-    <button class="nav__hamburger" id="navHamburger" aria-label="Menü öffnen">
+    <button class="nav__hamburger" id="navHamburger" aria-label="Menü öffnen" data-i18n-attr="aria-label:shared.nav.menu">
       <span></span><span></span><span></span>
     </button>
   </nav>
@@ -49,8 +49,8 @@
   <header class="page-header page-header--light">
     <div class="page-header__content">
       <p class="text-caption text-accent" data-cms-id="hero.eyebrow">Contact</p>
-      <h1 data-cms-id="hero.title">Schreibt Uns</h1>
-      <p class="font-accent" style="font-size: var(--text-lg); opacity: 0.8;" data-cms-id="hero.tagline">Wir freuen uns auf eure Nachricht</p>
+      <h1 data-cms-id="hero.title" data-i18n="contact.hero.title">Schreibt Uns</h1>
+      <p class="font-accent" style="font-size: var(--text-lg); opacity: 0.8;" data-cms-id="hero.tagline" data-i18n="contact.hero.tagline">Wir freuen uns auf eure Nachricht</p>
     </div>
   </header>
 
@@ -65,7 +65,7 @@
 
             <!-- Role toggle: Hochzeitspaar / Wedding Planner -->
             <div class="form-role-toggle">
-              <button type="button" class="form-role-btn form-role-btn--active" data-role="couple">Hochzeitspaar</button>
+              <button type="button" class="form-role-btn form-role-btn--active" data-role="couple" data-i18n="contact.role.couple">Hochzeitspaar</button>
               <button type="button" class="form-role-btn" data-role="planner">Wedding Planner</button>
             </div>
             <input type="hidden" id="role" name="role" value="couple">
@@ -73,29 +73,29 @@
 
             <!-- Selected package notice (prefilled from ?package= URL param) -->
             <div class="form-package-notice" id="packageNotice" style="display: none;">
-              <p class="text-caption text-accent">Gewähltes Paket</p>
+              <p class="text-caption text-accent" data-i18n="contact.pkg.label">Gewähltes Paket</p>
               <p class="form-package-notice__name" id="packageNoticeName"></p>
-              <button type="button" class="form-package-notice__clear" id="packageClear" aria-label="Paket-Auswahl entfernen">Auswahl entfernen</button>
+              <button type="button" class="form-package-notice__clear" id="packageClear" aria-label="Paket-Auswahl entfernen" data-i18n="contact.pkg.clear" data-i18n-attr="aria-label:contact.pkg.clearAria">Auswahl entfernen</button>
             </div>
 
             <!-- 1. Kontaktdaten -->
             <div class="form-section">
-              <h2 class="form-section__title">Kontaktdaten</h2>
+              <h2 class="form-section__title" data-i18n="contact.sec.contactData">Kontaktdaten</h2>
               <div class="form__group">
-                <label class="form__label" for="name">Name *</label>
+                <label class="form__label" for="name" data-i18n="contact.field.name">Name *</label>
                 <input class="form__input" type="text" id="name" name="name" required>
               </div>
               <div class="form__group form__group--planner" id="companyGroup" style="display: none;">
-                <label class="form__label" for="company">Firmenname *</label>
+                <label class="form__label" for="company" data-i18n="contact.field.company">Firmenname *</label>
                 <input class="form__input" type="text" id="company" name="company">
               </div>
               <div class="form-row">
                 <div class="form__group">
-                  <label class="form__label" for="phone">Telefon *</label>
+                  <label class="form__label" for="phone" data-i18n="contact.field.phone">Telefon *</label>
                   <input class="form__input" type="tel" id="phone" name="phone" placeholder="0660 1234567" required>
                 </div>
                 <div class="form__group">
-                  <label class="form__label" for="email">E-Mail *</label>
+                  <label class="form__label" for="email" data-i18n="contact.field.email">E-Mail *</label>
                   <input class="form__input" type="email" id="email" name="email" placeholder="email@beispiel.at" required>
                 </div>
               </div>
@@ -103,10 +103,10 @@
 
             <!-- 2. Art der Veranstaltung -->
             <div class="form-section">
-              <h2 class="form-section__title">Art der Veranstaltung *</h2>
+              <h2 class="form-section__title" data-i18n="contact.sec.eventType">Art der Veranstaltung *</h2>
               <div class="form-toggles">
                 <input type="radio" id="etHochzeit" name="eventType" value="Hochzeit" class="form-toggle">
-                <label for="etHochzeit" class="form-toggle-label">Hochzeit</label>
+                <label for="etHochzeit" class="form-toggle-label" data-i18n="contact.opt.eventWedding">Hochzeit</label>
                 <input type="radio" id="etDestination" name="eventType" value="Destination Wedding" class="form-toggle">
                 <label for="etDestination" class="form-toggle-label">Destination Wedding</label>
                 <input type="radio" id="etElopement" name="eventType" value="Elopement" class="form-toggle">
@@ -116,88 +116,88 @@
 
             <!-- 3. Hochzeitsdatum -->
             <div class="form-section">
-              <h2 class="form-section__title">Datum</h2>
+              <h2 class="form-section__title" data-i18n="contact.sec.date">Datum</h2>
               <div class="form-check">
                 <input type="checkbox" id="noDate" name="noDate">
-                <label for="noDate">Wir haben noch kein fixes Datum</label>
+                <label for="noDate" data-i18n="contact.field.noDate">Wir haben noch kein fixes Datum</label>
               </div>
               <div class="form-dynamic-fields" id="dateFields">
                 <div class="form__group">
                   <input class="form__input" type="date" name="date1">
                 </div>
               </div>
-              <button type="button" class="form-add-btn" id="addDate">+ Weiteres Datum</button>
+              <button type="button" class="form-add-btn" id="addDate" data-i18n="contact.addDate">+ Weiteres Datum</button>
             </div>
 
             <!-- 4. Location -->
             <div class="form-section">
-              <h2 class="form-section__title">Location</h2>
+              <h2 class="form-section__title" data-i18n="contact.sec.location">Location</h2>
               <div class="form-check">
                 <input type="checkbox" id="noLocation" name="noLocation">
-                <label for="noLocation">Wir haben noch keine Location</label>
+                <label for="noLocation" data-i18n="contact.field.noLocation">Wir haben noch keine Location</label>
               </div>
               <div class="form-dynamic-fields" id="locationFields">
                 <div class="form__group">
-                  <input class="form__input" type="text" name="location1" placeholder="z.B. Schloss Schoenbrunn">
+                  <input class="form__input" type="text" name="location1" placeholder="z.B. Schloss Schoenbrunn" data-i18n-attr="placeholder:contact.ph.location">
                 </div>
               </div>
-              <button type="button" class="form-add-btn" id="addLocation">+ Weitere Location</button>
+              <button type="button" class="form-add-btn" id="addLocation" data-i18n="contact.addLocation">+ Weitere Location</button>
             </div>
 
             <!-- 5. Interesse -->
             <div class="form-section">
-              <h2 class="form-section__title">Interesse *</h2>
+              <h2 class="form-section__title" data-i18n="contact.sec.interest">Interesse *</h2>
               <div class="form-toggles">
                 <input type="checkbox" id="intFoto" name="interesse" value="Foto" class="form-toggle">
-                <label for="intFoto" class="form-toggle-label">Foto</label>
+                <label for="intFoto" class="form-toggle-label" data-i18n="contact.opt.photo">Foto</label>
                 <input type="checkbox" id="intFilm" name="interesse" value="Film" class="form-toggle">
-                <label for="intFilm" class="form-toggle-label">Film</label>
+                <label for="intFilm" class="form-toggle-label" data-i18n="contact.opt.film">Film</label>
                 <input type="checkbox" id="intHybrid" name="interesse" value="Hybrid" class="form-toggle">
-                <label for="intHybrid" class="form-toggle-label">Hybrid</label>
+                <label for="intHybrid" class="form-toggle-label" data-i18n="contact.opt.hybrid">Hybrid</label>
                 <input type="checkbox" id="intOffen" name="interesse" value="Noch offen" class="form-toggle">
-                <label for="intOffen" class="form-toggle-label">Noch offen</label>
+                <label for="intOffen" class="form-toggle-label" data-i18n="contact.opt.undecided">Noch offen</label>
               </div>
             </div>
 
             <!-- 6. Zusatzprodukte -->
             <div class="form-section">
-              <h2 class="form-section__title">Zusatzprodukte</h2>
+              <h2 class="form-section__title" data-i18n="contact.sec.addons">Zusatzprodukte</h2>
               <div class="form-toggles">
                 <input type="checkbox" id="zpFotobox" name="zusatz" value="Fotobox" class="form-toggle">
-                <label for="zpFotobox" class="form-toggle-label">Fotobox</label>
+                <label for="zpFotobox" class="form-toggle-label" data-i18n="contact.opt.photobooth">Fotobox</label>
                 <input type="checkbox" id="zpAlbum" name="zusatz" value="Album" class="form-toggle">
-                <label for="zpAlbum" class="form-toggle-label">Album</label>
+                <label for="zpAlbum" class="form-toggle-label" data-i18n="contact.opt.album">Album</label>
                 <input type="checkbox" id="zpPortrait" name="zusatz" value="Portrait Lounge" class="form-toggle">
-                <label for="zpPortrait" class="form-toggle-label">Portrait Lounge</label>
+                <label for="zpPortrait" class="form-toggle-label" data-i18n="contact.opt.portraitLounge">Portrait Lounge</label>
                 <input type="checkbox" id="zpSocial" name="zusatz" value="Social Media Paket" class="form-toggle">
-                <label for="zpSocial" class="form-toggle-label">Social Media Paket</label>
+                <label for="zpSocial" class="form-toggle-label" data-i18n="contact.opt.socialPackage">Social Media Paket</label>
                 <input type="checkbox" id="zpPre" name="zusatz" value="Pre Wedding Shoot" class="form-toggle">
-                <label for="zpPre" class="form-toggle-label">Pre Wedding Shoot</label>
+                <label for="zpPre" class="form-toggle-label" data-i18n="contact.opt.preWedding">Pre Wedding Shoot</label>
               </div>
             </div>
 
             <!-- 7. Details -->
             <div class="form-section">
-              <h2 class="form-section__title">Details</h2>
+              <h2 class="form-section__title" data-i18n="contact.sec.details">Details</h2>
               <div class="form-row">
                 <div class="form__group">
-                  <label class="form__label" for="hours">Gewünschte Stundenzahl</label>
-                  <input class="form__input" type="text" id="hours" name="hours" placeholder="z.B. 8-10 Stunden">
+                  <label class="form__label" for="hours" data-i18n="contact.field.hours">Gewünschte Stundenzahl</label>
+                  <input class="form__input" type="text" id="hours" name="hours" placeholder="z.B. 8-10 Stunden" data-i18n-attr="placeholder:contact.ph.hours">
                 </div>
                 <div class="form__group">
-                  <label class="form__label" for="budget">Budgetvorstellung</label>
-                  <input class="form__input" type="text" id="budget" name="budget" placeholder="z.B. 3.000 - 4.000 EUR">
+                  <label class="form__label" for="budget" data-i18n="contact.field.budget">Budgetvorstellung</label>
+                  <input class="form__input" type="text" id="budget" name="budget" placeholder="z.B. 3.000 - 4.000 EUR" data-i18n-attr="placeholder:contact.ph.budget">
                 </div>
               </div>
               <div class="form__group">
-                <label class="form__label" for="message">Anmerkungen</label>
-                <textarea class="form__textarea" id="message" name="message" rows="4" placeholder="Erzählt uns von eurem Tag..."></textarea>
+                <label class="form__label" for="message" data-i18n="contact.field.message">Anmerkungen</label>
+                <textarea class="form__textarea" id="message" name="message" rows="4" placeholder="Erzählt uns von eurem Tag..." data-i18n-attr="placeholder:contact.ph.message"></textarea>
               </div>
             </div>
 
             <!-- 8. Wie habt ihr von uns erfahren? -->
             <div class="form-section">
-              <h2 class="form-section__title">Wie habt ihr von uns erfahren?</h2>
+              <h2 class="form-section__title" data-i18n="contact.sec.referral">Wie habt ihr von uns erfahren?</h2>
               <div class="form-referral">
                 <div class="form-referral__option">
                   <input type="radio" id="refSocial" name="referral" value="Social Media">
@@ -212,15 +212,15 @@
                   <label for="refPlanner">Wedding Planner</label>
                 </div>
                 <div class="form-referral__detail" id="detailPlanner">
-                  <input class="form__input" type="text" id="referralPlanner" name="referralPlanner" placeholder="Firmenname">
+                  <input class="form__input" type="text" id="referralPlanner" name="referralPlanner" placeholder="Firmenname" data-i18n-attr="placeholder:contact.ph.companyName">
                 </div>
                 <div class="form-referral__option">
                   <input type="radio" id="refMesse" name="referral" value="Hochzeitsmesse">
-                  <label for="refMesse">Hochzeitsmesse</label>
+                  <label for="refMesse" data-i18n="contact.opt.weddingFair">Hochzeitsmesse</label>
                 </div>
                 <div class="form-referral__option">
                   <input type="radio" id="refFriends" name="referral" value="Freunde & Familie">
-                  <label for="refFriends">Freunde &amp; Familie</label>
+                  <label for="refFriends" data-i18n="contact.opt.friendsFamily">Freunde &amp; Familie</label>
                 </div>
                 <div class="form-referral__option">
                   <input type="radio" id="refGoogle" name="referral" value="Google">
@@ -228,38 +228,38 @@
                 </div>
                 <div class="form-referral__option">
                   <input type="radio" id="refWedding" name="referral" value="Hochzeit">
-                  <label for="refWedding">Hochzeit</label>
+                  <label for="refWedding" data-i18n="contact.opt.refWedding">Hochzeit</label>
                 </div>
                 <div class="form-referral__detail" id="detailWedding">
-                  <input class="form__input" type="text" id="referralWedding" name="referralWedding" placeholder="Von welcher Hochzeit?">
+                  <input class="form__input" type="text" id="referralWedding" name="referralWedding" placeholder="Von welcher Hochzeit?" data-i18n-attr="placeholder:contact.ph.whichWedding">
                 </div>
                 <div class="form-referral__option">
                   <input type="radio" id="refOther" name="referral" value="Sonstiges">
-                  <label for="refOther">Sonstiges</label>
+                  <label for="refOther" data-i18n="contact.opt.other">Sonstiges</label>
                 </div>
                 <div class="form-referral__detail" id="detailOther">
-                  <textarea class="form__textarea" id="referralOther" name="referralOther" rows="2" placeholder="Wie habt ihr von uns erfahren?"></textarea>
+                  <textarea class="form__textarea" id="referralOther" name="referralOther" rows="2" placeholder="Wie habt ihr von uns erfahren?" data-i18n-attr="placeholder:contact.ph.referralOther"></textarea>
                 </div>
               </div>
             </div>
 
-            <button type="submit" class="btn mt-md" id="submitBtn">Anfrage Senden</button>
+            <button type="submit" class="btn mt-md" id="submitBtn" data-i18n="contact.submit">Anfrage Senden</button>
           </form>
         </div>
 
         <!-- Thank You (hidden by default) -->
         <div class="contact-thankyou" id="thankYou" style="display: none;">
-          <h2 data-cms-id="thankyou.title">Danke!</h2>
+          <h2 data-cms-id="thankyou.title" data-i18n="contact.ty.title">Danke!</h2>
           <div style="width: 60px; height: 1px; background: var(--color-accent); margin: var(--space-md) auto;"></div>
-          <p data-cms-id="thankyou.body1">Wir freuen uns auf eure Hochzeit und melden uns in Kürze bei euch.</p>
-          <p data-cms-id="thankyou.body2">In der Zwischenzeit haben wir euch unseren <strong style="color: var(--color-accent);">Hochzeitsguide</strong> per E-Mail geschickt — mit den wichtigsten Tipps für eure Planung.</p>
-          <a href="contact.html" class="btn mt-md"><span data-cms-id="thankyou.btnLabel">Neue Anfrage</span></a>
+          <p data-cms-id="thankyou.body1" data-i18n="contact.ty.body1">Wir freuen uns auf eure Hochzeit und melden uns in Kürze bei euch.</p>
+          <p data-cms-id="thankyou.body2" data-i18n="contact.ty.body2">In der Zwischenzeit haben wir euch unseren <strong style="color: var(--color-accent);">Hochzeitsguide</strong> per E-Mail geschickt — mit den wichtigsten Tipps für eure Planung.</p>
+          <a href="contact.html" class="btn mt-md"><span data-cms-id="thankyou.btnLabel" data-i18n="contact.ty.btn">Neue Anfrage</span></a>
         </div>
 
         <!-- Sidebar -->
         <div class="contact-sidebar">
           <div class="contact-info">
-            <p class="text-caption text-accent mb-md" data-cms-id="sidebar.heading">Kontaktdaten</p>
+            <p class="text-caption text-accent mb-md" data-cms-id="sidebar.heading" data-i18n="contact.sidebar.heading">Kontaktdaten</p>
 
             <div class="contact-info__item">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -281,12 +281,12 @@
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
                 <circle cx="12" cy="10" r="3"/>
               </svg>
-              <span>Leopold-Böhmstrasse 5<br>1030 Wien, Österreich</span>
+              <span data-i18n="contact.sidebar.address">Leopold-Böhmstrasse 5<br>1030 Wien, Österreich</span>
             </div>
           </div>
 
           <div class="contact-info mt-lg">
-            <p class="text-caption text-accent mb-md">Folgt Uns</p>
+            <p class="text-caption text-accent mb-md" data-i18n="contact.sidebar.follow">Folgt Uns</p>
             <div class="contact-social">
               <a href="https://www.instagram.com/walkingweddings/" target="_blank" rel="noopener">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
@@ -304,7 +304,7 @@
           </div>
 
           <div class="contact-note mt-lg">
-            <p class="font-accent" style="font-size: var(--text-lg); color: var(--color-secondary);" data-cms-id="sidebar.note">
+            <p class="font-accent" style="font-size: var(--text-lg); color: var(--color-secondary);" data-cms-id="sidebar.note" data-i18n="contact.sidebar.note">
               Wir antworten in der Regel innerhalb von 24 Stunden.
             </p>
           </div>
@@ -320,10 +320,10 @@
       <div class="footer__top">
         <div class="footer__brand">
           <img src="assets/images/logo/ww_logoWhite.svg" alt="Walking Weddings" style="width: 200px; height: auto;">
-          <p>Euer Hochzeits-Foto & Video Team aus Wien.</p>
+          <p data-i18n="shared.footer.tagline">Euer Hochzeits-Foto & Video Team aus Wien.</p>
         </div>
         <div class="footer__nav">
-          <p class="footer__heading">Navigation</p>
+          <p class="footer__heading" data-i18n="shared.footer.navHeading">Navigation</p>
           <a href="about.html" class="footer__link">About</a>
           <a href="portfolio.html" class="footer__link">Works</a>
           <a href="filme.html" class="footer__link">Motion</a>
@@ -332,7 +332,7 @@
           <a href="contact.html" class="footer__link">Contact</a>
         </div>
         <div class="footer__contact">
-          <p class="footer__heading">Contact</p>
+          <p class="footer__heading" data-i18n="shared.footer.contactHeading">Contact</p>
           <a href="mailto:contact@walkingweddings.com" class="footer__link">contact@walkingweddings.com</a>
           <a href="tel:+43660482420" class="footer__link">+43 660 4822420</a>
           <div class="footer__social mt-sm">
@@ -349,11 +349,11 @@
         </div>
       </div>
       <div class="footer__bottom">
-        <p>&copy; 2024 Walking Weddings. Alle Rechte vorbehalten.</p>
+        <p data-i18n="shared.footer.rights">&copy; 2024 Walking Weddings. Alle Rechte vorbehalten.</p>
         <div class="footer__legal">
-          <a href="impressum.html" class="footer__link">Impressum</a>
-          <a href="privacy.html" class="footer__link">Datenschutz</a>
-          <a href="agb.html" class="footer__link">AGB</a>
+          <a href="impressum.html" class="footer__link" data-i18n="shared.footer.imprint">Impressum</a>
+          <a href="privacy.html" class="footer__link" data-i18n="shared.footer.privacy">Datenschutz</a>
+          <a href="agb.html" class="footer__link" data-i18n="shared.footer.terms">AGB</a>
         </div>
       </div>
     </div>
@@ -453,6 +453,27 @@
       e.preventDefault();
       var btn = document.getElementById('submitBtn');
 
+      // Language-aware UI strings (the page is served as /en/contact.html with
+      // <html lang="en"> for the English version).
+      var isEn = document.documentElement.lang === 'en';
+      var MSG = isEn ? {
+        required: 'Please fill in all required fields (name, phone, email).',
+        company: 'Please enter your company name.',
+        eventType: 'Please select the type of event.',
+        interest: 'Please select at least one interest.',
+        sending: 'Sending…',
+        submit: 'Send enquiry',
+        error: 'There was a problem sending your enquiry. Please try again or email us directly at contact@walkingweddings.com'
+      } : {
+        required: 'Bitte füllt alle Pflichtfelder aus (Name, Telefon, E-Mail).',
+        company: 'Bitte gebt euren Firmennamen an.',
+        eventType: 'Bitte wählt die Art der Veranstaltung aus.',
+        interest: 'Bitte wählt mindestens ein Interesse aus.',
+        sending: 'Wird gesendet...',
+        submit: 'Anfrage Senden',
+        error: 'Es gab ein Problem beim Senden. Bitte versucht es erneut oder schreibt uns direkt an contact@walkingweddings.com'
+      };
+
       // Validate required fields
       var role = document.getElementById('role').value;
       var name = document.getElementById('name').value.trim();
@@ -464,22 +485,22 @@
       var interesse = document.querySelectorAll('input[name="interesse"]:checked');
 
       if (!name || !phone || !email) {
-        alert('Bitte füllt alle Pflichtfelder aus (Name, Telefon, E-Mail).');
+        alert(MSG.required);
         return;
       }
 
       if (role === 'planner' && !company) {
-        alert('Bitte gebt euren Firmennamen an.');
+        alert(MSG.company);
         return;
       }
 
       if (!eventType) {
-        alert('Bitte wählt die Art der Veranstaltung aus.');
+        alert(MSG.eventType);
         return;
       }
 
       if (interesse.length === 0) {
-        alert('Bitte wählt mindestens ein Interesse aus.');
+        alert(MSG.interest);
         return;
       }
 
@@ -516,6 +537,7 @@
       data.hours = document.getElementById('hours').value.trim();
       data.budget = document.getElementById('budget').value.trim();
       data.message = document.getElementById('message').value.trim();
+      data.lang = isEn ? 'en' : 'de';
 
       // Referral source + conditional details
       var refChecked = document.querySelector('input[name="referral"]:checked');
@@ -525,7 +547,7 @@
       data.referralOther = document.getElementById('referralOther').value.trim();
 
       // Send to API
-      btn.textContent = 'Wird gesendet...';
+      btn.textContent = MSG.sending;
       btn.disabled = true;
 
       try {
@@ -545,8 +567,8 @@
         }
       } catch (err) {
         console.error('Submit error:', err);
-        alert('Es gab ein Problem beim Senden. Bitte versucht es erneut oder schreibt uns direkt an contact@walkingweddings.com');
-        btn.textContent = 'Anfrage Senden';
+        alert(MSG.error);
+        btn.textContent = MSG.submit;
         btn.disabled = false;
       }
     });
