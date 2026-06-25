@@ -11,6 +11,12 @@
   z-index: var(--z-nav);
   background: transparent;
   pointer-events: none;
+  /* Blend the (transparent) nav layer — i.e. the white hamburger lines —
+     against the page behind it, the same negative effect as the logo. Must
+     live here, not on .nav__hamburger: the hamburger sits inside .nav's own
+     stacking context (fixed + z-index) where there is nothing behind it to
+     blend with, so the blend has to happen at the .nav layer. */
+  mix-blend-mode: difference;
 }
 
 .nav > * {
@@ -96,7 +102,6 @@
   background: none;
   border: none;
   padding: 8px;
-  mix-blend-mode: difference;
 }
 
 .nav__hamburger span {
