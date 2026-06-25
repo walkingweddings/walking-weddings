@@ -97,6 +97,15 @@
   background: transparent;
 }
 
+/* Höhen-Fallback für Browser ohne aspect-ratio-Support (sonst kollabiert der
+   Frame auf 0 px, weil das iframe absolut positioniert ist → leerer Bereich). */
+@supports not (aspect-ratio: 16 / 9) {
+  .film-showcase__frame {
+    height: 0;
+    padding-bottom: 56.25%;
+  }
+}
+
 .film-showcase__frame iframe {
   position: absolute;
   /* Iframe ragt unten 44 px raus, damit die Player-Bar abgeschnitten wird.

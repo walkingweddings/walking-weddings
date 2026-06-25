@@ -46,11 +46,16 @@ if (filmFrames.length > 0) {
 
   const filmFrameObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      setFilmPlaying(entry.target, entry.intersectionRatio >= 0.5);
+      // Load as soon as the frame approaches the viewport, unload only once it
+      // is well past. The previous "must be >=50% visible" rule was fragile on
+      // mobile (short 16:9 frames in a tall viewport sometimes never tripped
+      // the 0.5 ratio), leaving the iframe empty. isIntersecting with a
+      // generous rootMargin is robust on phones and still lazy.
+      setFilmPlaying(entry.target, entry.isIntersecting);
     });
   }, {
-    threshold: [0, 0.5, 1],
-    rootMargin: '0px'
+    threshold: 0,
+    rootMargin: '300px 0px'
   });
 
   filmFrames.forEach(frame => filmFrameObserver.observe(frame));
