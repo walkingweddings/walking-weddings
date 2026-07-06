@@ -28,6 +28,74 @@ function esc(str) {
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+// ── Spam protection ─────────────────────────────────────────────────────────
+
+const RATE_WINDOW = 10 * 60 * 1000; // 10 minutes
+const RATE_MAX = 3;
+const rateMap = new Map();
+
+function getClientIp(req) {
+  const fwd = req.headers['x-forwarded-for'];
+  return fwd ? fwd.split(',')[0].trim() : req.socket.remoteAddress;
+}
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  let hits = rateMap.get(ip) || [];
+  hits = hits.filter(t => now - t < RATE_WINDOW);
+  if (hits.length >= RATE_MAX) return true;
+  hits.push(now);
+  rateMap.set(ip, hits);
+  return false;
+}
+
+// Clean up stale entries every 15 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, hits] of rateMap) {
+    const fresh = hits.filter(t => now - t < RATE_WINDOW);
+    if (fresh.length === 0) rateMap.delete(ip);
+    else rateMap.set(ip, fresh);
+  }
+}, 15 * 60 * 1000);
+
+function looksLikeGibberish(str) {
+  if (!str || str.length < 6) return false;
+  const consonants = str.replace(/[^bcdfghjklmnpqrstvwxyz]/gi, '').length;
+  const ratio = consonants / str.length;
+  if (ratio > 0.8 && str.length > 8) return true;
+  if (/^[A-Za-z]{12,}$/.test(str) && !/\s/.test(str)) return true;
+  return false;
+}
+
+function validateLead(lead) {
+  if (lead._hp) return 'honeypot';
+
+  const ts = parseInt(lead._ts, 10);
+  if (!ts || Date.now() - ts < 3000) return 'too_fast';
+
+  if (!lead.email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(lead.email)) return 'invalid_email';
+
+  if (!lead.name || lead.name.length < 2 || lead.name.length > 100) return 'invalid_name';
+
+  if (looksLikeGibberish(lead.name)) return 'gibberish_name';
+  if (looksLikeGibberish(lead.hours)) return 'gibberish_hours';
+  if (looksLikeGibberish(lead.budget)) return 'gibberish_budget';
+  if (looksLikeGibberish(lead.message)) return 'gibberish_message';
+
+  const allowed = ['Hochzeit', 'Destination Wedding', 'Elopement'];
+  if (!allowed.includes(lead.eventType)) return 'invalid_event_type';
+
+  const allowedInterests = ['Foto', 'Film', 'Hybrid', 'Noch offen'];
+  if (!Array.isArray(lead.interesse) || lead.interesse.length === 0 ||
+      lead.interesse.some(i => !allowedInterests.includes(i))) return 'invalid_interest';
+
+  const allowedAddons = ['Fotobox', 'Album', 'Portrait Lounge', 'Social Media Paket', 'Pre Wedding Shoot'];
+  if (Array.isArray(lead.zusatz) && lead.zusatz.some(z => !allowedAddons.includes(z))) return 'invalid_addon';
+
+  return null;
+}
+
 // Dynamic sitemap with hreflang alternates. Static pages always have an
 // English mirror; blog posts only when a pre-built `<slug>.en.html` exists.
 // Each language URL is emitted as its own <url> listing the full alternate set
@@ -319,7 +387,28 @@ createServer(async (req, res) => {
   // API: Contact form submission
   if (req.method === 'POST' && url === '/api/contact') {
     try {
+      const clientIp = getClientIp(req);
+
+      if (isRateLimited(clientIp)) {
+        console.log(`Rate limited: ${clientIp}`);
+        res.writeHead(429, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: false, error: 'Too many requests. Please try again later.' }));
+        return;
+      }
+
       const lead = await parseBody(req);
+
+      const spamReason = validateLead(lead);
+      if (spamReason) {
+        console.log(`Spam blocked (${spamReason}): ${lead.name || '?'} / ${lead.email || '?'} [${clientIp}]`);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, results: { team: true, couple: true } }));
+        return;
+      }
+
+      delete lead._hp;
+      delete lead._ts;
+
       console.log(`New contact: ${lead.name} (${lead.email})`);
 
       const results = { team: false, couple: false };

@@ -63,6 +63,13 @@
         <div class="contact-form" id="contactFormWrapper">
           <form id="contactForm" novalidate>
 
+            <!-- hp -->
+            <div style="position:absolute;left:-9999px;opacity:0;height:0;width:0;overflow:hidden;" aria-hidden="true" tabindex="-1">
+              <label for="website">Website</label>
+              <input type="text" id="website" name="website" autocomplete="off" tabindex="-1">
+            </div>
+            <input type="hidden" id="_ts" name="_ts" value="">
+
             <!-- Role toggle: Hochzeitspaar / Wedding Planner -->
             <div class="form-role-toggle">
               <button type="button" class="form-role-btn form-role-btn--active" data-role="couple" data-i18n="contact.role.couple">Hochzeitspaar</button>
@@ -362,6 +369,9 @@
   <script src="assets/js/main.js"></script>
   <script src="assets/js/animations.js"></script>
   <script>
+    // Spam protection: record form load time
+    document.getElementById('_ts').value = String(Date.now());
+
     // Prefill selected package from ?package= URL parameter
     (function prefillPackage() {
       var params = new URLSearchParams(window.location.search);
@@ -546,6 +556,9 @@
       data.referralWedding = document.getElementById('referralWedding').value.trim();
       data.referralOther = document.getElementById('referralOther').value.trim();
 
+      data._hp = document.getElementById('website').value;
+      data._ts = document.getElementById('_ts').value;
+
       // Send to API
       btn.textContent = MSG.sending;
       btn.disabled = true;
@@ -556,6 +569,13 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
+        if (res.status === 429) {
+          alert(isEn ? 'Too many requests. Please try again in a few minutes.' : 'Zu viele Anfragen. Bitte versucht es in ein paar Minuten erneut.');
+          btn.textContent = MSG.submit;
+          btn.disabled = false;
+          return;
+        }
+
         var result = await res.json();
 
         if (result.ok) {
