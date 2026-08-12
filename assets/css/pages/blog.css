@@ -434,8 +434,7 @@
 
 .editorial-hero__figure img {
   width: 100%;
-  height: clamp(400px, 70vh, 780px);
-  object-fit: cover;
+  height: auto;
   display: block;
 }
 
@@ -577,8 +576,7 @@
 
 .editorial-figure img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
   display: block;
 }
 
@@ -614,11 +612,11 @@
 }
 
 .editorial-duo__primary img {
-  aspect-ratio: 4 / 5;
+  height: auto;
 }
 
 .editorial-duo__secondary img {
-  aspect-ratio: 3 / 4;
+  height: auto;
 }
 
 @media (min-width: 768px) {
@@ -644,11 +642,11 @@
 }
 
 .editorial-triptych .editorial-figure img {
-  aspect-ratio: 3 / 4;
+  height: auto;
 }
 
 .editorial-triptych .editorial-figure:nth-child(2) img {
-  aspect-ratio: 4 / 5;
+  height: auto;
 }
 
 @media (min-width: 768px) {
@@ -668,8 +666,7 @@
 
 .editorial-fullbleed img {
   width: 100%;
-  height: clamp(320px, 60vh, 640px);
-  object-fit: cover;
+  height: auto;
   display: block;
 }
 
