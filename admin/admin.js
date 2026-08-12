@@ -990,11 +990,10 @@
     }
     if (!state.draftId) return;
 
-    // Persist any manual field edits before revising
-    await syncDraftToServer();
-
     showOverlay('Claude überarbeitet den Entwurf…');
     try {
+      // Persist any manual field edits before revising
+      await syncDraftToServer();
       const data = await api('/api/admin/revise', {
         method: 'POST',
         body: JSON.stringify({
@@ -1693,9 +1692,9 @@
     if (!confirm(confirmMsg)) {
       return;
     }
-    await syncDraftToServer();
     showOverlay(isUpdate ? 'Beitrag wird aktualisiert…' : 'Beitrag wird veröffentlicht…');
     try {
+      await syncDraftToServer();
       const data = await api('/api/admin/publish', {
         method: 'POST',
         body: JSON.stringify({
@@ -1716,7 +1715,7 @@
       }, 600);
     } catch (err) {
       hideOverlay();
-      showToast('Fehler: ' + err.message, 'error', 6000);
+      showToast('Fehler beim Veröffentlichen: ' + err.message, 'error', 6000);
     }
   });
 
