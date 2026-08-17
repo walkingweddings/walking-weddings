@@ -1,0 +1,25 @@
+{
+  "name": "Walking Weddings",
+  "short_name": "Walking Weddings",
+  "description": "Hochzeitsfotografie & Hochzeitsfilm in Wien — Walking Weddings.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#131B1B",
+  "theme_color": "#131B1B",
+  "lang": "de-AT",
+  "icons": [
+    {
+      "src": "/assets/images/logo/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/images/logo/ww_brandmarkWhite.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
