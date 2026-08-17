@@ -1,5 +1,5 @@
 const { createServer } = require('http');
-const { readFileSync, existsSync, statSync, createReadStream } = require('fs');
+const { readFileSync, readdirSync, existsSync, statSync, createReadStream } = require('fs');
 const { join, extname, basename } = require('path');
 const admin = require('./admin/server');
 const { renderPage } = require('./admin/page-template');
@@ -100,20 +100,26 @@ function validateLead(lead) {
 // English mirror; blog posts only when a pre-built `<slug>.en.html` exists.
 // Each language URL is emitted as its own <url> listing the full alternate set
 // (Google's recommended bidirectional form).
+//
+// Blog posts are enumerated directly from the blog/ directory so newly
+// published articles land in the sitemap without needing to be linked from
+// blog.html first.
 function buildSitemap() {
   const base = SITE_URL.replace(/\/$/, '');
   const entries = [];
-  for (const p of PAGES) entries.push({ path: p.slug === 'index' ? '/' : `/${p.slug}.html`, en: true });
+  for (const p of PAGES) {
+    // hochzeitsguide is a noindex lead-magnet — don't advertise it to Google.
+    if (p.slug === 'hochzeitsguide') continue;
+    entries.push({ path: p.slug === 'index' ? '/' : `/${p.slug}.html`, en: true });
+  }
   for (const lp of ['impressum', 'privacy', 'agb']) entries.push({ path: `/${lp}.html`, en: true });
   try {
-    const blogHtml = readFileSync(join(ROOT, 'blog.html'), 'utf8');
-    const seen = new Set();
-    const re = /href="blog\/([a-z0-9-]+)\.html"/gi;
-    let m;
-    while ((m = re.exec(blogHtml))) {
-      if (seen.has(m[1])) continue;
-      seen.add(m[1]);
-      entries.push({ path: `/blog/${m[1]}.html`, en: existsSync(join(ROOT, 'blog', `${m[1]}.en.html`)) });
+    const files = readdirSync(join(ROOT, 'blog'))
+      .filter(f => f.endsWith('.html') && !f.endsWith('.en.html'))
+      .sort();
+    for (const f of files) {
+      const slug = f.slice(0, -'.html'.length);
+      entries.push({ path: `/blog/${slug}.html`, en: existsSync(join(ROOT, 'blog', `${slug}.en.html`)) });
     }
   } catch {}
 
