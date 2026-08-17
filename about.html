@@ -5,10 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title data-i18n="meta.about.title">About — Walking Weddings</title>
   <meta name="description" data-i18n-attr="content:meta.about.desc" content="Lernt das Team hinter Walking Weddings kennen — euer Hochzeits-Foto & Video Team aus Wien.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Italiana&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/reset.css">
+  <link rel="canonical" href="https://www.walkingweddings.com/about.html">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.walkingweddings.com/about.html">
+  <meta property="og:title" content="About — Walking Weddings">
+  <meta property="og:description" content="Lernt das Team hinter Walking Weddings kennen — euer Hochzeits-Foto & Video Team aus Wien.">
+  <meta property="og:image" content="https://www.walkingweddings.com/assets/images/portfolio/Team/hiphop-601.webp">
+  <meta property="og:site_name" content="Walking Weddings">
+  <meta property="og:locale" content="de_AT">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="About — Walking Weddings">
+  <meta name="twitter:description" content="Lernt das Team hinter Walking Weddings kennen — euer Hochzeits-Foto & Video Team aus Wien.">
+  <meta name="twitter:image" content="https://www.walkingweddings.com/assets/images/portfolio/Team/hiphop-601.webp">
+
+  <link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="assets/css/reset.css">
   <link rel="stylesheet" href="assets/css/variables.css">
   <link rel="stylesheet" href="assets/css/base.css">
   <link rel="stylesheet" href="assets/css/layout.css">
@@ -16,14 +31,19 @@
   <link rel="stylesheet" href="assets/css/pages/portfolio.css">
   <link rel="stylesheet" href="assets/css/pages/about.css">
   <link rel="icon" href="assets/images/logo/favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#131B1B">
+  <link rel="apple-touch-icon" href="assets/images/logo/ww_brandmarkWhite.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <script defer data-domain="walkingweddings.com" src="https://plausible.io/js/script.js"></script>
 </head>
 <body>
 
   <!-- NAVIGATION -->
-  <a href="index.html" class="nav__logo">
+  <nav class="nav" id="nav" aria-label="Hauptnavigation" data-i18n-attr="aria-label:shared.nav.label">
+    <a href="index.html" class="nav__logo">
       <img src="assets/images/logo/ww_logoWhite_wtagline.svg" alt="Walking Weddings">
     </a>
-  <div class="nav__links">
+    <div class="nav__links">
       <a href="about.html" class="nav__link nav__link--active">About</a>
       <a href="portfolio.html" class="nav__link">Works</a>
       <a href="filme.html" class="nav__link">Motion</a>
@@ -31,7 +51,6 @@
       <a href="packages.html" class="nav__link">Investment</a>
       <a href="contact.html" class="nav__link">Contact</a>
     </div>
-  <nav class="nav" id="nav">
     <button class="nav__hamburger" id="navHamburger" aria-label="Menü öffnen" data-i18n-attr="aria-label:shared.nav.menu">
       <span></span><span></span><span></span>
     </button>
@@ -58,7 +77,7 @@
     <div class="container">
       <div class="editorial-spread reveal">
         <div class="editorial-spread__media">
-          <img data-cms-id="spread.image" src="assets/images/portfolio/Team/hiphop-601.jpg"
+          <img data-cms-id="spread.image" src="assets/images/portfolio/Team/hiphop-601.webp"
                alt="Walking Weddings bei der Arbeit" data-i18n-attr="alt:about.spread.imageAlt" loading="lazy">
           <p class="editorial-caption" data-cms-id="spread.caption" data-i18n="about.spread.caption">Das Studio, Wien.</p>
         </div>
@@ -81,7 +100,7 @@
     <div class="container">
       <div class="editorial-portrait reveal--right">
         <div class="editorial-portrait__media editorial-portrait__media--offset">
-          <img data-cms-id="kiran.image" src="assets/images/about/kiran-portrait.jpg"
+          <img data-cms-id="kiran.image" src="assets/images/about/kiran-portrait.webp"
                alt="Kiran Kothakuzhakal &mdash; Walking Weddings" loading="lazy">
         </div>
         <div class="editorial-portrait__text">
@@ -103,7 +122,7 @@
     <div class="container">
       <div class="editorial-portrait editorial-portrait--reverse reveal--left">
         <div class="editorial-portrait__media editorial-portrait__media--offset-down">
-          <img data-cms-id="ian.image" src="assets/images/about/ian-portrait.jpg"
+          <img data-cms-id="ian.image" src="assets/images/about/ian-portrait.webp"
                alt="Ian Pasahol &mdash; Walking Weddings" loading="lazy">
         </div>
         <div class="editorial-portrait__text">
@@ -163,7 +182,7 @@
         </div>
       </div>
       <div class="footer__bottom">
-        <p data-i18n="shared.footer.rights">&copy; 2024 Walking Weddings. Alle Rechte vorbehalten.</p>
+        <p data-i18n="shared.footer.rights">&copy; <span class="footer-year">2026</span> Walking Weddings. Alle Rechte vorbehalten.</p>
         <div class="footer__legal">
           <a href="impressum.html" class="footer__link" data-i18n="shared.footer.imprint">Impressum</a>
           <a href="privacy.html" class="footer__link" data-i18n="shared.footer.privacy">Datenschutz</a>

@@ -5,14 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title data-i18n="meta.motion.title">Motion — Walking Weddings | Hochzeitsfilme Wien</title>
   <meta name="description" data-i18n-attr="content:meta.motion.desc" content="Hochzeitsfilme von Walking Weddings — echte Emotionen, cineastisch festgehalten. Capturing the moments you're living.">
-  <link rel="canonical" href="https://walkingweddings.com/filme.html">
+  <link rel="canonical" href="https://www.walkingweddings.com/filme.html">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.walkingweddings.com/filme.html">
+  <meta property="og:title" content="Motion — Walking Weddings | Hochzeitsfilme Wien">
+  <meta property="og:description" content="Hochzeitsfilme von Walking Weddings — echte Emotionen, cineastisch festgehalten.">
+  <meta property="og:image" content="https://www.walkingweddings.com/assets/images/portfolio/jiaminanthony-424.webp">
+  <meta property="og:site_name" content="Walking Weddings">
+  <meta property="og:locale" content="de_AT">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Motion — Walking Weddings | Hochzeitsfilme Wien">
+  <meta name="twitter:description" content="Hochzeitsfilme von Walking Weddings — echte Emotionen, cineastisch festgehalten.">
+  <meta name="twitter:image" content="https://www.walkingweddings.com/assets/images/portfolio/jiaminanthony-424.webp">
 
   <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Italiana&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
-
-  <!-- CSS -->
+<!-- CSS -->
+  <link rel="stylesheet" href="assets/fonts/fonts.css">
   <link rel="stylesheet" href="assets/css/reset.css">
   <link rel="stylesheet" href="assets/css/variables.css">
   <link rel="stylesheet" href="assets/css/base.css">
@@ -21,14 +33,19 @@
   <link rel="stylesheet" href="assets/css/pages/portfolio.css">
   <link rel="stylesheet" href="assets/css/pages/filme.css">
   <link rel="icon" href="assets/images/logo/favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#131B1B">
+  <link rel="apple-touch-icon" href="assets/images/logo/ww_brandmarkWhite.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <script defer data-domain="walkingweddings.com" src="https://plausible.io/js/script.js"></script>
 </head>
 <body>
 
   <!-- NAVIGATION -->
-  <a href="index.html" class="nav__logo">
+  <nav class="nav" id="nav" aria-label="Hauptnavigation" data-i18n-attr="aria-label:shared.nav.label">
+    <a href="index.html" class="nav__logo">
       <img src="assets/images/logo/ww_logoWhite_wtagline.svg" alt="Walking Weddings">
     </a>
-  <div class="nav__links">
+    <div class="nav__links">
       <a href="about.html" class="nav__link">About</a>
       <a href="portfolio.html" class="nav__link">Works</a>
       <a href="filme.html" class="nav__link nav__link--active">Motion</a>
@@ -36,7 +53,6 @@
       <a href="packages.html" class="nav__link">Investment</a>
       <a href="contact.html" class="nav__link">Contact</a>
     </div>
-  <nav class="nav" id="nav">
     <button class="nav__hamburger" id="navHamburger" aria-label="Menü öffnen" data-i18n-attr="aria-label:shared.nav.menu">
       <span></span><span></span><span></span>
     </button>
@@ -122,7 +138,7 @@
 
   <!-- CTA -->
   <section class="cta">
-    <div class="cta__bg" style="background-image: url('assets/images/portfolio/jiaminanthony-424.jpg');" aria-hidden="true"></div>
+    <div class="cta__bg" style="background-image: url('assets/images/portfolio/jiaminanthony-424.webp');" aria-hidden="true"></div>
     <div class="cta__overlay"></div>
     <div class="cta__content reveal">
       <p class="text-caption text-accent mb-sm" data-cms-id="cta.eyebrow" data-i18n="motion.cta.eyebrow">Bereit?</p>
@@ -167,7 +183,7 @@
         </div>
       </div>
       <div class="footer__bottom">
-        <p data-i18n="shared.footer.rights">&copy; 2024 Walking Weddings. Alle Rechte vorbehalten.</p>
+        <p data-i18n="shared.footer.rights">&copy; <span class="footer-year">2026</span> Walking Weddings. Alle Rechte vorbehalten.</p>
         <div class="footer__legal">
           <a href="impressum.html" class="footer__link" data-i18n="shared.footer.imprint">Impressum</a>
           <a href="privacy.html" class="footer__link" data-i18n="shared.footer.privacy">Datenschutz</a>
