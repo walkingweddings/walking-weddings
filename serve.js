@@ -90,7 +90,7 @@ function validateLead(lead) {
   if (!Array.isArray(lead.interesse) || lead.interesse.length === 0 ||
       lead.interesse.some(i => !allowedInterests.includes(i))) return 'invalid_interest';
 
-  const allowedAddons = ['Fotobox', 'Album', 'Portrait Lounge', 'Social Media Paket', 'Pre Wedding Shoot'];
+  const allowedAddons = ['Album', 'Portrait Lounge', 'Social Media Paket', 'Pre Wedding Shoot'];
   if (Array.isArray(lead.zusatz) && lead.zusatz.some(z => !allowedAddons.includes(z))) return 'invalid_addon';
 
   return null;
