@@ -187,14 +187,28 @@
 
         if (best) v.src = best;
 
-        // Scheitert die getauschte Datei doch, zurueck auf das H.264-Original,
-        // statt den Nutzer auf dem Standbild sitzen zu lassen.
-        v.addEventListener('error', function () {
-          if (v.getAttribute('src') !== d.heroDefault) {
-            v.src = d.heroDefault;
-            v.load();
-          }
-        }, { once: true });
+        // Zwei Wege zurueck auf das H.264-Original, damit der Nutzer unter
+        // keinen Umstaenden auf dem Standbild sitzen bleibt:
+        var restored = false;
+        function restore() {
+          if (restored || v.getAttribute('src') === d.heroDefault) return;
+          restored = true;
+          v.src = d.heroDefault;
+          v.load();
+          v.play().catch(function () {});
+        }
+
+        // 1. Der Browser meldet einen Fehler.
+        v.addEventListener('error', restore, { once: true });
+
+        // 2. Er meldet nichts, kann aber trotzdem keinen Frame dekodieren -
+        //    genau das Standbild-Symptom. readyState < 2 heisst: nicht ein
+        //    einziges Bild ist durchgekommen. Bewusst readyState statt
+        //    currentTime, sonst wuerde eine bloss langsame Leitung den
+        //    Rueckfall auf die groessere H.264-Datei ausloesen.
+        setTimeout(function () {
+          if (v.readyState < 2) restore();
+        }, 8000);
       })();
     </script>
   </section>
