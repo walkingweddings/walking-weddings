@@ -1679,7 +1679,10 @@
   });
 
   publishBtn.addEventListener('click', async () => {
-    if (!state.draftId || !state.draft) return;
+    if (!state.draftId || !state.draft) {
+      showToast('Kein Entwurf geladen — bitte zuerst einen Beitrag erstellen oder öffnen', 'error', 6000);
+      return;
+    }
     if (!state.draft.slug || !/^[a-z0-9-]+$/.test(state.draft.slug)) {
       showToast('Ungültiger Slug — nur kleine Buchstaben, Zahlen, Bindestriche', 'error');
       return;
