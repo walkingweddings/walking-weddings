@@ -1,4 +1,12 @@
 // ========================================
+// FOOTER YEAR — keep the copyright date fresh without a rebuild.
+// The HTML ships with a static year as a no-JS fallback.
+// ========================================
+document.querySelectorAll('.footer-year').forEach(el => {
+  el.textContent = new Date().getFullYear();
+});
+
+// ========================================
 // NAVIGATION
 // ========================================
 

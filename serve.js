@@ -1,6 +1,7 @@
 const { createServer } = require('http');
-const { readFileSync, existsSync, statSync, createReadStream } = require('fs');
+const { readFileSync, readdirSync, existsSync, statSync, createReadStream } = require('fs');
 const { join, extname, basename } = require('path');
+const { brotliCompressSync, gzipSync, constants: zconst } = require('zlib');
 const admin = require('./admin/server');
 const { renderPage } = require('./admin/page-template');
 const { findBySlug, PAGES } = require('./admin/pages-registry');
@@ -19,10 +20,77 @@ const MIME = {
   '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
   '.svg': 'image/svg+xml', '.mp4': 'video/mp4', '.webp': 'image/webp',
-  '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.json': 'application/json'
+  '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.json': 'application/json',
+  '.webmanifest': 'application/manifest+json',
 };
 
+// Which MIME types are worth compressing (text-like; skip already-compressed
+// binaries like woff2/webp/mp4). Kept small — false negatives beat false
+// positives here since compressing PNG/JPG/MP4 wastes CPU with no gain.
+const COMPRESSIBLE = new Set([
+  'text/html', 'text/css', 'application/javascript', 'application/json',
+  'image/svg+xml', 'application/xml', 'application/manifest+json',
+]);
+
 const { addCacheBusters } = require('./cache-buster');
+
+// ── Response middleware ─────────────────────────────────────────────────────
+
+// Baseline security headers applied to every response. Kept intentionally
+// simple — no CSP yet (needs an audit of the external widgets first) so we
+// don't accidentally break the Behold Instagram feed or Vimeo/YouTube embeds.
+const SECURITY_HEADERS = {
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+  'X-Frame-Options': 'SAMEORIGIN',
+};
+
+function applySecurityHeaders(res) {
+  for (const [k, v] of Object.entries(SECURITY_HEADERS)) res.setHeader(k, v);
+}
+
+// Pick the best content encoding the client accepts. Br > gzip > none.
+function pickEncoding(acceptEncoding) {
+  const ae = String(acceptEncoding || '').toLowerCase();
+  if (ae.includes('br')) return 'br';
+  if (ae.includes('gzip')) return 'gzip';
+  return null;
+}
+
+// Compress `buf` with the chosen encoding, or return the buffer unchanged when
+// compression isn't worth it (small payload, incompressible mime, no encoding).
+function maybeCompress(buf, contentType, acceptEncoding) {
+  const baseType = String(contentType).split(';')[0].trim();
+  if (!COMPRESSIBLE.has(baseType)) return { body: buf, encoding: null };
+  if (buf.length < 1024) return { body: buf, encoding: null };
+  const enc = pickEncoding(acceptEncoding);
+  if (!enc) return { body: buf, encoding: null };
+  const body = enc === 'br'
+    ? brotliCompressSync(buf, { params: { [zconst.BROTLI_PARAM_QUALITY]: 5 } })
+    : gzipSync(buf, { level: 6 });
+  return { body, encoding: enc };
+}
+
+// Cache-Control policy per path. HTML and JSON stay uncached because HTML is
+// templated on every request (i18n + cache-busters); everything under
+// /assets/js/ and /assets/css/ ships with ?v=<hash> from cache-buster.js so it
+// can be immutable; fonts are content-addressed by Google so also immutable;
+// other assets get a modest TTL so image swaps propagate within a day.
+function cacheControlFor(urlPath, ext) {
+  if (ext === '.html' || ext === '.json') return 'no-cache';
+  if (/^\/assets\/(js|css|fonts)\//.test(urlPath)) return 'public, max-age=31536000, immutable';
+  if (urlPath.startsWith('/assets/')) return 'public, max-age=86400';
+  return 'no-cache';
+}
+
+// Load the branded 404 page once (with a plain-text fallback if the file is
+// missing so a broken deploy still returns something useful).
+function load404() {
+  try { return readFileSync(join(ROOT, '404.html'), 'utf8'); }
+  catch { return '<!doctype html><title>404</title><p>Not found</p>'; }
+}
 
 function esc(str) {
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -90,7 +158,7 @@ function validateLead(lead) {
   if (!Array.isArray(lead.interesse) || lead.interesse.length === 0 ||
       lead.interesse.some(i => !allowedInterests.includes(i))) return 'invalid_interest';
 
-  const allowedAddons = ['Fotobox', 'Album', 'Portrait Lounge', 'Social Media Paket', 'Pre Wedding Shoot'];
+  const allowedAddons = ['Album', 'Portrait Lounge', 'Social Media Paket', 'Pre Wedding Shoot'];
   if (Array.isArray(lead.zusatz) && lead.zusatz.some(z => !allowedAddons.includes(z))) return 'invalid_addon';
 
   return null;
@@ -100,20 +168,26 @@ function validateLead(lead) {
 // English mirror; blog posts only when a pre-built `<slug>.en.html` exists.
 // Each language URL is emitted as its own <url> listing the full alternate set
 // (Google's recommended bidirectional form).
+//
+// Blog posts are enumerated directly from the blog/ directory so newly
+// published articles land in the sitemap without needing to be linked from
+// blog.html first.
 function buildSitemap() {
   const base = SITE_URL.replace(/\/$/, '');
   const entries = [];
-  for (const p of PAGES) entries.push({ path: p.slug === 'index' ? '/' : `/${p.slug}.html`, en: true });
+  for (const p of PAGES) {
+    // hochzeitsguide is a noindex lead-magnet — don't advertise it to Google.
+    if (p.slug === 'hochzeitsguide') continue;
+    entries.push({ path: p.slug === 'index' ? '/' : `/${p.slug}.html`, en: true });
+  }
   for (const lp of ['impressum', 'privacy', 'agb']) entries.push({ path: `/${lp}.html`, en: true });
   try {
-    const blogHtml = readFileSync(join(ROOT, 'blog.html'), 'utf8');
-    const seen = new Set();
-    const re = /href="blog\/([a-z0-9-]+)\.html"/gi;
-    let m;
-    while ((m = re.exec(blogHtml))) {
-      if (seen.has(m[1])) continue;
-      seen.add(m[1]);
-      entries.push({ path: `/blog/${m[1]}.html`, en: existsSync(join(ROOT, 'blog', `${m[1]}.en.html`)) });
+    const files = readdirSync(join(ROOT, 'blog'))
+      .filter(f => f.endsWith('.html') && !f.endsWith('.en.html'))
+      .sort();
+    for (const f of files) {
+      const slug = f.slice(0, -'.html'.length);
+      entries.push({ path: `/blog/${slug}.html`, en: existsSync(join(ROOT, 'blog', `${slug}.en.html`)) });
     }
   } catch {}
 
@@ -485,8 +559,18 @@ createServer(async (req, res) => {
 
   const file = enBlogFile || join(ROOT, decodeURIComponent(filePath));
   if (!existsSync(file) || !statSync(file).isFile()) {
-    res.writeHead(404);
-    res.end('Not found');
+    const html = load404();
+    const buf = Buffer.from(html);
+    const { body, encoding } = maybeCompress(buf, 'text/html', req.headers['accept-encoding']);
+    applySecurityHeaders(res);
+    const headers = {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Content-Length': body.length,
+      'Cache-Control': 'no-cache',
+    };
+    if (encoding) { headers['Content-Encoding'] = encoding; headers['Vary'] = 'Accept-Encoding'; }
+    res.writeHead(404, headers);
+    res.end(body);
     return;
   }
   const ext = extname(file);
@@ -522,16 +606,25 @@ createServer(async (req, res) => {
     html = i18n.renderLangSwitch(html, { logicalPath, locale: isEn ? 'en' : 'de' });
     html = addCacheBusters(html);
     const buf = Buffer.from(html);
-    res.writeHead(200, {
+    const { body, encoding } = maybeCompress(buf, 'text/html', req.headers['accept-encoding']);
+    applySecurityHeaders(res);
+    const headers = {
       'Content-Type': 'text/html; charset=utf-8',
-      'Content-Length': buf.length,
+      'Content-Length': body.length,
       'Cache-Control': 'no-cache',
-    });
-    res.end(buf);
+    };
+    if (encoding) { headers['Content-Encoding'] = encoding; headers['Vary'] = 'Accept-Encoding'; }
+    res.writeHead(200, headers);
+    res.end(body);
     return;
   }
 
-  // Handle HTTP Range requests — mandatory for iOS Safari video playback
+  applySecurityHeaders(res);
+  const cacheControl = cacheControlFor(logicalPath, ext);
+
+  // Handle HTTP Range requests — mandatory for iOS Safari video playback.
+  // Range responses cannot be re-encoded, so we skip compression here and just
+  // stream the byte range as-is with the same security + cache headers.
   const range = req.headers.range;
   if (range) {
     const match = /bytes=(\d*)-(\d*)/.exec(range);
@@ -547,16 +640,34 @@ createServer(async (req, res) => {
       'Content-Range': `bytes ${start}-${end}/${fileSize}`,
       'Accept-Ranges': 'bytes',
       'Content-Length': chunkSize,
-      'Content-Type': contentType
+      'Content-Type': contentType,
+      'Cache-Control': cacheControl,
     });
     createReadStream(file, { start, end }).pipe(res);
+    return;
+  }
+
+  // For text-like assets (CSS, JS, SVG, JSON, manifest) compress inline so we
+  // benefit from gzip/brotli. For everything else stream from disk as before.
+  if (COMPRESSIBLE.has(contentType)) {
+    const buf = readFileSync(file);
+    const { body, encoding } = maybeCompress(buf, contentType, req.headers['accept-encoding']);
+    const headers = {
+      'Content-Type': contentType,
+      'Content-Length': body.length,
+      'Cache-Control': cacheControl,
+    };
+    if (encoding) { headers['Content-Encoding'] = encoding; headers['Vary'] = 'Accept-Encoding'; }
+    res.writeHead(200, headers);
+    res.end(body);
     return;
   }
 
   res.writeHead(200, {
     'Content-Type': contentType,
     'Content-Length': fileSize,
-    'Accept-Ranges': 'bytes'
+    'Accept-Ranges': 'bytes',
+    'Cache-Control': cacheControl,
   });
   createReadStream(file).pipe(res);
 }).listen(PORT, () => console.log(`Walking Weddings server running on port ${PORT}`));

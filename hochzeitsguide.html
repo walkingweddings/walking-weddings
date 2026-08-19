@@ -6,10 +6,24 @@
   <title data-i18n="meta.guide.title">Euer Hochzeitsguide — Walking Weddings</title>
   <meta name="description" content="Euer Hochzeitsguide von Walking Weddings — fünf Profi-Tipps für Foto und Video, damit eure Hochzeit 2027 unvergesslich wird." data-i18n-attr="content:meta.guide.desc">
   <meta name="robots" content="noindex, nofollow">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Italiana&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/reset.css">
+
+  <!-- Open Graph (page is noindex but still shareable via direct link) -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.walkingweddings.com/hochzeitsguide.html">
+  <meta property="og:title" content="Euer Hochzeitsguide — Walking Weddings">
+  <meta property="og:description" content="Fünf Profi-Tipps für Foto und Video, damit eure Hochzeit unvergesslich wird.">
+  <meta property="og:image" content="https://www.walkingweddings.com/assets/images/portfolio/SophieAman-128.webp">
+  <meta property="og:site_name" content="Walking Weddings">
+  <meta property="og:locale" content="de_AT">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Euer Hochzeitsguide — Walking Weddings">
+  <meta name="twitter:description" content="Fünf Profi-Tipps für Foto und Video, damit eure Hochzeit unvergesslich wird.">
+  <meta name="twitter:image" content="https://www.walkingweddings.com/assets/images/portfolio/SophieAman-128.webp">
+
+  <link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="assets/css/reset.css">
   <link rel="stylesheet" href="assets/css/variables.css">
   <link rel="stylesheet" href="assets/css/base.css">
   <link rel="stylesheet" href="assets/css/layout.css">
@@ -367,14 +381,19 @@
       background: var(--color-accent);
     }
   </style>
+  <meta name="theme-color" content="#131B1B">
+  <link rel="apple-touch-icon" href="assets/images/logo/ww_brandmarkWhite.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "7d39d96f9e34499a9c0c836e788a5dc3"}'></script>
 </head>
 <body>
 
   <!-- NAVIGATION -->
-  <a href="index.html" class="nav__logo">
+  <nav class="nav" id="nav" aria-label="Hauptnavigation" data-i18n-attr="aria-label:shared.nav.label">
+    <a href="index.html" class="nav__logo">
       <img src="assets/images/logo/ww_logoWhite_wtagline.svg" alt="Walking Weddings">
     </a>
-  <div class="nav__links">
+    <div class="nav__links">
       <a href="about.html" class="nav__link">About</a>
       <a href="portfolio.html" class="nav__link">Works</a>
       <a href="filme.html" class="nav__link">Motion</a>
@@ -382,7 +401,6 @@
       <a href="packages.html" class="nav__link">Investment</a>
       <a href="contact.html" class="nav__link">Contact</a>
     </div>
-  <nav class="nav" id="nav">
     <button class="nav__hamburger" id="navHamburger" aria-label="Menü öffnen" data-i18n-attr="aria-label:shared.nav.menu">
       <span></span><span></span><span></span>
     </button>
@@ -399,7 +417,7 @@
   <!-- HERO -->
   <section class="guide-hero">
     <div class="guide-hero__bg">
-      <img data-cms-id="hero.bg" src="assets/images/portfolio/hero-hochzeit.jpg" alt="">
+      <img data-cms-id="hero.bg" src="assets/images/portfolio/hero-hochzeit.webp" alt="">
     </div>
     <div class="guide-hero__content">
       <img src="assets/images/logo/ww_logoBlack_wtagline.svg" alt="Walking Weddings" style="width: 360px; max-width: 80%; margin: 0 auto var(--space-lg); display: block;">
@@ -449,7 +467,7 @@
   <section class="section section--light">
     <div class="guide-comparison">
       <div class="guide-comparison__item">
-        <img data-cms-id="comparison.photo" src="assets/images/portfolio/foto-stil.jpg" alt="Fotografie — Jennise & Florian" data-i18n-attr="alt:guide.comparison.photoAlt">
+        <img data-cms-id="comparison.photo" src="assets/images/portfolio/foto-stil.webp" alt="Fotografie — Jennise & Florian" data-i18n-attr="alt:guide.comparison.photoAlt">
         <span class="guide-comparison__label" data-i18n="guide.comparison.photoLabel">Foto</span>
       </div>
       <div class="guide-comparison__item">
@@ -474,7 +492,7 @@
 
   <!-- PHOTO BREAK -->
   <div class="guide-photo">
-    <img data-cms-id="photoBreak.image" src="assets/images/portfolio/bw-zeremonie.jpg" alt="Zeremonie — Authentische Momente" data-i18n-attr="alt:guide.photoBreak.alt">
+    <img data-cms-id="photoBreak.image" src="assets/images/portfolio/bw-zeremonie.webp" alt="Zeremonie — Authentische Momente" data-i18n-attr="alt:guide.photoBreak.alt">
   </div>
 
   <!-- TIPS 4 & 5 -->
@@ -505,15 +523,15 @@
     <div class="guide-carousel" id="carousel">
       <div class="guide-carousel__track" id="carouselTrack">
         <div class="guide-carousel__slide">
-          <img data-cms-id="carousel.image1" src="assets/images/portfolio/golden-hour.jpg" alt="Golden Hour — Paarfoto" data-i18n-attr="alt:guide.carousel.alt1">
+          <img data-cms-id="carousel.image1" src="assets/images/portfolio/golden-hour.webp" alt="Golden Hour — Paarfoto" data-i18n-attr="alt:guide.carousel.alt1">
           <span class="guide-carousel__caption" data-cms-id="carousel.caption1" data-i18n="guide.carousel.caption1">Golden Hour</span>
         </div>
         <div class="guide-carousel__slide">
-          <img data-cms-id="carousel.image2" src="assets/images/portfolio/indian-wedding.jpg" alt="Destination Wedding" data-i18n-attr="alt:guide.carousel.alt2">
+          <img data-cms-id="carousel.image2" src="assets/images/portfolio/indian-wedding.webp" alt="Destination Wedding" data-i18n-attr="alt:guide.carousel.alt2">
           <span class="guide-carousel__caption" data-cms-id="carousel.caption2" data-i18n="guide.carousel.caption2">Destination Wedding</span>
         </div>
         <div class="guide-carousel__slide">
-          <img data-cms-id="carousel.image3" src="assets/images/portfolio/carousel-extra.jpg" alt="Brautpaar im Licht" data-i18n-attr="alt:guide.carousel.alt3">
+          <img data-cms-id="carousel.image3" src="assets/images/portfolio/carousel-extra.webp" alt="Brautpaar im Licht" data-i18n-attr="alt:guide.carousel.alt3">
           <span class="guide-carousel__caption" data-cms-id="carousel.caption3" data-i18n="guide.carousel.caption3">Licht & Liebe</span>
         </div>
       </div>
@@ -527,7 +545,7 @@
 
   <!-- CTA -->
   <section class="cta">
-    <div class="cta__bg" style="background-image: url('assets/images/portfolio/SophieAman-128.jpg');" aria-hidden="true"></div>
+    <div class="cta__bg" style="background-image: url('assets/images/portfolio/SophieAman-128.webp');" aria-hidden="true"></div>
     <div class="cta__overlay"></div>
     <div class="cta__content reveal">
       <p class="text-caption text-accent mb-sm" data-cms-id="cta.eyebrow" data-i18n="guide.cta.eyebrow">Bereit?</p>
@@ -574,7 +592,7 @@
         </div>
       </div>
       <div class="footer__bottom">
-        <p data-i18n="shared.footer.rights">&copy; 2024 Walking Weddings. Alle Rechte vorbehalten.</p>
+        <p data-i18n="shared.footer.rights">&copy; <span class="footer-year">2026</span> Walking Weddings. Alle Rechte vorbehalten.</p>
         <div class="footer__legal">
           <a href="impressum.html" class="footer__link" data-i18n="shared.footer.imprint">Impressum</a>
           <a href="privacy.html" class="footer__link" data-i18n="shared.footer.privacy">Datenschutz</a>
