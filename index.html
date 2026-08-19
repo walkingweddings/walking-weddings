@@ -157,47 +157,7 @@
   <!-- ========== HERO ========== -->
   <section class="hero">
     <h1 class="sr-only" data-i18n="home.hero.h1">Walking Weddings — Hochzeitsfotografie &amp; Hochzeitsfilm in Wien</h1>
-    <!-- Poster = exakt der erste Videoframe: die Seite ist sofort sichtbar, das
-         Video streamt im Hintergrund nach und loest den Poster ohne Sprung ab.
-         Kein src im Markup: die Variante (AV1 vs. H.264, Desktop vs. Mobil)
-         waehlt das Inline-Skript unten, bevor der Browser zu laden beginnt.
-         Setzt das CMS ein src, haelt sich das Skript komplett raus. -->
-    <video data-cms-id="hero.video" class="hero__video"
-           poster="assets/images/hero/hero-poster.webp"
-           data-hero-av1="assets/videos/hero-2026.av1.mp4"
-           data-hero-h264="assets/videos/hero-2026.mp4"
-           data-hero-av1-mobile="assets/videos/hero-2026-mobile.av1.mp4"
-           data-hero-h264-mobile="assets/videos/hero-2026-mobile.mp4"
-           autoplay muted loop playsinline preload="none"></video>
-    <script>
-      (function () {
-        var v = document.currentScript.previousElementSibling;
-        // Ein vom CMS gesetztes src gewinnt immer.
-        if (!v || v.tagName !== 'VIDEO' || v.getAttribute('src')) return;
-
-        // Bei prefers-reduced-motion bleibt es beim Poster - kein Autoplay,
-        // keine ~13 MB Download.
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-          v.removeAttribute('autoplay');
-          return;
-        }
-
-        var d = v.dataset;
-        var av1 = v.canPlayType('video/mp4; codecs="av01.0.08M.08"') !== '';
-        var mobile = window.matchMedia('(max-width: 767px)').matches;
-
-        v.src = mobile ? (av1 ? d.heroAv1Mobile : d.heroH264Mobile)
-                       : (av1 ? d.heroAv1      : d.heroH264);
-        v.preload = 'auto';
-
-        // Sicherheitsnetz: kann der Browser die AV1-Datei doch nicht dekodieren,
-        // einmalig auf H.264 zurueckfallen statt schwarz zu bleiben.
-        v.addEventListener('error', function () {
-          var fb = mobile ? d.heroH264Mobile : d.heroH264;
-          if (v.src.indexOf(fb) === -1) { v.src = fb; v.load(); }
-        }, { once: true });
-      })();
-    </script>
+    <video data-cms-id="hero.video" class="hero__video" src="assets/videos/hero-reel.mp4" autoplay muted loop playsinline preload="auto"></video>
   </section>
 
   <!-- ========== USP SECTION ========== -->
