@@ -158,18 +158,16 @@
   <section class="hero">
     <h1 class="sr-only" data-i18n="home.hero.h1">Walking Weddings — Hochzeitsfotografie &amp; Hochzeitsfilm in Wien</h1>
     <!-- Das src steht bewusst im Markup: so laeuft das Hero auch dann, wenn das
-         Skript unten nicht ausgefuehrt wird (CSP, Fehler, JS aus). H.264 1080p
-         ist der Nenner, den jeder Browser abspielt. Das Skript ersetzt es
-         danach nur noch durch die guenstigere Variante - AV1 spart ~30 %,
-         die Mobil-Fassung nochmal rund die Haelfte.
+         Skript unten nicht ausgefuehrt wird (CSP, Fehler, JS aus). 1080p H.264
+         ist der Nenner, den jeder Browser abspielt.
          Poster = exakt der erste Videoframe, deshalb kein sichtbarer Sprung. -->
     <video data-cms-id="hero.video" class="hero__video"
-           src="assets/videos/hero-2026.mp4"
+           src="assets/videos/hero-2026-1080.mp4"
            poster="assets/images/hero/hero-poster.webp"
-           data-hero-default="assets/videos/hero-2026.mp4"
-           data-hero-av1="assets/videos/hero-2026.av1.mp4"
-           data-hero-av1-mobile="assets/videos/hero-2026-mobile.av1.mp4"
-           data-hero-h264-mobile="assets/videos/hero-2026-mobile.mp4"
+           data-hero-default="assets/videos/hero-2026-1080.mp4"
+           data-hero-1080-av1="assets/videos/hero-2026-1080.av1.mp4"
+           data-hero-1440-av1="assets/videos/hero-2026-1440.av1.mp4"
+           data-hero-1440-h264="assets/videos/hero-2026-1440.mp4"
            autoplay muted loop playsinline preload="auto"></video>
     <script>
       (function () {
@@ -180,15 +178,22 @@
         // Hat das CMS ein eigenes Video gesetzt, bleibt es dabei.
         if (v.getAttribute('src') !== d.heroDefault) return;
 
+        // Nach echten Bildschirmpixeln entscheiden, nicht nach CSS-Breite: ein
+        // Handy meldet 390 px, stellt aber 1170 dar. Ab 2000 physischen Pixeln
+        // wuerde 1080p sichtbar hochskaliert, darunter waere 1440p verschenkte
+        // Bandbreite.
+        //   Handy 390x3 = 1170 -> 1080p     1080p-Monitor = 1920 -> 1080p
+        //   iPad 1024x2 = 2048 -> 1440p     1440p-Monitor = 2560 -> 1440p
+        var px = window.innerWidth * (window.devicePixelRatio || 1);
+        var big = px >= 2000;
         var av1 = v.canPlayType('video/mp4; codecs="av01.0.08M.08"') !== '';
-        var mobile = window.matchMedia('(max-width: 767px)').matches;
-        var best = mobile ? (av1 ? d.heroAv1Mobile : d.heroH264Mobile)
-                          : (av1 ? d.heroAv1      : null);
 
+        var best = big ? (av1 ? d.hero1440Av1 : d.hero1440H264)
+                       : (av1 ? d.hero1080Av1 : null);
         if (best) v.src = best;
 
-        // Zwei Wege zurueck auf das H.264-Original, damit der Nutzer unter
-        // keinen Umstaenden auf dem Standbild sitzen bleibt:
+        // Zwei Wege zurueck auf das 1080p-H.264-Original, damit der Nutzer
+        // unter keinen Umstaenden auf dem Standbild sitzen bleibt:
         var restored = false;
         function restore() {
           if (restored || v.getAttribute('src') === d.heroDefault) return;
@@ -204,8 +209,8 @@
         // 2. Er meldet nichts, kann aber trotzdem keinen Frame dekodieren -
         //    genau das Standbild-Symptom. readyState < 2 heisst: nicht ein
         //    einziges Bild ist durchgekommen. Bewusst readyState statt
-        //    currentTime, sonst wuerde eine bloss langsame Leitung den
-        //    Rueckfall auf die groessere H.264-Datei ausloesen.
+        //    currentTime, sonst loest eine bloss langsame Leitung den
+        //    Rueckfall auf eine andere Datei aus.
         setTimeout(function () {
           if (v.readyState < 2) restore();
         }, 8000);
