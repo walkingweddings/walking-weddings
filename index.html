@@ -165,9 +165,9 @@
            src="assets/videos/hero-2026-1080.mp4"
            poster="assets/images/hero/hero-poster.webp"
            data-hero-default="assets/videos/hero-2026-1080.mp4"
-           data-hero-1080-av1="assets/videos/hero-2026-1080.av1.mp4"
-           data-hero-1440-av1="assets/videos/hero-2026-1440.av1.mp4"
-           data-hero-1440-h264="assets/videos/hero-2026-1440.mp4"
+           data-hero-hd-av1="assets/videos/hero-2026-1080.av1.mp4"
+           data-hero-qhd-av1="assets/videos/hero-2026-1440.av1.mp4"
+           data-hero-qhd-h264="assets/videos/hero-2026-1440.mp4"
            autoplay muted loop playsinline preload="auto"></video>
     <script>
       (function () {
@@ -184,12 +184,15 @@
         // Bandbreite.
         //   Handy 390x3 = 1170 -> 1080p     1080p-Monitor = 1920 -> 1080p
         //   iPad 1024x2 = 2048 -> 1440p     1440p-Monitor = 2560 -> 1440p
+        // hd/qhd statt 1080/1440 im Attributnamen: dataset entfernt einen
+        // Bindestrich nur vor einem Kleinbuchstaben. data-hero-1080-av1 wuerde
+        // zu "hero-1080Av1" und waere per d.hero1080Av1 nicht erreichbar.
         var px = window.innerWidth * (window.devicePixelRatio || 1);
         var big = px >= 2000;
         var av1 = v.canPlayType('video/mp4; codecs="av01.0.08M.08"') !== '';
 
-        var best = big ? (av1 ? d.hero1440Av1 : d.hero1440H264)
-                       : (av1 ? d.hero1080Av1 : null);
+        var best = big ? (av1 ? d.heroQhdAv1 : d.heroQhdH264)
+                       : (av1 ? d.heroHdAv1 : null);
         if (best) v.src = best;
 
         // Zwei Wege zurueck auf das 1080p-H.264-Original, damit der Nutzer
