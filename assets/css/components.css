@@ -366,8 +366,29 @@
   object-fit: cover;
 }
 
+/* Abdunklung nur an der Unterkante, hinter der Navigation.
+   Logo und Navigation liegen im mix-blend-mode: difference. Der invertiert die
+   Schrift gegen den Untergrund und traegt ueber Schwarz wie ueber Weiss - er
+   bricht aber im Mittelton ein: |128 - 247| = 119 ist selbst wieder ein
+   Mittelton, die Schrift verschwindet. Im Reel passiert das ueber Wiese,
+   hellen Kleidern und Blumen.
+   Gemessen wurde der Textkontrast in sieben ueber das Reel verteilten Frames
+   (Screenshot mit und ohne Element, Differenz ergibt die Schriftpixel):
+     Navigation unten   ohne 68  ->  mit 93   in 7 von 7 Frames besser
+     Logo oben rechts   ohne 126 -> mit 108   in 4 von 7 Frames SCHLECHTER
+   Deshalb bewusst nur unten. Ein oberer Verlauf schob die ohnehin hellen
+   Frames erst in den Mittelton, in dem difference versagt - er verschlimmerte
+   genau das Problem, das er loesen sollte. Das Logo faehrt ohne besser. */
 .hero__overlay {
-  display: none;
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to top,
+    rgba(0, 0, 0, 0.78) 0%,
+    rgba(0, 0, 0, 0.55) 5%,
+    rgba(0, 0, 0, 0) 14%);
 }
 
 .hero__content {
