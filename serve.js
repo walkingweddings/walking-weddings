@@ -78,9 +78,16 @@ function maybeCompress(buf, contentType, acceptEncoding) {
 // /assets/js/ and /assets/css/ ships with ?v=<hash> from cache-buster.js so it
 // can be immutable; fonts are content-addressed by Google so also immutable;
 // other assets get a modest TTL so image swaps propagate within a day.
+// Videos are the exception: they are by far the heaviest asset (the hero reel
+// alone is 7-18 MB depending on codec) and their filenames carry a version
+// (hero-2026.*), so a one-day TTL would make repeat visitors re-download them
+// for nothing. 30 days cuts that cost without giving up the ability to
+// self-heal — a renamed file invalidates immediately, an in-place replacement
+// within a month.
 function cacheControlFor(urlPath, ext) {
   if (ext === '.html' || ext === '.json') return 'no-cache';
   if (/^\/assets\/(js|css|fonts)\//.test(urlPath)) return 'public, max-age=31536000, immutable';
+  if (urlPath.startsWith('/assets/videos/')) return 'public, max-age=2592000';
   if (urlPath.startsWith('/assets/')) return 'public, max-age=86400';
   return 'no-cache';
 }
