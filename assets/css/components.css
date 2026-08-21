@@ -1316,3 +1316,139 @@
 .section--light .form__textarea:focus {
   border-color: var(--color-accent);
 }
+
+/* ========================================
+   COOKIE-CONSENT BANNER
+   ======================================== */
+/* Wird von assets/js/consent.js erzeugt und erst nach einer Entscheidung
+   wieder entfernt. Sitzt unten fix, damit er die Hero-Sektion nicht
+   zerschneidet, und bleibt bewusst schmal — er ist ein Hinweis, kein
+   Interstitial. */
+
+.ww-consent {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-modal);
+  padding: var(--space-sm);
+  background: var(--color-primary);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-light);
+  /* Startzustand: ausgeblendet. .ww-consent--visible fährt ihn ein. */
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+.ww-consent--visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.ww-consent__inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.ww-consent__copy {
+  flex: 1 1 320px;
+}
+
+.ww-consent__title {
+  font-size: var(--text-xs);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: var(--space-xs);
+}
+
+.ww-consent__text {
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-text-light);
+  margin: 0;
+}
+
+.ww-consent__link {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  transition: color var(--transition-fast);
+}
+
+.ww-consent__link:hover {
+  color: var(--color-accent-hover);
+}
+
+.ww-consent__actions {
+  display: flex;
+  gap: var(--space-xs);
+  flex: 0 0 auto;
+}
+
+.ww-consent__btn {
+  padding: 0.75rem 1.75rem;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border: 1px solid var(--color-accent);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.ww-consent__btn--solid {
+  background: var(--color-accent);
+  color: var(--color-primary);
+}
+
+.ww-consent__btn--solid:hover {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+.ww-consent__btn--ghost {
+  background: transparent;
+  color: var(--color-text-light);
+  border-color: var(--color-border-light);
+}
+
+.ww-consent__btn--ghost:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.ww-consent__btn:focus-visible {
+  outline: 2px solid var(--color-accent-hover);
+  outline-offset: 2px;
+}
+
+/* Mobil: Buttons auf volle Breite, damit beide gleich gut erreichbar sind —
+   "Ablehnen" darf nicht schwerer zu treffen sein als "Akzeptieren". */
+@media (max-width: 640px) {
+  .ww-consent__inner {
+    gap: var(--space-sm);
+  }
+
+  .ww-consent__actions {
+    width: 100%;
+  }
+
+  .ww-consent__btn {
+    flex: 1 1 0;
+    padding: 0.85rem 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ww-consent {
+    transition: none;
+  }
+}

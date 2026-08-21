@@ -596,6 +596,13 @@
         var result = await res.json();
 
         if (result.ok) {
+          // Meta Pixel: Lead erst hier zaehlen — der Server hat die Anfrage
+          // bestaetigt, es ist also ein echter Lead und kein Absende-Versuch.
+          // wwConsent.track() feuert nur, wenn das Pixel mit Marketing-
+          // Einwilligung geladen wurde; ohne Einwilligung passiert nichts.
+          if (window.wwConsent) window.wwConsent.track('Lead');
+          else if (typeof window.fbq === 'function') window.fbq('track', 'Lead');
+
           document.getElementById('contactFormWrapper').style.display = 'none';
           document.getElementById('thankYou').style.display = 'block';
           window.scrollTo({ top: 0, behavior: 'smooth' });

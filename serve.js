@@ -99,6 +99,32 @@ function load404() {
   catch { return '<!doctype html><title>404</title><p>Not found</p>'; }
 }
 
+// ── Cookie-Consent / Meta Pixel ─────────────────────────────────────────────
+// The public site has no shared layout file — every page is its own HTML
+// document. Rather than pasting the tag into a dozen files (and into every
+// blog post the journal creator generates from now on), we inject it here,
+// the same way hreflang, the language switch and the cache-busters are
+// injected: one place, every page, including generated posts and 404.
+//
+// The script itself carries the consent gate. It loads the Meta Pixel only
+// once a visitor has actively agreed, so the injected tag is safe to ship on
+// every page — see assets/js/consent.js for the reasoning and for why the
+// <noscript> counting pixel of Meta's default snippet is deliberately absent.
+//
+// The path is absolute so it resolves identically from /, /blog/x.html and
+// the /en/ mirror; addCacheBusters() appends ?v=<hash> afterwards.
+const CONSENT_TAG =
+  '  <!-- Cookie-Consent + Meta Pixel (loads only after marketing consent) -->\n' +
+  '  <script src="/assets/js/consent.js"></script>\n';
+
+function injectConsentScript(html) {
+  if (!html || html.includes('/assets/js/consent.js')) return html;
+  if (/<\/head>/i.test(html)) return html.replace(/<\/head>/i, CONSENT_TAG + '</head>');
+  // Fragment without a <head> (shouldn't happen for served pages) — leave it
+  // untouched rather than guessing where the tag belongs.
+  return html;
+}
+
 function esc(str) {
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -566,7 +592,10 @@ createServer(async (req, res) => {
 
   const file = enBlogFile || join(ROOT, decodeURIComponent(filePath));
   if (!existsSync(file) || !statSync(file).isFile()) {
-    const html = load404();
+    // The 404 page is served straight from disk (no CMS/i18n pass), so it
+    // needs the consent tag injected here too — a visitor who lands on a dead
+    // link must get the same banner as everywhere else.
+    const html = addCacheBusters(injectConsentScript(load404()));
     const buf = Buffer.from(html);
     const { body, encoding } = maybeCompress(buf, 'text/html', req.headers['accept-encoding']);
     applySecurityHeaders(res);
@@ -611,6 +640,9 @@ createServer(async (req, res) => {
     }
     html = i18n.injectHreflang(html, { logicalPath, locale: isEn ? 'en' : 'de', siteUrl: SITE_URL });
     html = i18n.renderLangSwitch(html, { logicalPath, locale: isEn ? 'en' : 'de' });
+    // Consent gate + Meta Pixel on every public page. The admin UI is an
+    // internal tool behind a login — no marketing tracking there.
+    if (!logicalPath.startsWith('/admin')) html = injectConsentScript(html);
     html = addCacheBusters(html);
     const buf = Buffer.from(html);
     const { body, encoding } = maybeCompress(buf, 'text/html', req.headers['accept-encoding']);
