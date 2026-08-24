@@ -389,5 +389,6 @@
   "notfound.btnHome": "Back to Home",
   "notfound.btnJournal": "Read the Journal",
   "notfound.btnContact": "Contact",
-  "legal.privacy.processing.pixelStateUnset": "not set"
+  "legal.privacy.processing.pixelStateUnset": "not set",
+  "home.hero.videoLabel": "Background video: excerpts from our wedding films"
 }
