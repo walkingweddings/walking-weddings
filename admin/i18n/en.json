@@ -192,9 +192,6 @@
   "legal.privacy.processing.hostingHeading": "Hosting: Railway",
   "legal.privacy.processing.hostingData": "<em>Personal data:</em> email, contact information",
   "legal.privacy.processing.hostingText": "The website is hosted by Railway. The processing of this data is carried out to administer and improve the website, as well as to communicate with users where necessary.",
-  "legal.privacy.processing.analyticsHeading": "Analytics: Google Analytics (Universal Analytics)",
-  "legal.privacy.processing.analyticsData": "<em>Personal data:</em> usage data, trackers",
-  "legal.privacy.processing.analyticsText": "Google Analytics is used to collect information about how the website is used, in order to analyze and improve it. This involves aggregated, anonymized data that is not used to identify individual users.",
   "legal.privacy.processing.pixelHeading": "Advertising &amp; statistics: Meta Pixel",
   "legal.privacy.processing.pixelData": "<em>Personal data:</em> usage data, trackers, IP address, browser and device information",
   "legal.privacy.processing.pixelText": "We use the Meta Pixel provided by Meta Platforms Ireland Limited (Merrion Road, Dublin 4, D04 X2K5, Ireland). The pixel records how our website is used and which actions you take here — for example submitting an enquiry through our contact form. We use this information solely to measure how well our ads on Facebook and Instagram perform (statistics) and to show you relevant content there (advertising). We do not use it to identify individual people.",
@@ -390,5 +387,11 @@
   "notfound.btnJournal": "Read the Journal",
   "notfound.btnContact": "Contact",
   "legal.privacy.processing.pixelStateUnset": "not set",
-  "home.hero.videoLabel": "Background video: excerpts from our wedding films"
+  "home.hero.videoLabel": "Background video: excerpts from our wedding films",
+  "legal.privacy.processing.statsHeading": "Statistics: Cloudflare Web Analytics",
+  "legal.privacy.processing.statsData": "<em>Personal data:</em> usage data, IP address, browser and device information",
+  "legal.privacy.processing.statsText": "We use Cloudflare Web Analytics, provided by Cloudflare, Inc. (101 Townsend Street, San Francisco, CA 94107, USA), to see how often our pages are viewed and how quickly they load. It records the page visited, the referring page, load times, and browser and device type. Your IP address is transmitted as part of the request; according to Cloudflare it is used only to determine an approximate location. The results are evaluated in aggregate only — no individual is identified.",
+  "legal.privacy.processing.statsCookieless": "According to the provider, Cloudflare Web Analytics works without cookies and without fingerprinting: no information is stored on or read from your device, and you are not recognised across different websites. Consent under § 165 (3) of the Austrian Telecommunications Act 2021 is therefore not required, and these statistics run regardless of your choice in the cookie banner.",
+  "legal.privacy.processing.statsTransfer": "Data is transferred to Cloudflare, Inc. in the USA. Cloudflare bases this transfer on the EU-US Data Privacy Framework and on the European Commission's Standard Contractual Clauses.",
+  "legal.privacy.processing.statsLegal": "The legal basis is our legitimate interest under Art. 6(1)(f) GDPR in a technically sound, fast and well-designed website. You may object to this processing at any time under Art. 21 GDPR — an informal message to contact@walkingweddings.com is enough."
 }
