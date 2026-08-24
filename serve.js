@@ -592,10 +592,22 @@ createServer(async (req, res) => {
 
   const file = enBlogFile || join(ROOT, decodeURIComponent(filePath));
   if (!existsSync(file) || !statSync(file).isFile()) {
-    // The 404 page is served straight from disk (no CMS/i18n pass), so it
-    // needs the consent tag injected here too — a visitor who lands on a dead
-    // link must get the same banner as everywhere else.
-    const html = addCacheBusters(injectConsentScript(load404()));
+    // The 404 page is served straight from disk (no CMS pass), so it needs the
+    // consent tag injected here too — a visitor who lands on a dead link must
+    // get the same banner as everywhere else.
+    //
+    // Under /en/ it also needs the English overlay, or a dead English URL
+    // answers in German. localizeLinks additionally points the three escape
+    // buttons back into the /en/ tree instead of the German pages.
+    // Deliberately no hreflang/canonical: the alternates would name a URL that
+    // does not exist either, and a 404 must not invite indexing.
+    let page = load404();
+    if (isEn) {
+      page = i18n.applyI18n(page, i18n.getEnDict());
+      page = i18n.setHtmlLang(page, 'en');
+      page = i18n.localizeLinks(page, logicalPath);
+    }
+    const html = addCacheBusters(injectConsentScript(page));
     const buf = Buffer.from(html);
     const { body, encoding } = maybeCompress(buf, 'text/html', req.headers['accept-encoding']);
     applySecurityHeaders(res);

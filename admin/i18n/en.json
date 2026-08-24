@@ -380,5 +380,14 @@
   "home.gallery.alt4": "Bride and groom on the beach in the evening sun — destination wedding in Phuket, Thailand",
   "home.gallery.alt5": "Newlyweds after the ceremony at Palais Niederösterreich, Vienna — wedding photography in Europe",
   "shared.og.locale": "en_GB",
-  "home.usp.imageAlt": "Newlyweds walking back down the aisle at Palais Niederösterreich, Vienna — wedding photography and film by Walking Weddings"
+  "home.usp.imageAlt": "Newlyweds walking back down the aisle at Palais Niederösterreich, Vienna — wedding photography and film by Walking Weddings",
+  "meta.404.title": "Page Not Found — Walking Weddings",
+  "meta.404.desc": "This page no longer exists. Back to the Walking Weddings home page.",
+  "notfound.eyebrow": "Error 404",
+  "notfound.title": "Page&nbsp;not&nbsp;found",
+  "notfound.body": "This address no longer exists — perhaps a story was renamed, or a link has gone stale. Nothing to worry about: the way back is short.",
+  "notfound.btnHome": "Back to Home",
+  "notfound.btnJournal": "To the Journal",
+  "notfound.btnContact": "Contact",
+  "legal.privacy.processing.pixelStateUnset": "not set"
 }
