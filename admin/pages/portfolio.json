@@ -1,12 +1,13 @@
 {
   "_schemaVersion": 1,
-  "_updatedAt": 1777473061408,
+  "_updatedAt": 1787661859630,
   "fields": {},
   "media": {
     "grid.image13": {
       "type": "image",
       "aspectRatio": "16/9",
-      "objectPosition": "62% 36%"
+      "objectPosition": "62% 36%",
+      "url": "/assets/images/journal/1787661859450-bf02700f-1IP03119.jpg"
     }
   }
 }
