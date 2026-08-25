@@ -633,8 +633,17 @@
           // bei, nach mehr davon zu suchen.
           if (result.eventId) {
             var opts = { eventID: result.eventId };
-            if (window.wwConsent) window.wwConsent.track('Lead', null, opts);
-            else if (typeof window.fbq === 'function') window.fbq('track', 'Lead', {}, opts);
+            // Wert der Anfrage. Kommt vom Server, damit Browser und Server
+            // exakt dieselbe Zahl melden — sonst ist bei der Zusammenfuehrung
+            // nicht vorhersagbar, welche Meta behaelt. Ohne value optimiert
+            // die Kampagne auf Menge statt auf Wert.
+            var params = result.value
+              ? { value: result.value, currency: result.currency || 'EUR' }
+              : null;
+            if (window.wwConsent) window.wwConsent.track('Lead', params, opts);
+            else if (typeof window.fbq === 'function') {
+              window.fbq('track', 'Lead', params || {}, opts);
+            }
           }
 
           document.getElementById('contactFormWrapper').style.display = 'none';

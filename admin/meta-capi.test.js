@@ -243,7 +243,7 @@ async function withFetchTrap(fn) {
           eventType: 'wedding', interesse: ['foto', 'film'],
           message: 'GEHEIM', budget: '5000', dates: ['2027-06-12'] },
         { ...fullCtx, sourceUrl: 'https://www.walkingweddings.com/contact.html',
-          fbp: 'fb.1.1700000000000.99' }
+          fbp: 'fb.1.1700000000000.99', value: 6680, currency: 'EUR' }
       );
 
       await ta('Aufruf geht an die Events-Route des richtigen Pixels', () => {
@@ -269,6 +269,27 @@ async function withFetchTrap(fn) {
         assert.ok(!flat.includes('2027-06-12'), 'Wunschtermin darf nicht mitgehen');
         assert.ok(!flat.includes('anna@example.com'), 'E-Mail nur gehasht');
         assert.ok(!flat.includes('Anna'), 'Name nur gehasht');
+      });
+
+      await ta('Wert und Waehrung stehen in custom_data', () => {
+        const cd = captured.body.data[0].custom_data;
+        assert.strictEqual(cd.value, 6680);
+        assert.strictEqual(cd.currency, 'EUR');
+      });
+
+      await ta('ohne Wert steht auch keine Waehrung im Body', async () => {
+        // Sonst meldet Meta "currency ohne value" als Parameterfehler.
+        let seen = null;
+        const keep = global.fetch;
+        global.fetch = (url, opts) => {
+          seen = JSON.parse(opts.body);
+          return Promise.resolve({ ok: true, json: () => Promise.resolve({ events_received: 1 }) });
+        };
+        await capi.sendLead(lead, { ...fullCtx, value: 0 });
+        global.fetch = keep;
+        const cd = seen.data[0].custom_data;
+        assert.ok(!('value' in cd), 'value darf nicht als 0 mitgehen');
+        assert.ok(!('currency' in cd), 'currency ohne value ist ein Parameterfehler');
       });
 
       await ta('fbp wird durchgereicht, Hashes stehen als Array', () => {
