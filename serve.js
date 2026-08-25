@@ -7,6 +7,7 @@ const { renderPage } = require('./admin/page-template');
 const { findBySlug, PAGES } = require('./admin/pages-registry');
 const { loadPageJson } = require('./admin/pages-api');
 const { persistLead } = require('./admin/leads-api');
+const metaCapi = require('./admin/meta-capi');
 const i18n = require('./admin/i18n');
 const { resolveRedirect } = require('./admin/redirects');
 
@@ -513,8 +514,25 @@ createServer(async (req, res) => {
         return;
       }
 
+      // Meta-Kontext einsammeln, bevor die Tracking-Felder aus dem Lead
+      // fliegen: was ab hier im lead steht, landet in der E-Mail und in der
+      // Anfragen-Übersicht, und dort haben Cookie-IDs nichts verloren.
+      const capiCtx = {
+        consent: lead._consent === true,
+        eventId: metaCapi.newEventId(),
+        ip: metaCapi.normIp(clientIp),
+        userAgent: req.headers['user-agent'] || '',
+        fbp: metaCapi.readCookie(req.headers.cookie, '_fbp') || lead._fbp || '',
+        fbc: metaCapi.readCookie(req.headers.cookie, '_fbc') || lead._fbc || '',
+        sourceUrl: lead._pageUrl || '',
+      };
+
       delete lead._hp;
       delete lead._ts;
+      delete lead._consent;
+      delete lead._fbp;
+      delete lead._fbc;
+      delete lead._pageUrl;
 
       console.log(`New contact: ${lead.name} (${lead.email})`);
 
@@ -548,8 +566,22 @@ createServer(async (req, res) => {
         console.error('Lead persistence failed:', err.message);
       }
 
+      // Meta Conversions API: dieselbe Conversion noch einmal serverseitig,
+      // damit sie auch dann ankommt, wenn das Pixel im Browser blockiert
+      // wird. sendLead() wirft nie und sendet ohne Einwilligung nicht.
+      const capi = await metaCapi.sendLead(lead, capiCtx);
+      if (capi.sent) {
+        console.log(`Meta CAPI: Lead ${capiCtx.eventId} gesendet` +
+          ` (${capi.identifiers} Merkmale${capi.test ? ', TESTMODUS' : ''})`);
+      } else if (capi.reason !== 'no-consent' && capi.reason !== 'not-configured') {
+        console.error(`Meta CAPI: Lead ${capiCtx.eventId} nicht gesendet (${capi.reason})`,
+          capi.error || '');
+      }
+
+      // eventId geht an den Browser zurück: das Pixel feuert mit derselben ID,
+      // damit Meta die beiden Meldungen als ein Ereignis zusammenführt.
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ ok: true, results }));
+      res.end(JSON.stringify({ ok: true, results, eventId: capiCtx.eventId }));
     } catch (err) {
       console.error('Contact API error:', err);
       res.writeHead(500, { 'Content-Type': 'application/json' });

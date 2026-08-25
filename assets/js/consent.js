@@ -243,11 +243,23 @@
     reopen: reopen,
     // Für Event-Tracking an anderen Stellen (z.B. Lead im Kontaktformular):
     // feuert nur, wenn das Pixel tatsächlich mit Einwilligung geladen wurde.
-    track: function (event, params) {
+    //
+    // options nimmt { eventID: '…' }: Dieselbe ID meldet der Server über die
+    // Conversions API mit. Meta führt beide Meldungen dann zu einem Ereignis
+    // zusammen, statt den Lead doppelt zu zählen.
+    track: function (event, params, options) {
+      // Zwei Riegel statt einem. Dass ohne Einwilligung kein fbq existiert,
+      // ist heute richtig — aber es ist eine Nebenwirkung davon, dass das
+      // Pixel nicht geladen wurde, keine Zusicherung. Nach einem Widerruf
+      // liegt fbq bis zum Reload noch im Speicher. Die Einwilligung wird
+      // deshalb hier eigenständig geprüft.
+      if (readDecision() !== ACCEPTED) return;
       if (typeof window.fbq !== 'function') return;
       // Ohne Parameter auch wirklich ohne dritten Aufrufparameter — sonst
-      // meldet der Meta Pixel Helper ein leeres Parameterobjekt.
-      if (params) window.fbq('track', event, params);
+      // meldet der Meta Pixel Helper ein leeres Parameterobjekt. Mit eventID
+      // braucht fbq allerdings einen Platzhalter an dritter Stelle.
+      if (options) window.fbq('track', event, params || {}, options);
+      else if (params) window.fbq('track', event, params);
       else window.fbq('track', event);
     },
     hasMarketingConsent: function () {
