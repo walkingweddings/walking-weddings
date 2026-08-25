@@ -109,20 +109,20 @@
               <h2 class="form-section__title" data-i18n="contact.sec.contactData">Kontaktdaten</h2>
               <div class="form__group">
                 <label class="form__label" for="name" data-i18n="contact.field.name">Name *</label>
-                <input class="form__input" type="text" id="name" name="name" required>
+                <input class="form__input" type="text" id="name" name="name" autocomplete="name" required>
               </div>
               <div class="form__group form__group--planner" id="companyGroup" style="display: none;">
                 <label class="form__label" for="company" data-i18n="contact.field.company">Firmenname *</label>
-                <input class="form__input" type="text" id="company" name="company">
+                <input class="form__input" type="text" id="company" name="company" autocomplete="organization">
               </div>
               <div class="form-row">
                 <div class="form__group">
                   <label class="form__label" for="phone" data-i18n="contact.field.phone">Telefon *</label>
-                  <input class="form__input" type="tel" id="phone" name="phone" placeholder="0660 1234567" required>
+                  <input class="form__input" type="tel" id="phone" name="phone" placeholder="0660 1234567" autocomplete="tel" required>
                 </div>
                 <div class="form__group">
                   <label class="form__label" for="email" data-i18n="contact.field.email">E-Mail *</label>
-                  <input class="form__input" type="email" id="email" name="email" placeholder="email@beispiel.at" required>
+                  <input class="form__input" type="email" id="email" name="email" placeholder="email@beispiel.at" autocomplete="email" required>
                 </div>
               </div>
             </div>
