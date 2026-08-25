@@ -576,6 +576,27 @@
       data._hp = document.getElementById('website').value;
       data._ts = document.getElementById('_ts').value;
 
+      // ── Meta Conversions API ──────────────────────────────────────────
+      // Der Server meldet den Lead zusaetzlich serverseitig — das kommt auch
+      // an, wenn ein Adblocker oder der Tracking-Schutz das Pixel im Browser
+      // blockiert. Er tut das nur, wenn hier eine Einwilligung mitkommt.
+      data._consent = !!(window.wwConsent && window.wwConsent.hasMarketingConsent());
+      data._pageUrl = window.location.href;
+
+      // _fbp/_fbc liest der Server aus dem Cookie-Header, die Cookies liegen
+      // auf unserer eigenen Domain. Eine Luecke bleibt: Wer ueber eine Anzeige
+      // kommt und erst spaeter zustimmt, hat kein _fbc — der fbclid stand nur
+      // in der Landing-URL und ist beim Zustimmen laengst weg. Steht er noch
+      // in der aktuellen Adresse, bauen wir ihn im Meta-Format nach.
+      // Absichtlich ohne Zwischenspeicher: dafuer muessten wir vor der
+      // Einwilligung etwas im Browser ablegen.
+      var fbclid = new URLSearchParams(window.location.search).get('fbclid');
+      if (fbclid && data._consent) {
+        // fb.<subdomain-index>.<zeitstempel>.<fbclid>; Index 1, weil das Pixel
+        // die Cookies auf walkingweddings.com setzt, nicht auf www.
+        data._fbc = 'fb.1.' + Date.now() + '.' + fbclid;
+      }
+
       // Send to API
       btn.textContent = MSG.sending;
       btn.disabled = true;
@@ -600,8 +621,21 @@
           // bestaetigt, es ist also ein echter Lead und kein Absende-Versuch.
           // wwConsent.track() feuert nur, wenn das Pixel mit Marketing-
           // Einwilligung geladen wurde; ohne Einwilligung passiert nichts.
-          if (window.wwConsent) window.wwConsent.track('Lead');
-          else if (typeof window.fbq === 'function') window.fbq('track', 'Lead');
+          //
+          // eventId kommt vom Server und steckt auch in dessen Meldung ueber
+          // die Conversions API. Meta erkennt daran, dass Browser und Server
+          // von derselben Anfrage sprechen, und zaehlt einen Lead statt zwei.
+          //
+          // Fehlt die eventId, hat der Server die Einsendung nicht als echte
+          // Anfrage gewertet — der Spamfilter antwortet absichtlich mit ok:true
+          // und einer Danke-Seite, damit Bots nichts lernen. Dann darf aber
+          // auch kein Lead an Meta gehen: gemeldeter Spam bringt der Kampagne
+          // bei, nach mehr davon zu suchen.
+          if (result.eventId) {
+            var opts = { eventID: result.eventId };
+            if (window.wwConsent) window.wwConsent.track('Lead', null, opts);
+            else if (typeof window.fbq === 'function') window.fbq('track', 'Lead', {}, opts);
+          }
 
           document.getElementById('contactFormWrapper').style.display = 'none';
           document.getElementById('thankYou').style.display = 'block';

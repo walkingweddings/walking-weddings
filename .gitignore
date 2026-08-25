@@ -8,3 +8,9 @@ assets/images/journal/*
 # Environment
 .env
 .env.local
+
+# Anfragen aus dem Kontaktformular. Auf Railway liegen sie auf dem Volume
+# (/data/leads) — faellt das weg, schreibt admin/storage.js hierher zurueck.
+# Sie enthalten Namen, E-Mail-Adressen und Telefonnummern und duerfen unter
+# keinen Umstaenden im oeffentlichen Repo landen.
+admin/leads/
