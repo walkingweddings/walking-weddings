@@ -197,6 +197,19 @@ function validateLead(lead) {
   return null;
 }
 
+// Does an English version of this logical path actually exist? Static pages
+// always do — the i18n dictionary covers every one of them. A blog post only
+// does once the publish flow has written its `<slug>.en.html` sibling.
+//
+// Shared by the sitemap and the per-request hreflang/canonical pass so the two
+// can never disagree: advertising an English alternate that doesn't exist is
+// the same mistake whether it happens in sitemap.xml or in a <link>.
+function hasEnglishVersion(logicalPath) {
+  const m = logicalPath.match(/^\/blog\/([a-z0-9-]+)\.html$/i);
+  if (!m) return true;
+  return existsSync(join(ROOT, 'blog', `${m[1]}.en.html`));
+}
+
 // Dynamic sitemap with hreflang alternates. Static pages always have an
 // English mirror; blog posts only when a pre-built `<slug>.en.html` exists.
 // Each language URL is emitted as its own <url> listing the full alternate set
@@ -220,7 +233,7 @@ function buildSitemap() {
       .sort();
     for (const f of files) {
       const slug = f.slice(0, -'.html'.length);
-      entries.push({ path: `/blog/${slug}.html`, en: existsSync(join(ROOT, 'blog', `${slug}.en.html`)) });
+      entries.push({ path: `/blog/${slug}.html`, en: hasEnglishVersion(`/blog/${slug}.html`) });
     }
   } catch {}
 
@@ -650,7 +663,12 @@ createServer(async (req, res) => {
       html = i18n.setHtmlLang(html, 'en');
       html = i18n.localizeLinks(html, logicalPath);
     }
-    html = i18n.injectHreflang(html, { logicalPath, locale: isEn ? 'en' : 'de', siteUrl: SITE_URL });
+    html = i18n.injectHreflang(html, {
+      logicalPath,
+      locale: isEn ? 'en' : 'de',
+      siteUrl: SITE_URL,
+      hasEn: hasEnglishVersion(logicalPath),
+    });
     html = i18n.renderLangSwitch(html, { logicalPath, locale: isEn ? 'en' : 'de' });
     // Consent gate + Meta Pixel on every public page. The admin UI is an
     // internal tool behind a login — no marketing tracking there.
