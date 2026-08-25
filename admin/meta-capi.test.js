@@ -138,6 +138,32 @@ t('sha256 liefert Hex in Kleinschreibung', () => {
   assert.match(sha256('test'), /^[0-9a-f]{64}$/);
 });
 
+// --- Startmeldung ---
+// Ohne sie laesst sich ein fehlendes Event nicht von einem fehlenden Token
+// unterscheiden: beides sieht im Log gleich aus, naemlich nach nichts.
+t('Startmeldung nennt den Zustand eindeutig', () => {
+  const line = capi.startupSummary();
+  if (process.env.META_CAPI_TOKEN) {
+    assert.ok(line.includes('aktiv'), line);
+    assert.ok(line.includes('1069216136085670'), 'Pixel-ID fehlt');
+  } else {
+    assert.ok(line.includes('DEAKTIVIERT'), line);
+    assert.ok(line.includes('META_CAPI_TOKEN'), 'der fehlende Schluessel wird nicht benannt');
+  }
+});
+
+t('Startmeldung verraet den Token nicht', () => {
+  const line = capi.startupSummary();
+  if (process.env.META_CAPI_TOKEN) {
+    assert.ok(!line.includes(process.env.META_CAPI_TOKEN), 'Token darf nicht im Log stehen');
+  }
+});
+
+t('Testmodus wird in der Startmeldung als solcher benannt', () => {
+  const line = capi.startupSummary();
+  assert.strictEqual(line.includes('TESTMODUS'), Boolean(process.env.META_CAPI_TOKEN && process.env.META_TEST_EVENT_CODE));
+});
+
 t('jede Event-ID ist eindeutig', () => {
   const ids = new Set();
   for (let i = 0; i < 500; i++) ids.add(capi.newEventId());

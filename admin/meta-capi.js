@@ -302,7 +302,24 @@ async function sendLead(lead, ctx) {
   }
 }
 
+// Beim Start eine Zeile ins Log, die sagt, ob die serverseitige Meldung
+// überhaupt scharf ist. Ohne sie lässt sich ein fehlendes Event nicht von
+// einem fehlenden Token unterscheiden — man sieht in beiden Fällen nichts,
+// und "nichts" ist die schlechteste aller Diagnosen.
+function startupSummary() {
+  if (!isConfigured()) {
+    return 'Meta CAPI: DEAKTIVIERT — META_CAPI_TOKEN ist nicht gesetzt. ' +
+      'Leads werden nur aus dem Browser gemeldet.';
+  }
+  const parts = [`Pixel ${PIXEL_ID}`, `API ${API_VERSION || 'unversioniert'}`];
+  if (TEST_EVENT_CODE) {
+    parts.push(`TESTMODUS (${TEST_EVENT_CODE}) — Events zählen NICHT als echte Conversions`);
+  }
+  return `Meta CAPI: aktiv — ${parts.join(', ')}`;
+}
+
 module.exports = {
+  startupSummary,
   isConfigured,
   newEventId,
   readCookie,
