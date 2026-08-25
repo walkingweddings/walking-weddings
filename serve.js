@@ -574,8 +574,13 @@ createServer(async (req, res) => {
         console.log(`Meta CAPI: Lead ${capiCtx.eventId} gesendet` +
           ` (${capi.identifiers} Merkmale${capi.test ? ', TESTMODUS' : ''})`);
       } else if (capi.reason !== 'no-consent' && capi.reason !== 'not-configured') {
-        console.error(`Meta CAPI: Lead ${capiCtx.eventId} nicht gesendet (${capi.reason})`,
-          capi.error || '');
+        console.error(`Meta CAPI: Lead ${capiCtx.eventId} nicht gesendet (${capi.reason}): ` +
+          (capi.error || 'kein Grund genannt'));
+        if (capi.sentFields) {
+          console.error(`Meta CAPI: gesendete Merkmale: ${capi.sentFields}` +
+            ` | API-Version: ${capi.endpoint}` +
+            ` | Testcode gesetzt: ${capi.withTestCode ? 'ja' : 'nein'}`);
+        }
       }
 
       // eventId geht an den Browser zurück: das Pixel feuert mit derselben ID,
