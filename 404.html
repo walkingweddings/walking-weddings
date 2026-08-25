@@ -6,7 +6,10 @@
   <title data-i18n="meta.404.title">Seite nicht gefunden — Walking Weddings</title>
   <meta name="description" data-i18n-attr="content:meta.404.desc" content="Diese Seite existiert nicht (mehr). Zurück zur Walking-Weddings-Startseite.">
   <meta name="robots" content="noindex, follow">
-  <link rel="canonical" href="https://www.walkingweddings.com/404.html">
+  <!-- Bewusst kein canonical: diese Seite wird unter jeder toten URL
+       ausgeliefert. Ein canonical auf /404.html wuerde jede davon auf ein und
+       dieselbe Adresse zeigen lassen — serve.js liefert die 404 deshalb ohne
+       canonical/hreflang aus (siehe 404-Zweig dort). -->
 
   <meta name="theme-color" content="#131B1B">
   <link rel="icon" href="assets/images/logo/favicon.svg" type="image/svg+xml">

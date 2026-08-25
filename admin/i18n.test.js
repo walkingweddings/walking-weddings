@@ -82,6 +82,48 @@ t('canonPath collapses /index.html to /', () => {
   assert.strictEqual(i18n._canonPath('/index.html'), '/');
 });
 
+// --- injectHreflang: og:url follows the canonical ---
+t('og:url is rewritten to the EN canonical on /en/ pages', () => {
+  const html = '<head><meta property="og:url" content="https://www.walkingweddings.com/about.html"></head>';
+  const out = i18n.injectHreflang(html, {
+    logicalPath: '/about.html', locale: 'en', siteUrl: 'https://www.walkingweddings.com',
+  });
+  assert.ok(out.includes('content="https://www.walkingweddings.com/en/about.html"'));
+  assert.ok(!out.includes('content="https://www.walkingweddings.com/about.html"'));
+  assert.strictEqual((out.match(/property="og:url"/g) || []).length, 1, 'exactly one og:url');
+});
+
+t('og:url keeps the DE URL on German pages', () => {
+  const html = '<head><meta property="og:url" content="https://walkingweddings.com/about.html"></head>';
+  const out = i18n.injectHreflang(html, {
+    logicalPath: '/about.html', locale: 'de', siteUrl: 'https://www.walkingweddings.com',
+  });
+  assert.ok(out.includes('content="https://www.walkingweddings.com/about.html"'), 'host normalised to www');
+});
+
+t('og:url is rewritten regardless of attribute order', () => {
+  const html = `<meta content='https://www.walkingweddings.com/x.html' property="og:url">`;
+  const out = i18n.injectHreflang(html, {
+    logicalPath: '/x.html', locale: 'en', siteUrl: 'https://www.walkingweddings.com',
+  });
+  assert.ok(out.includes('content="https://www.walkingweddings.com/en/x.html"'));
+});
+
+t('a page without og:url does not gain one', () => {
+  const out = i18n.injectHreflang('<head><title>x</title></head>', {
+    logicalPath: '/404.html', locale: 'de', siteUrl: 'https://www.walkingweddings.com',
+  });
+  assert.ok(!out.includes('og:url'));
+});
+
+t('og:image and other og tags are left alone', () => {
+  const html = '<meta property="og:image" content="https://www.walkingweddings.com/a.webp">';
+  const out = i18n.injectHreflang(html, {
+    logicalPath: '/about.html', locale: 'en', siteUrl: 'https://www.walkingweddings.com',
+  });
+  assert.ok(out.includes('content="https://www.walkingweddings.com/a.webp"'));
+});
+
 // --- renderLangSwitch ---
 t('renderLangSwitch injects crawlable mirror links before </footer>', () => {
   const out = i18n.renderLangSwitch('<footer>x</footer>', { logicalPath: '/about.html', locale: 'de' });

@@ -190,9 +190,14 @@ function setHtmlLang(html, lang) {
 }
 
 // ---------------------------------------------------------------------------
-// canonical + hreflang. Single source of truth: strip any existing canonical /
-// alternate links first, then emit the locale-correct set. Reciprocal on both
-// DE and EN, x-default → DE.
+// canonical + og:url + hreflang. Single source of truth: strip any existing
+// canonical / alternate links first, then emit the locale-correct set.
+// Reciprocal on both DE and EN, x-default → DE.
+//
+// og:url is rewritten to the same value as the canonical. The source files are
+// German and hardcode the German URL there, so without this an /en/ page would
+// tell every social crawler that its real address is the German one — a second,
+// conflicting URL for the same content.
 // ---------------------------------------------------------------------------
 
 function canonPath(p) {
@@ -211,6 +216,13 @@ function injectHreflang(html, { logicalPath, locale, siteUrl }) {
   html = html
     .replace(/[ \t]*<link\b[^>]*\brel=["']canonical["'][^>]*>\s*/gi, '')
     .replace(/[ \t]*<link\b[^>]*\bhreflang=["'][^"']*["'][^>]*>\s*/gi, '');
+
+  // Point og:url at the canonical. Only rewritten where the tag already exists
+  // — a page that deliberately carries none (the 404) must not gain one.
+  html = html.replace(
+    /<meta\b[^>]*\bproperty=["']og:url["'][^>]*>/gi,
+    tag => tag.replace(/\bcontent\s*=\s*("[^"]*"|'[^']*')/i, `content="${escapeAttr(canonical)}"`)
+  );
 
   const block =
     `  <link rel="canonical" href="${canonical}">\n` +
