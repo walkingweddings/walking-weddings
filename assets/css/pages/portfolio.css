@@ -27,7 +27,21 @@
   color: var(--color-text-dark);
 }
 
+/* .page-header ist ein Flex-Container; ein Flex-Item hat von Haus aus
+   min-width: auto und darf deshalb nicht schmaler werden als sein laengstes
+   ununterbrechbares Wort. Auf 390 px sprengte "Geschäftsbedingungen" damit die
+   Seite auf 545 px — der Browser blaeht daraufhin den Layout-Viewport auf und
+   zoomt alles heraus. min-width: 0 erlaubt das Schrumpfen, die Umbruchregeln
+   am h1 sorgen dafuer, dass das lange Wort dabei nicht einfach ueberlaeuft.
+   hyphens trennt sauber nach Silben, overflow-wrap faengt die Faelle ab, in
+   denen der Browser kein Trennwoerterbuch hat. */
+.page-header__content {
+  min-width: 0;
+}
+
 .page-header__content h1 {
   margin-top: var(--space-xs);
   margin-bottom: var(--space-sm);
+  overflow-wrap: break-word;
+  hyphens: auto;
 }

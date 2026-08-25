@@ -8,6 +8,7 @@ const { findBySlug, PAGES } = require('./admin/pages-registry');
 const { loadPageJson } = require('./admin/pages-api');
 const { persistLead } = require('./admin/leads-api');
 const metaCapi = require('./admin/meta-capi');
+const { leadValue } = require('./admin/lead-value');
 const i18n = require('./admin/i18n');
 const { resolveRedirect } = require('./admin/redirects');
 
@@ -517,8 +518,15 @@ createServer(async (req, res) => {
       // Meta-Kontext einsammeln, bevor die Tracking-Felder aus dem Lead
       // fliegen: was ab hier im lead steht, landet in der E-Mail und in der
       // Anfragen-Übersicht, und dort haben Cookie-IDs nichts verloren.
+      // Wert der Anfrage einmal bestimmen und an beide Meldewege geben —
+      // Server wie Browser. Zwei verschiedene Werte für dasselbe Ereignis
+      // machen die Deduplizierung unvorhersehbar.
+      const worth = leadValue(lead);
+
       const capiCtx = {
         consent: lead._consent === true,
+        value: worth.value,
+        currency: worth.currency,
         eventId: metaCapi.newEventId(),
         ip: metaCapi.normIp(clientIp),
         userAgent: req.headers['user-agent'] || '',
@@ -572,7 +580,8 @@ createServer(async (req, res) => {
       const capi = await metaCapi.sendLead(lead, capiCtx);
       if (capi.sent) {
         console.log(`Meta CAPI: Lead ${capiCtx.eventId} gesendet` +
-          ` (${capi.identifiers} Merkmale${capi.test ? ', TESTMODUS' : ''})`);
+          ` (${capi.identifiers} Merkmale, Wert ${worth.value} ${worth.currency}` +
+          ` aus ${worth.source}${capi.test ? ', TESTMODUS' : ''})`);
       } else if (capi.reason === 'no-consent') {
         // Kein Fehler, sondern der Normalfall ohne Cookie-Zustimmung. Steht
         // trotzdem im Log: sonst sieht eine ausbleibende Meldung genauso aus
@@ -595,7 +604,13 @@ createServer(async (req, res) => {
       // eventId geht an den Browser zurück: das Pixel feuert mit derselben ID,
       // damit Meta die beiden Meldungen als ein Ereignis zusammenführt.
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ ok: true, results, eventId: capiCtx.eventId }));
+      res.end(JSON.stringify({
+        ok: true,
+        results,
+        eventId: capiCtx.eventId,
+        value: worth.value,
+        currency: worth.currency,
+      }));
     } catch (err) {
       console.error('Contact API error:', err);
       res.writeHead(500, { 'Content-Type': 'application/json' });

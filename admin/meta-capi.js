@@ -254,6 +254,13 @@ async function sendLead(lead, ctx) {
         content_name: Array.isArray(lead.interesse) && lead.interesse.length
           ? lead.interesse.join(', ')
           : undefined,
+        // Wert der Anfrage. Ohne ihn ist für Meta jede Anfrage gleich viel
+        // wert und die Kampagne optimiert auf Menge statt auf Wert. Der Wert
+        // kommt von aussen herein, damit Browser und Server exakt dieselbe
+        // Zahl melden — bei zwei verschiedenen Werten fuer dasselbe Ereignis
+        // ist nicht vorhersagbar, welchen Meta behaelt.
+        value: ctx.value || undefined,
+        currency: ctx.value ? (ctx.currency || 'EUR') : undefined,
       },
     }],
   };

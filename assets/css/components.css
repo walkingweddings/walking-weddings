@@ -45,6 +45,44 @@
     height: 120px;
     max-width: 60vw;
   }
+
+  /* Auf dem Handy traegt mix-blend-mode: difference den Markennamen nicht.
+     Der Grund steht ausfuehrlich bei .hero__overlay: difference bricht im
+     Mittelton ein, und das Reel hat davon reichlich — Wiese, helle Kleider,
+     Blumen. Wer aus einer Anzeige kommt, sieht in dieser Sekunde sonst nicht,
+     bei wem er gelandet ist.
+
+     Statt eines Verlaufs hinter dem Logo — der laut derselben Notiz gemessen
+     SCHLECHTER war, weil er helle Frames erst in den Mittelton schiebt — hier
+     der umgekehrte Weg: kein Blend, dafuer eine dunkle Schattenkante. Die
+     traegt ueber Hell wie ueber Dunkel, weil sie nicht vom Untergrund abhaengt.
+
+     Gemessen mit derselben Methode wie dort (Screenshot mit und ohne Element,
+     die Differenz markiert die Logopixel, gemittelt wird ihr Luma-Abstand zum
+     Untergrund), neun ueber das Reel verteilte Frames bei 390 px:
+       Mittelwert          63,2  ->  77,3     in 7 von 9 Frames besser
+     Entscheidend sind nicht die Mittelwerte, sondern die schlechtesten Frames
+     — genau die, in denen difference versagt:
+       bei 10 s            15,2  ->  39,0
+       bei 30 s            35,7  ->  61,9
+       bei 35 s            37,1  ->  64,1
+     Verloren geht wenig, und nur dort, wo es ohnehin reichte (5 s: 77,8 ->
+     73,7; 15 s: 86,0 -> 85,1).
+
+     Bewusst NUR unter 768 px. Auf 1440 px ist das Logo 33vh gross und der
+     Kontrast mit 112,5 im Mittel doppelt so hoch — dort bringt der Schatten
+     nichts (111,7) und kostet in einzelnen Frames deutlich (35 s: 115,3 ->
+     73,4). Das Problem ist ein Handy-Problem, die Loesung bleibt eines. */
+  .nav__logo {
+    mix-blend-mode: normal;
+  }
+
+  .nav__logo img {
+    filter:
+      drop-shadow(0 0 3px rgba(0, 0, 0, 0.95))
+      drop-shadow(0 0 10px rgba(0, 0, 0, 0.8))
+      drop-shadow(0 2px 4px rgba(0, 0, 0, 0.65));
+  }
 }
 
 .nav__links {
