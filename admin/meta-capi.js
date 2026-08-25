@@ -178,6 +178,46 @@ function buildUserData(lead, ctx) {
   return userData;
 }
 
+// ── Fehlerdiagnose ──────────────────────────────────────────────────────────
+
+// Metas message ist fast immer nur "Invalid parameter" — eine Sammelmeldung,
+// die für sich genommen nichts sagt. Die eigentliche Begründung steht in
+// error_user_title/error_user_msg, und error_data nennt bei der Conversions
+// API oft sogar das beanstandete Feld. Ohne diese Felder lässt sich ein
+// abgelehntes Event nicht diagnostizieren, ohne im Code zu raten.
+//
+// fbtrace_id gehört mit ins Log: Damit kann Metas Support einen konkreten
+// Aufruf nachschlagen.
+function describeError(body, status) {
+  const err = body && body.error;
+  if (!err) return `HTTP ${status}`;
+
+  const parts = [err.message || `HTTP ${status}`];
+
+  if (err.error_user_title && err.error_user_title !== err.message) {
+    parts.push(err.error_user_title);
+  }
+  if (err.error_user_msg) parts.push(err.error_user_msg);
+
+  // error_data kommt mal als Objekt, mal als JSON-String zurück.
+  if (err.error_data) {
+    let data = err.error_data;
+    if (typeof data === 'string') {
+      try { data = JSON.parse(data); } catch { /* dann eben als Text */ }
+    }
+    const detail = typeof data === 'string' ? data : JSON.stringify(data);
+    if (detail && detail !== '{}') parts.push(detail);
+  }
+
+  const codes = [];
+  if (err.code !== undefined) codes.push(`code ${err.code}`);
+  if (err.error_subcode !== undefined) codes.push(`subcode ${err.error_subcode}`);
+  if (err.fbtrace_id) codes.push(`fbtrace ${err.fbtrace_id}`);
+  if (codes.length) parts.push(`[${codes.join(', ')}]`);
+
+  return parts.join(' — ');
+}
+
 // ── Versand ─────────────────────────────────────────────────────────────────
 
 // Meldet einen bestätigten Lead an Meta. Wirft nie — der Aufrufer soll sich
@@ -234,8 +274,16 @@ async function sendLead(lead, ctx) {
     const body = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      const msg = body && body.error ? body.error.message : `HTTP ${res.status}`;
-      return { sent: false, reason: 'api-error', error: msg };
+      return {
+        sent: false,
+        reason: 'api-error',
+        error: describeError(body, res.status),
+        // Nur die Feldnamen, nie die Werte: Beanstandet Meta ein Feld, sieht
+        // man hier sofort, ob wir es überhaupt geschickt haben.
+        sentFields: Object.keys(userData).join(','),
+        endpoint: API_VERSION || 'unversioniert',
+        withTestCode: Boolean(TEST_EVENT_CODE),
+      };
     }
 
     return {

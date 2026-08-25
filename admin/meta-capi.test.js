@@ -265,6 +265,53 @@ async function withFetchTrap(fn) {
         assert.strictEqual(bad.sent, false);
         assert.strictEqual(bad.reason, 'api-error');
         assert.strictEqual(bad.error, 'Invalid parameter');
+        // Feldnamen ja, Werte nein.
+        assert.ok(bad.sentFields.includes('em'));
+        assert.ok(!bad.sentFields.includes('@'));
+      });
+
+      // "Invalid parameter" ist Metas Sammelmeldung und diagnostiziert nichts.
+      // Die Begruendung steht in den Zusatzfeldern — die muessen ins Log.
+      await ta('Metas Begruendung landet vollstaendig im Fehlertext', async () => {
+        global.fetch = () => Promise.resolve({
+          ok: false, status: 400,
+          json: () => Promise.resolve({ error: {
+            message: 'Invalid parameter',
+            type: 'OAuthException',
+            code: 100,
+            error_subcode: 2804003,
+            error_user_title: 'Ungueltiger Testereignis-Code',
+            error_user_msg: 'Der Code TEST99999 gehoert zu keinem Datensatz.',
+            fbtrace_id: 'AbCdEf123',
+          } }),
+        });
+        const bad = await capi.sendLead(lead, fullCtx);
+        assert.ok(bad.error.includes('Invalid parameter'));
+        assert.ok(bad.error.includes('Ungueltiger Testereignis-Code'));
+        assert.ok(bad.error.includes('TEST99999'), 'die konkrete Begruendung fehlt');
+        assert.ok(bad.error.includes('code 100'));
+        assert.ok(bad.error.includes('subcode 2804003'));
+        assert.ok(bad.error.includes('AbCdEf123'), 'fbtrace_id fehlt fuer Metas Support');
+      });
+
+      await ta('error_data als JSON-String wird aufgeloest, nicht roh angehaengt', async () => {
+        global.fetch = () => Promise.resolve({
+          ok: false, status: 400,
+          json: () => Promise.resolve({ error: {
+            message: 'Invalid parameter',
+            error_data: '{"messages":["user_data.ph muss gehasht sein"]}',
+          } }),
+        });
+        const bad = await capi.sendLead(lead, fullCtx);
+        assert.ok(bad.error.includes('user_data.ph'), 'das beanstandete Feld fehlt');
+      });
+
+      await ta('eine Antwort ohne error-Objekt faellt auf den Status zurueck', async () => {
+        global.fetch = () => Promise.resolve({
+          ok: false, status: 503, json: () => Promise.resolve({}),
+        });
+        const bad = await capi.sendLead(lead, fullCtx);
+        assert.strictEqual(bad.error, 'HTTP 503');
       });
 
       await ta('ein Netzwerkausfall wirft nicht', async () => {
