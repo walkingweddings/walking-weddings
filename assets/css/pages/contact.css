@@ -31,7 +31,13 @@
 /* ------- Role toggle (Hochzeitspaar / Wedding Planner) ------- */
 .form-role-toggle {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* auto-fit statt zwei fester Spalten: "Wedding Planner" braucht gesperrt
+     und in Versalien rund 157 px und laesst sich vom Grid nicht darunter
+     druecken. Nebeneinander sprengen die beiden Knoepfe ein 390-px-Display,
+     die Seite wird breiter als das Geraet und der Browser zoomt heraus.
+     So rutschen sie von selbst untereinander, sobald es eng wird — ganz ohne
+     festen Umbruchpunkt. */
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
   gap: var(--space-sm);
   margin-bottom: var(--space-md);
 }

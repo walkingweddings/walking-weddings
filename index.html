@@ -172,7 +172,7 @@
            data-hero-hd-av1="assets/videos/hero-2026-1080.av1.mp4"
            data-hero-qhd-av1="assets/videos/hero-2026-1440.av1.mp4"
            data-hero-qhd-h264="assets/videos/hero-2026-1440.mp4"
-           autoplay muted loop playsinline preload="auto"></video>
+           autoplay muted loop playsinline preload="metadata"></video>
     <script>
       (function () {
         var v = document.currentScript.previousElementSibling;
@@ -181,6 +181,21 @@
         var d = v.dataset;
         // Hat das CMS ein eigenes Video gesetzt, bleibt es dabei.
         if (v.getAttribute('src') !== d.heroDefault) return;
+
+        // Wer im Datensparmodus surft oder in einem langsamen Netz haengt,
+        // bekommt nur das Poster — 227 KB statt 15 MB. Das Hero sieht in den
+        // ersten Sekunden ohnehin identisch aus, weil das Poster exakt der
+        // erste Videoframe ist. Betrifft vor allem Besucher aus Anzeigen, die
+        // unterwegs am Handy klicken.
+        var c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        var thrifty = !!c && (c.saveData === true ||
+          ['slow-2g', '2g', '3g'].indexOf(c.effectiveType) !== -1);
+        if (thrifty) {
+          v.removeAttribute('autoplay');
+          v.removeAttribute('src');
+          v.load();
+          return;
+        }
 
         // Nach echten Bildschirmpixeln entscheiden, nicht nach CSS-Breite: ein
         // Handy meldet 390 px, stellt aber 1170 dar. Ab 2000 physischen Pixeln
@@ -195,8 +210,16 @@
         var big = px >= 2000;
         var av1 = v.canPlayType('video/mp4; codecs="av01.0.08M.08"') !== '';
 
-        var best = big ? (av1 ? d.heroQhdAv1 : d.heroQhdH264)
-                       : (av1 ? d.heroHdAv1 : null);
+        // Handys: eigene, kleinere Fassung, sobald sie hinterlegt ist. Ein
+        // Telefon stellt das Hero auf rund 390 CSS-Pixeln dar — die 1080p-Datei
+        // ist dort um ein Vielfaches groesser als noetig, und gerade Besucher
+        // aus Anzeigen kommen fast alle mobil. Fehlen die Attribute, bleibt
+        // alles beim Bisherigen.
+        var phone = !big && px < 1400;
+        var sd = phone ? (av1 ? d.heroSdAv1 : d.heroSdH264) : null;
+
+        var best = sd || (big ? (av1 ? d.heroQhdAv1 : d.heroQhdH264)
+                              : (av1 ? d.heroHdAv1 : null));
         if (best) v.src = best;
 
         // Zwei Wege zurueck auf das 1080p-H.264-Original, damit der Nutzer
