@@ -44,7 +44,7 @@ const POST_LABELS = {
     gallery: '→ Zur vollständigen Galerie', signature: 'mit Liebe festgehalten von Walking Weddings',
     ctaEyebrow: 'Eure Geschichte', ctaTitle: 'Eure eigene Liebesgeschichte verdient es, erzählt zu werden.',
     ctaText: 'Wir freuen uns darauf, euch kennenzulernen und euren besonderen Tag festzuhalten.',
-    ctaBtn: 'Jetzt anfragen', menuAria: 'Menü öffnen',
+    ctaBtn: 'Jetzt anfragen', menuAria: 'Menü öffnen', navAria: 'Hauptnavigation',
     footerTagline: 'Euer Hochzeits-Foto & Video Team aus Wien.', navHeading: 'Navigation', contactHeading: 'Contact',
     rights: 'Alle Rechte vorbehalten.', imprint: 'Impressum', privacy: 'Datenschutz', terms: 'AGB',
   },
@@ -53,7 +53,7 @@ const POST_LABELS = {
     gallery: '→ View the full gallery', signature: 'lovingly captured by Walking Weddings',
     ctaEyebrow: 'Your Story', ctaTitle: 'Your own love story deserves to be told.',
     ctaText: 'We would be delighted to meet you and capture your special day.',
-    ctaBtn: 'Get in touch', menuAria: 'Open menu',
+    ctaBtn: 'Get in touch', menuAria: 'Open menu', navAria: 'Main navigation',
     footerTagline: 'Your wedding photo & film team from Vienna.', navHeading: 'Navigation', contactHeading: 'Contact',
     rights: 'All rights reserved.', imprint: 'Legal Notice', privacy: 'Privacy Policy', terms: 'Terms',
   },
@@ -79,6 +79,9 @@ function buildPostHtml(draft, opts) {
     articleInner = '',
     galleryUrl = '',
     slug = 'untitled',
+    datePublished = '',
+    dateModified = '',
+    _publishedAt = 0,
   } = draft;
 
   const year = new Date().getFullYear();
@@ -90,6 +93,48 @@ function buildPostHtml(draft, opts) {
     .map(t => `      <span>${escapeHtml(t)}</span>`)
     .join('\n');
   const locationCity = (location || '').split(',')[0].trim() || location || '';
+
+  // BlogPosting. Absolute URLs, weil schema.org relative Pfade nicht aufloest —
+  // aeltere Beitraege hatten das, die Vorlage hatte es verloren.
+  //
+  // datePublished/dateModified werden hereingereicht, damit ein Neu-Erzeugen
+  // bestehender Beitraege ihr Veroeffentlichungsdatum nicht verschiebt; nur
+  // wenn nichts mitkommt, faellt es auf _publishedAt zurueck.
+  //
+  // contentLocation macht den Ort maschinenlesbar: bisher stand er nur als Text
+  // im Beitrag. Traegt das location-Feld die Venue ("Schloss Laxenburg, Wien"),
+  // steht sie damit auch im Markup.
+  const SITE = 'https://www.walkingweddings.com';
+  const abs = u => !u ? '' : /^https?:/.test(u) ? u : SITE + (u.startsWith('/') ? u : '/' + u);
+  const isoFrom = ms => ms ? new Date(ms).toISOString().replace(/\.\d{3}Z$/, '+00:00') : '';
+  const published = datePublished || isoFrom(_publishedAt);
+  const pageUrl = lang === 'en'
+    ? `${SITE}/en/blog/${slug}.html`
+    : `${SITE}/blog/${slug}.html`;
+
+  const ld = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: plainTitle,
+    image: abs(heroImageUrl),
+    author: [
+      { '@type': 'Person', name: 'Kiran Kothakuzhakal', url: `${SITE}/about.html` },
+      { '@type': 'Person', name: 'Ian Pasahol', url: `${SITE}/about.html` },
+    ],
+    publisher: {
+      '@type': 'Organization',
+      name: 'Walking Weddings',
+      logo: { '@type': 'ImageObject', url: `${SITE}/assets/images/logo/ww_brandmarkWhite.svg` },
+    },
+    description: metaDescription,
+  };
+  if (published) ld.datePublished = published;
+  if (dateModified || published) ld.dateModified = dateModified || published;
+  ld.mainEntityOfPage = { '@type': 'WebPage', '@id': pageUrl };
+  ld.url = pageUrl;
+  if (location) ld.contentLocation = { '@type': 'Place', name: location };
+
+  const jsonLd = '  ' + JSON.stringify(ld, null, 2);
 
   return `<!DOCTYPE html>
 <html lang="${lang}">
@@ -103,12 +148,13 @@ function buildPostHtml(draft, opts) {
   <!-- Open Graph -->
   <meta property="og:title" content="${escapeHtml(plainTitle)} | Walking Weddings">
   <meta property="og:description" content="${escapeHtml(metaDescription)}">
-  <meta property="og:image" content="${escapeHtml(heroImageUrl)}">
+  <meta property="og:image" content="${escapeHtml(abs(heroImageUrl))}">
   <meta property="og:url" content="${canonical}">
   <meta property="og:type" content="article">
   <meta property="og:locale" content="${lang === 'en' ? 'en_US' : 'de_AT'}">
 
   <!-- CSS -->
+  <link rel="stylesheet" href="../assets/fonts/fonts.css">
   <link rel="stylesheet" href="../assets/css/reset.css">
   <link rel="stylesheet" href="../assets/css/variables.css">
   <link rel="stylesheet" href="../assets/css/base.css">
@@ -117,31 +163,23 @@ function buildPostHtml(draft, opts) {
   <link rel="stylesheet" href="../assets/css/pages/blog.css">
   <link rel="icon" href="../assets/images/logo/favicon.svg" type="image/svg+xml">
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Italiana&family=PT+Sans:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&display=swap" rel="stylesheet">
-
   <!-- JSON-LD -->
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    "headline": ${JSON.stringify(plainTitle)},
-    "image": ${JSON.stringify(heroImageUrl)},
-    "author": {"@type": "Organization", "name": "Walking Weddings"},
-    "publisher": {"@type": "Organization", "name": "Walking Weddings", "logo": {"@type": "ImageObject", "url": "https://walkingweddings.com/assets/images/logo/ww_brandmarkWhite.svg"}},
-    "description": ${JSON.stringify(metaDescription)}
-  }
+${jsonLd}
   </script>
+  <meta name="theme-color" content="#131B1B">
+  <link rel="apple-touch-icon" href="../assets/images/logo/ww_brandmarkWhite.png">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "7d39d96f9e34499a9c0c836e788a5dc3"}'></script>
 </head>
 <body class="editorial">
 
   <!-- Navigation -->
-  <a href="../index.html" class="nav__logo">
+  <nav class="nav" id="nav" aria-label="${L.navAria}" data-i18n-attr="aria-label:shared.nav.label">
+    <a href="../index.html" class="nav__logo">
       <img src="../assets/images/logo/ww_logoWhite_wtagline.svg" alt="Walking Weddings">
     </a>
-  <div class="nav__links">
+    <div class="nav__links">
       <a href="../about.html" class="nav__link">About</a>
       <a href="../portfolio.html" class="nav__link">Works</a>
       <a href="../filme.html" class="nav__link">Motion</a>
@@ -149,7 +187,6 @@ function buildPostHtml(draft, opts) {
       <a href="../packages.html" class="nav__link">Investment</a>
       <a href="../contact.html" class="nav__link">Contact</a>
     </div>
-  <nav class="nav" id="nav">
     <button class="nav__hamburger" id="navHamburger" aria-label="${L.menuAria}">
       <span></span><span></span><span></span>
     </button>
@@ -245,7 +282,7 @@ ${galleryUrl ? `      <a href="${escapeHtml(galleryUrl)}" target="_blank" rel="n
         <div class="footer__contact">
           <p class="footer__heading">${L.contactHeading}</p>
           <a href="mailto:contact@walkingweddings.com" class="footer__link">contact@walkingweddings.com</a>
-          <a href="tel:+43660482420" class="footer__link">+43 660 4822420</a>
+          <a href="tel:+436604822420" class="footer__link">+43 660 4822420</a>
           <div class="footer__social mt-sm">
             <a href="https://www.instagram.com/walkingweddings/" target="_blank" rel="noopener" aria-label="Instagram">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
