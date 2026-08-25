@@ -573,7 +573,16 @@ createServer(async (req, res) => {
       if (capi.sent) {
         console.log(`Meta CAPI: Lead ${capiCtx.eventId} gesendet` +
           ` (${capi.identifiers} Merkmale${capi.test ? ', TESTMODUS' : ''})`);
-      } else if (capi.reason !== 'no-consent' && capi.reason !== 'not-configured') {
+      } else if (capi.reason === 'no-consent') {
+        // Kein Fehler, sondern der Normalfall ohne Cookie-Zustimmung. Steht
+        // trotzdem im Log: sonst sieht eine ausbleibende Meldung genauso aus
+        // wie ein kaputter Token, und man sucht an der falschen Stelle.
+        console.log(`Meta CAPI: Lead ${capiCtx.eventId} nicht gemeldet` +
+          ` — keine Marketing-Einwilligung (das ist so gewollt)`);
+      } else if (capi.reason === 'not-configured') {
+        console.warn(`Meta CAPI: Lead ${capiCtx.eventId} nicht gemeldet` +
+          ` — META_CAPI_TOKEN ist nicht gesetzt`);
+      } else {
         console.error(`Meta CAPI: Lead ${capiCtx.eventId} nicht gesendet (${capi.reason}): ` +
           (capi.error || 'kein Grund genannt'));
         if (capi.sentFields) {
@@ -758,4 +767,7 @@ createServer(async (req, res) => {
     'Cache-Control': cacheControl,
   });
   createReadStream(file).pipe(res);
-}).listen(PORT, () => console.log(`Walking Weddings server running on port ${PORT}`));
+}).listen(PORT, () => {
+  console.log(`Walking Weddings server running on port ${PORT}`);
+  console.log(metaCapi.startupSummary());
+});
