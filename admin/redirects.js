@@ -22,9 +22,14 @@ const MAP = {
   '/en/packages/': '/en/packages.html',
   '/en/contact/': '/en/contact.html',
   '/en/impressum/': '/en/impressum.html',
-  '/en/turkish-weddings/': '/en/blog/tuerkische-hochzeiten.html',
-  '/en/destination-coupleshoot/': '/en/blog/destination-paarshoot.html',
-  '/en/micro-wedding-2/': '/en/blog/micro-wedding-zuerich.html',
+  // Alte Journal-Beiträge → Journal-Übersicht. Diese drei zeigten früher auf
+  // Slugs (tuerkische-hochzeiten, destination-paarshoot, micro-wedding-zuerich),
+  // die nie ins neue Setup migriert wurden — der 301 landete dadurch auf der
+  // 404, also schlechter als der Catch-all. Solange die Beiträge nicht
+  // nachgezogen sind, ist die Übersicht das nächstliegende Ziel.
+  '/en/turkish-weddings/': '/en/blog.html',
+  '/en/destination-coupleshoot/': '/en/blog.html',
+  '/en/micro-wedding-2/': '/en/blog.html',
   // Galerie/Service-Seiten, die es nicht mehr gibt → nächstliegende Seite
   '/en/elif-haktan-gallery/': '/en/blog.html',
   '/en/portrait-station-2/': '/en/packages.html',
@@ -35,9 +40,9 @@ const MAP = {
   '/de/packages/': '/packages.html',
   '/de/contact/': '/contact.html',
   '/de/impressum/': '/impressum.html',
-  '/de/turkish-weddings/': '/blog/tuerkische-hochzeiten.html',
-  '/de/destination-coupleshoot/': '/blog/destination-paarshoot.html',
-  '/de/micro-wedding-2/': '/blog/micro-wedding-zuerich.html',
+  '/de/turkish-weddings/': '/blog.html',
+  '/de/destination-coupleshoot/': '/blog.html',
+  '/de/micro-wedding-2/': '/blog.html',
   '/de/elif-haktan-gallery/': '/blog.html',
   '/de/portrait-station-2/': '/packages.html',
 };

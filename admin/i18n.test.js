@@ -82,6 +82,137 @@ t('canonPath collapses /index.html to /', () => {
   assert.strictEqual(i18n._canonPath('/index.html'), '/');
 });
 
+// --- injectHreflang: og:url follows the canonical ---
+t('og:url is rewritten to the EN canonical on /en/ pages', () => {
+  const html = '<head><meta property="og:url" content="https://www.walkingweddings.com/about.html"></head>';
+  const out = i18n.injectHreflang(html, {
+    logicalPath: '/about.html', locale: 'en', siteUrl: 'https://www.walkingweddings.com',
+  });
+  assert.ok(out.includes('content="https://www.walkingweddings.com/en/about.html"'));
+  assert.ok(!out.includes('content="https://www.walkingweddings.com/about.html"'));
+  assert.strictEqual((out.match(/property="og:url"/g) || []).length, 1, 'exactly one og:url');
+});
+
+t('og:url keeps the DE URL on German pages', () => {
+  const html = '<head><meta property="og:url" content="https://walkingweddings.com/about.html"></head>';
+  const out = i18n.injectHreflang(html, {
+    logicalPath: '/about.html', locale: 'de', siteUrl: 'https://www.walkingweddings.com',
+  });
+  assert.ok(out.includes('content="https://www.walkingweddings.com/about.html"'), 'host normalised to www');
+});
+
+t('og:url is rewritten regardless of attribute order', () => {
+  const html = `<meta content='https://www.walkingweddings.com/x.html' property="og:url">`;
+  const out = i18n.injectHreflang(html, {
+    logicalPath: '/x.html', locale: 'en', siteUrl: 'https://www.walkingweddings.com',
+  });
+  assert.ok(out.includes('content="https://www.walkingweddings.com/en/x.html"'));
+});
+
+t('a page without og:url does not gain one', () => {
+  const out = i18n.injectHreflang('<head><title>x</title></head>', {
+    logicalPath: '/404.html', locale: 'de', siteUrl: 'https://www.walkingweddings.com',
+  });
+  assert.ok(!out.includes('og:url'));
+});
+
+t('og:image and other og tags are left alone', () => {
+  const html = '<meta property="og:image" content="https://www.walkingweddings.com/a.webp">';
+  const out = i18n.injectHreflang(html, {
+    logicalPath: '/about.html', locale: 'en', siteUrl: 'https://www.walkingweddings.com',
+  });
+  assert.ok(out.includes('content="https://www.walkingweddings.com/a.webp"'));
+});
+
+// --- injectHreflang: hasEn ---
+t('without an English version the /en/ URL canonicalises to the German one', () => {
+  const out = i18n.injectHreflang('<head></head>', {
+    logicalPath: '/blog/x.html', locale: 'en', siteUrl: 'https://www.walkingweddings.com', hasEn: false,
+  });
+  assert.ok(out.includes('rel="canonical" href="https://www.walkingweddings.com/blog/x.html"'));
+  assert.ok(!out.includes('hreflang='), 'no alternates when there is only one language');
+});
+
+t('without an English version the German page emits no alternates either', () => {
+  const out = i18n.injectHreflang('<head></head>', {
+    logicalPath: '/blog/x.html', locale: 'de', siteUrl: 'https://www.walkingweddings.com', hasEn: false,
+  });
+  assert.ok(out.includes('rel="canonical" href="https://www.walkingweddings.com/blog/x.html"'));
+  assert.ok(!out.includes('hreflang='));
+});
+
+t('hasEn defaults to true so existing callers keep the full alternate set', () => {
+  const out = i18n.injectHreflang('<head></head>', {
+    logicalPath: '/blog/x.html', locale: 'en', siteUrl: 'https://www.walkingweddings.com',
+  });
+  assert.ok(out.includes('rel="canonical" href="https://www.walkingweddings.com/en/blog/x.html"'));
+  assert.ok(out.includes('hreflang="de"') && out.includes('hreflang="en"') && out.includes('hreflang="x-default"'));
+});
+
+t('og:url follows the German canonical when there is no English version', () => {
+  const html = '<meta property="og:url" content="https://www.walkingweddings.com/blog/x.html">';
+  const out = i18n.injectHreflang(html, {
+    logicalPath: '/blog/x.html', locale: 'en', siteUrl: 'https://www.walkingweddings.com', hasEn: false,
+  });
+  assert.ok(out.includes('content="https://www.walkingweddings.com/blog/x.html"'));
+});
+
+// --- applyI18nJsonLd (via applyI18n) ---
+t('JSON-LD: an annotated path is translated, everything else is left alone', () => {
+  const html = '<script type="application/ld+json" data-i18n-json="description:s.d">\n' +
+    '{"@type":"LocalBusiness","name":"Walking Weddings","description":"Deutsch"}\n</script>';
+  const out = i18n.applyI18n(html, { 's.d': 'English' });
+  const json = JSON.parse(out.match(/>([\s\S]*?)<\/script>/)[1]);
+  assert.strictEqual(json.description, 'English');
+  assert.strictEqual(json.name, 'Walking Weddings', 'the business name is not translated');
+  assert.strictEqual(json['@type'], 'LocalBusiness');
+});
+
+t('JSON-LD: array indices address list entries', () => {
+  const html = '<script type="application/ld+json" data-i18n-json="0.name:a; 1.name:b">\n' +
+    '[{"name":"eins"},{"name":"zwei"}]\n</script>';
+  const out = i18n.applyI18n(html, { a: 'one', b: 'two' });
+  const json = JSON.parse(out.match(/>([\s\S]*?)<\/script>/)[1]);
+  assert.deepStrictEqual(json.map(v => v.name), ['one', 'two']);
+});
+
+t('JSON-LD: a missing dict key leaves that value German', () => {
+  const html = '<script type="application/ld+json" data-i18n-json="description:nope">\n' +
+    '{"description":"Deutsch"}\n</script>';
+  assert.strictEqual(i18n.applyI18n(html, {}), html, 'block returned untouched');
+});
+
+t('JSON-LD: an unknown path never invents a field', () => {
+  const html = '<script type="application/ld+json" data-i18n-json="nichtDa:k">\n{"a":1}\n</script>';
+  const out = i18n.applyI18n(html, { k: 'x' });
+  assert.strictEqual(out, html);
+});
+
+t('JSON-LD: invalid JSON is left as-is instead of throwing', () => {
+  const html = '<script type="application/ld+json" data-i18n-json="a:k">\n{kaputt\n</script>';
+  assert.strictEqual(i18n.applyI18n(html, { k: 'x' }), html);
+});
+
+t('JSON-LD: a value containing </script> cannot break out of the block', () => {
+  const html = '<script type="application/ld+json" data-i18n-json="d:k">\n{"d":"x"}\n</script>';
+  const out = i18n.applyI18n(html, { k: 'a</script><script>alert(1)</script>' });
+  assert.strictEqual((out.match(/<\/script>/gi) || []).length, 1, 'still exactly one closing tag');
+  assert.ok(!out.includes('<script>alert'), 'no injected tag');
+  assert.strictEqual(JSON.parse(out.match(/>([\s\S]*?)<\/script>/)[1]).d, 'a</script><script>alert(1)</script>');
+});
+
+t('JSON-LD: an unannotated block is untouched', () => {
+  const html = '<script type="application/ld+json">\n{"description":"Deutsch"}\n</script>';
+  assert.strictEqual(i18n.applyI18n(html, { 's.d': 'English' }), html);
+});
+
+t('data-i18n-json does not collide with data-i18n / data-i18n-attr', () => {
+  const html = '<script type="application/ld+json" data-i18n-json="d:k">\n{"d":"de"}\n</script>';
+  const out = i18n.applyI18n(html, { k: 'en', 'd:k': 'WRONG' });
+  assert.ok(!out.includes('WRONG'));
+  assert.strictEqual(JSON.parse(out.match(/>([\s\S]*?)<\/script>/)[1]).d, 'en');
+});
+
 // --- renderLangSwitch ---
 t('renderLangSwitch injects crawlable mirror links before </footer>', () => {
   const out = i18n.renderLangSwitch('<footer>x</footer>', { logicalPath: '/about.html', locale: 'de' });

@@ -86,8 +86,8 @@ function buildPostHtml(draft, opts) {
 
   const year = new Date().getFullYear();
   const canonical = lang === 'en'
-    ? `https://walkingweddings.com/en/blog/${slug}.html`
-    : `https://walkingweddings.com/blog/${slug}.html`;
+    ? `https://www.walkingweddings.com/en/blog/${slug}.html`
+    : `https://www.walkingweddings.com/blog/${slug}.html`;
   const tags = Array.isArray(marqueeTags) && marqueeTags.length ? marqueeTags : [coupleNames, eyebrow, 'Walking Weddings', 'Journal'];
   const marqueeSpans = [...tags, ...tags]
     .map(t => `      <span>${escapeHtml(t)}</span>`)

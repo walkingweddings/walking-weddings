@@ -142,6 +142,24 @@ function getClientIp(req) {
   return fwd ? fwd.split(',')[0].trim() : req.socket.remoteAddress;
 }
 
+// The hostname the visitor actually typed, normalised so it can be compared.
+// Behind a proxy (Railway, with Cloudflare in front) the original host may
+// arrive in X-Forwarded-Host rather than Host — as a comma-separated chain
+// when several proxies are involved — and either header may carry a :port or
+// the trailing dot of a fully qualified name. Comparing the raw Host against a
+// literal therefore misses the apex in production, which is exactly how both
+// hosts ended up serving the site.
+function visitorHost(req) {
+  const fwd = req.headers['x-forwarded-host'];
+  const raw = (Array.isArray(fwd) ? fwd[0] : fwd) || req.headers.host || '';
+  return String(raw)
+    .split(',')[0]
+    .trim()
+    .toLowerCase()
+    .replace(/:\d+$/, '')
+    .replace(/\.$/, '');
+}
+
 function isRateLimited(ip) {
   const now = Date.now();
   let hits = rateMap.get(ip) || [];
@@ -199,6 +217,19 @@ function validateLead(lead) {
   return null;
 }
 
+// Does an English version of this logical path actually exist? Static pages
+// always do — the i18n dictionary covers every one of them. A blog post only
+// does once the publish flow has written its `<slug>.en.html` sibling.
+//
+// Shared by the sitemap and the per-request hreflang/canonical pass so the two
+// can never disagree: advertising an English alternate that doesn't exist is
+// the same mistake whether it happens in sitemap.xml or in a <link>.
+function hasEnglishVersion(logicalPath) {
+  const m = logicalPath.match(/^\/blog\/([a-z0-9-]+)\.html$/i);
+  if (!m) return true;
+  return existsSync(join(ROOT, 'blog', `${m[1]}.en.html`));
+}
+
 // Dynamic sitemap with hreflang alternates. Static pages always have an
 // English mirror; blog posts only when a pre-built `<slug>.en.html` exists.
 // Each language URL is emitted as its own <url> listing the full alternate set
@@ -222,7 +253,7 @@ function buildSitemap() {
       .sort();
     for (const f of files) {
       const slug = f.slice(0, -'.html'.length);
-      entries.push({ path: `/blog/${slug}.html`, en: existsSync(join(ROOT, 'blog', `${slug}.en.html`)) });
+      entries.push({ path: `/blog/${slug}.html`, en: hasEnglishVersion(`/blog/${slug}.html`) });
     }
   } catch {}
 
@@ -460,11 +491,13 @@ createServer(async (req, res) => {
   const url = req.url.split('?')[0];
 
   // Canonical host: walkingweddings.com → www.walkingweddings.com (301).
-  // www is the canonical host (apex stays on Hetzner with its own HTTP redirect
-  // to www, so apex never reaches Railway in production). We only collapse if
-  // someone explicitly hits the bare apex on Railway (e.g. via direct IP or a
-  // future DNS misconfig). Other hosts (localhost, *.up.railway.app) untouched.
-  const host = (req.headers.host || '').toLowerCase();
+  // www is the canonical host, and the apex DOES reach us in production — an
+  // earlier comment here assumed it never would, which is why this check was a
+  // raw `req.headers.host` compare that quietly never fired. Both hosts served
+  // the site, so Google indexed it twice. visitorHost() normalises the proxy
+  // headers before comparing. Other hosts (localhost, *.up.railway.app) stay
+  // untouched.
+  const host = visitorHost(req);
   if (host === 'walkingweddings.com') {
     res.writeHead(301, { Location: `https://www.walkingweddings.com${req.url}` });
     res.end();
@@ -711,7 +744,12 @@ createServer(async (req, res) => {
       html = i18n.setHtmlLang(html, 'en');
       html = i18n.localizeLinks(html, logicalPath);
     }
-    html = i18n.injectHreflang(html, { logicalPath, locale: isEn ? 'en' : 'de', siteUrl: SITE_URL });
+    html = i18n.injectHreflang(html, {
+      logicalPath,
+      locale: isEn ? 'en' : 'de',
+      siteUrl: SITE_URL,
+      hasEn: hasEnglishVersion(logicalPath),
+    });
     html = i18n.renderLangSwitch(html, { logicalPath, locale: isEn ? 'en' : 'de' });
     // Consent gate + Meta Pixel on every public page. The admin UI is an
     // internal tool behind a login — no marketing tracking there.

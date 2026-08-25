@@ -109,7 +109,73 @@ function applyI18n(html, dict) {
     }
   );
 
+  html = applyI18nJsonLd(html, dict);
+
   return html;
+}
+
+// ---------------------------------------------------------------------------
+// JSON-LD. Structured data is prose for machines: Google reads a LocalBusiness
+// `description` the same way it reads the visible copy, so an English page
+// carrying a German description describes one business in two languages.
+//
+// The annotation mirrors data-i18n-attr, except the left side is a path into
+// the parsed JSON instead of an attribute name:
+//   data-i18n-json="description:schema.home.description"
+//   data-i18n-json="0.name:schema.motion.emirates.name; 1.name:…"
+// Array indices are plain numbers. Only human-readable strings are listed —
+// business name, postal address, URLs, @id and @type stay untouched, because
+// those identify the same entity in every language.
+//
+// `data-i18n-json=` never matches the `data-i18n=` or `data-i18n-attr=`
+// patterns above (the character after `data-i18n` is `-`, not `=`), so the
+// three annotations don't collide. A block that fails to parse is left as-is.
+// ---------------------------------------------------------------------------
+
+// Assigns into an already-existing leaf. Returns false if the path doesn't
+// resolve, so a renamed field shows up as an untranslated string rather than a
+// silently invented one.
+function setByPath(obj, path, value) {
+  const parts = path.split('.');
+  let cur = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (cur == null || typeof cur !== 'object') return false;
+    cur = cur[parts[i]];
+  }
+  if (cur == null || typeof cur !== 'object') return false;
+  const last = parts[parts.length - 1];
+  if (!Object.prototype.hasOwnProperty.call(cur, last)) return false;
+  cur[last] = value;
+  return true;
+}
+
+function applyI18nJsonLd(html, dict) {
+  if (!html || !dict) return html;
+  return html.replace(
+    /(<script\b[^>]*\bdata-i18n-json=["']([^"']+)["'][^>]*>)([\s\S]*?)(<\/script>)/gi,
+    (match, open, spec, body, close) => {
+      let data;
+      try { data = JSON.parse(body); } catch { return match; }
+
+      let changed = false;
+      for (const pair of spec.split(';')) {
+        const idx = pair.indexOf(':');
+        if (idx === -1) continue;
+        const path = pair.slice(0, idx).trim();
+        const key = pair.slice(idx + 1).trim();
+        if (!path || !key) continue;
+        const val = dict[key];
+        if (val == null) continue;
+        if (setByPath(data, path, val)) changed = true;
+      }
+      if (!changed) return match;
+
+      // Escaping `<` keeps a value that happens to contain "</script>" from
+      // ending the block early. < is plain JSON, so parsers don't care.
+      const json = JSON.stringify(data, null, 2).replace(/</g, '\\u003c');
+      return `${open}\n${json}\n  ${close}`;
+    }
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -190,33 +256,53 @@ function setHtmlLang(html, lang) {
 }
 
 // ---------------------------------------------------------------------------
-// canonical + hreflang. Single source of truth: strip any existing canonical /
-// alternate links first, then emit the locale-correct set. Reciprocal on both
-// DE and EN, x-default → DE.
+// canonical + og:url + hreflang. Single source of truth: strip any existing
+// canonical / alternate links first, then emit the locale-correct set.
+// Reciprocal on both DE and EN, x-default → DE.
+//
+// og:url is rewritten to the same value as the canonical. The source files are
+// German and hardcode the German URL there, so without this an /en/ page would
+// tell every social crawler that its real address is the German one — a second,
+// conflicting URL for the same content.
+//
+// `hasEn` says whether an English version actually exists. Static pages always
+// have one (the dictionary covers them); a blog post only has one once its
+// `<slug>.en.html` has been published. Without it, /en/blog/<slug>.html serves
+// the German text under an English URL — so we point that URL's canonical at
+// the German original and drop the alternates entirely. hreflang describes a
+// choice between languages; with only one language there is nothing to choose.
 // ---------------------------------------------------------------------------
 
 function canonPath(p) {
   return (p || '/').replace(/\/index\.html$/i, '/');
 }
 
-function injectHreflang(html, { logicalPath, locale, siteUrl }) {
+function injectHreflang(html, { logicalPath, locale, siteUrl, hasEn = true }) {
   if (!html) return html;
   const path = canonPath(logicalPath);
   const base = String(siteUrl || '').replace(/\/$/, '');
   const deUrl = base + path;
   const enUrl = base + '/en' + (path === '/' ? '/' : path);
-  const canonical = locale === 'en' ? enUrl : deUrl;
+  const canonical = (hasEn && locale === 'en') ? enUrl : deUrl;
 
   // Remove pre-existing canonical + hreflang alternates to avoid duplicates.
   html = html
     .replace(/[ \t]*<link\b[^>]*\brel=["']canonical["'][^>]*>\s*/gi, '')
     .replace(/[ \t]*<link\b[^>]*\bhreflang=["'][^"']*["'][^>]*>\s*/gi, '');
 
-  const block =
-    `  <link rel="canonical" href="${canonical}">\n` +
-    `  <link rel="alternate" hreflang="de" href="${deUrl}">\n` +
-    `  <link rel="alternate" hreflang="en" href="${enUrl}">\n` +
-    `  <link rel="alternate" hreflang="x-default" href="${deUrl}">\n`;
+  // Point og:url at the canonical. Only rewritten where the tag already exists
+  // — a page that deliberately carries none (the 404) must not gain one.
+  html = html.replace(
+    /<meta\b[^>]*\bproperty=["']og:url["'][^>]*>/gi,
+    tag => tag.replace(/\bcontent\s*=\s*("[^"]*"|'[^']*')/i, `content="${escapeAttr(canonical)}"`)
+  );
+
+  const block = hasEn
+    ? `  <link rel="canonical" href="${canonical}">\n` +
+      `  <link rel="alternate" hreflang="de" href="${deUrl}">\n` +
+      `  <link rel="alternate" hreflang="en" href="${enUrl}">\n` +
+      `  <link rel="alternate" hreflang="x-default" href="${deUrl}">\n`
+    : `  <link rel="canonical" href="${canonical}">\n`;
 
   if (/<\/head>/i.test(html)) return html.replace(/<\/head>/i, block + '</head>');
   return block + html;
