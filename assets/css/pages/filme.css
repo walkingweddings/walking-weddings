@@ -108,13 +108,12 @@
 
 .film-showcase__frame iframe {
   position: absolute;
-  /* Iframe ragt unten 44 px raus, damit die Player-Bar abgeschnitten wird.
-     Der Pic-Time-Embed läuft mit transparentbg=true, also bleibt der Rest
-     des iframe-Bereichs transparent und zeigt die Cream-Seitenfarbe. */
+  /* Volle Höhe, damit die Player-Bar (Play-Button, Fortschrittsleiste)
+     sichtbar bleibt — Besucher starten und spulen die Filme selbst. */
   top: 0;
   left: 0;
   width: 100%;
-  height: calc(100% + 44px);
+  height: 100%;
   border: 0;
 }
 

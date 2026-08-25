@@ -21,37 +21,23 @@ if (revealElements.length > 0) {
 }
 
 // ========================================
-// FILM SHOWCASE — play while visible, stop when scrolled past
-// Nur das Video, das mindestens 50% im Viewport ist, wird geladen.
-// Sobald es darunter fällt, schaltet src auf about:blank und der Stream
-// stoppt — verhindert Bandbreiten-Konflikte und Lag bei den nächsten Videos.
+// FILM SHOWCASE — lazy-load once when approaching the viewport
+// Die Filme spielen nicht mehr automatisch: Der Pic-Time-Player zeigt sein
+// Vorschaubild samt Play-Button, Besucher starten den Film selbst. Deshalb
+// wird beim Rausscrollen auch nicht mehr entladen — sonst würde ein manuell
+// gestarteter Film beim Scrollen gestoppt und zurückgesetzt.
 // ========================================
 
 const filmFrames = document.querySelectorAll('.film-showcase__frame iframe[data-src]');
 
 if (filmFrames.length > 0) {
-  const setFilmPlaying = (iframe, playing) => {
-    if (playing) {
-      if (iframe.dataset.playing !== 'true') {
-        iframe.src = iframe.dataset.src;
-        iframe.dataset.playing = 'true';
-      }
-    } else {
-      if (iframe.dataset.playing === 'true') {
-        iframe.src = 'about:blank';
-        iframe.dataset.playing = 'false';
-      }
-    }
-  };
-
   const filmFrameObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      // Load as soon as the frame approaches the viewport, unload only once it
-      // is well past. The previous "must be >=50% visible" rule was fragile on
-      // mobile (short 16:9 frames in a tall viewport sometimes never tripped
-      // the 0.5 ratio), leaving the iframe empty. isIntersecting with a
-      // generous rootMargin is robust on phones and still lazy.
-      setFilmPlaying(entry.target, entry.isIntersecting);
+      if (entry.isIntersecting) {
+        const iframe = entry.target;
+        iframe.src = iframe.dataset.src;
+        filmFrameObserver.unobserve(iframe);
+      }
     });
   }, {
     threshold: 0,
