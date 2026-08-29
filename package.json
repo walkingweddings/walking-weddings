@@ -3,5 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node serve.js"
+  },
+  "optionalDependencies": {
+    "sharp": "^0.33.0"
   }
 }

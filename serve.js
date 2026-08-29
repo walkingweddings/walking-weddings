@@ -829,4 +829,5 @@ createServer(async (req, res) => {
 }).listen(PORT, () => {
   console.log(`Walking Weddings server running on port ${PORT}`);
   console.log(metaCapi.startupSummary());
+  console.log(require('./admin/image-convert').startupSummary());
 });
