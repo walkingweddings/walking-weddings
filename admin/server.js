@@ -11,6 +11,7 @@ const { buildPostHtml, buildBlogCard, escapeHtml } = require('./template');
 const { addCacheBusters } = require('../cache-buster');
 const { syncToGitHub, syncDeleteToGitHub } = require('./git-sync');
 const storage = require('./storage');
+const imageConvert = require('./image-convert');
 const pagesApi = require('./pages-api');
 const leadsApi = require('./leads-api');
 const mediaApi = require('./media-api');
@@ -827,9 +828,23 @@ async function handle(req, res, url) {
       const safe = String(filename).replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80);
       const ts = Date.now();
       const rand = crypto.randomBytes(4).toString('hex');
-      const finalName = `${ts}-${rand}-${safe}`;
+
+      // Nach WebP wandeln, bevor irgendetwas auf die Platte geht. Klappt das
+      // nicht — kein sharp, unbekanntes Format, kaputte Datei —, kommt das
+      // Original unveraendert zurueck und der Upload laeuft wie bisher.
+      const original = Buffer.from(dataBase64, 'base64');
+      const result = await imageConvert.toWebp(original, safe);
+      if (result.converted) {
+        const saved = Math.round((1 - result.after / result.before) * 100);
+        console.log(`[admin] ${safe}: ${(result.before / 1048576).toFixed(2)} MB -> ` +
+          `${(result.after / 1048576).toFixed(2)} MB WebP (${saved} % gespart)`);
+      } else if (result.reason && !/wird nicht umgewandelt/.test(result.reason)) {
+        console.warn(`[admin] ${safe}: unveraendert gespeichert — ${result.reason}`);
+      }
+
+      const finalName = `${ts}-${rand}-${result.filename}`;
       const fullPath = join(UPLOADS_DIR, finalName);
-      writeFileSync(fullPath, Buffer.from(dataBase64, 'base64'));
+      writeFileSync(fullPath, result.buffer);
       const urlPath = `/assets/images/journal/${finalName}`;
       const isVideo = String(contentType || '').startsWith('video/') || /\.(mp4|mov|webm)$/i.test(finalName);
       json(res, 200, { ok: true, url: urlPath, type: isVideo ? 'video' : 'image', filename: finalName });

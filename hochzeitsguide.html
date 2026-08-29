@@ -109,6 +109,13 @@
       letter-spacing: 0;
     }
 
+    /* Handlungsaufruf im ersten Bildschirm. Vorher stand hier ein zweites
+       Logo — die Marke steht schon in der Navigation, und der Platz gehoert
+       dem, was der Besucher als Naechstes tun soll. */
+    .guide-hero__cta {
+      margin-top: var(--space-md);
+    }
+
     .guide-hero__sub {
       font-size: var(--text-sm);
       letter-spacing: 0.15em;
@@ -417,14 +424,14 @@
   <!-- HERO -->
   <section class="guide-hero">
     <div class="guide-hero__bg">
-      <img data-cms-id="hero.bg" src="assets/images/portfolio/hero-hochzeit.webp" alt="">
+      <img data-cms-id="hero.bg" src="assets/images/portfolio/hero-hochzeit.webp" alt="" fetchpriority="high" decoding="async">
     </div>
     <div class="guide-hero__content">
-      <img src="assets/images/logo/ww_logoBlack_wtagline.svg" alt="Walking Weddings" style="width: 360px; max-width: 80%; margin: 0 auto var(--space-lg); display: block;">
       <span class="guide-badge" data-cms-id="hero.badge" data-i18n="guide.hero.badge">Euer Hochzeitsguide</span>
       <h1 data-cms-id="hero.headline" data-i18n="guide.hero.headline">Euer Fahrplan für die Hochzeit <em>2027</em></h1>
       <div style="width: 60px; height: 1px; background: var(--color-accent); margin: var(--space-md) auto;"></div>
       <p class="guide-hero__sub" data-cms-id="hero.sub" data-i18n="guide.hero.sub">Tipps von euren Experten für Foto & Video</p>
+      <a href="contact.html" class="btn guide-hero__cta" data-i18n="guide.hero.cta">Termin unverbindlich checken</a>
     </div>
   </section>
 
@@ -467,7 +474,7 @@
   <section class="section section--light">
     <div class="guide-comparison">
       <div class="guide-comparison__item">
-        <img data-cms-id="comparison.photo" src="assets/images/portfolio/foto-stil.webp" alt="Fotografie — Jennise & Florian" data-i18n-attr="alt:guide.comparison.photoAlt">
+        <img loading="lazy" decoding="async" data-cms-id="comparison.photo" src="assets/images/portfolio/foto-stil.webp" alt="Fotografie — Jennise & Florian" data-i18n-attr="alt:guide.comparison.photoAlt">
         <span class="guide-comparison__label" data-i18n="guide.comparison.photoLabel">Foto</span>
       </div>
       <div class="guide-comparison__item">
@@ -492,7 +499,7 @@
 
   <!-- PHOTO BREAK -->
   <div class="guide-photo">
-    <img data-cms-id="photoBreak.image" src="assets/images/portfolio/bw-zeremonie.webp" alt="Zeremonie — Authentische Momente" data-i18n-attr="alt:guide.photoBreak.alt">
+    <img loading="lazy" decoding="async" data-cms-id="photoBreak.image" src="assets/images/portfolio/bw-zeremonie.webp" alt="Zeremonie — Authentische Momente" data-i18n-attr="alt:guide.photoBreak.alt">
   </div>
 
   <!-- TIPS 4 & 5 -->
@@ -523,15 +530,15 @@
     <div class="guide-carousel" id="carousel">
       <div class="guide-carousel__track" id="carouselTrack">
         <div class="guide-carousel__slide">
-          <img data-cms-id="carousel.image1" src="assets/images/portfolio/golden-hour.webp" alt="Golden Hour — Paarfoto am Strand von Phuket, Thailand" data-i18n-attr="alt:guide.carousel.alt1">
+          <img loading="lazy" decoding="async" data-cms-id="carousel.image1" src="assets/images/portfolio/golden-hour.webp" alt="Golden Hour — Paarfoto am Strand von Phuket, Thailand" data-i18n-attr="alt:guide.carousel.alt1">
           <span class="guide-carousel__caption" data-cms-id="carousel.caption1" data-i18n="guide.carousel.caption1">Golden Hour</span>
         </div>
         <div class="guide-carousel__slide">
-          <img data-cms-id="carousel.image2" src="assets/images/portfolio/indian-wedding.webp" alt="Destination Wedding — indische Zeremonie unter dem Mandap in Abu Dhabi" data-i18n-attr="alt:guide.carousel.alt2">
+          <img loading="lazy" decoding="async" data-cms-id="carousel.image2" src="assets/images/portfolio/indian-wedding.webp" alt="Destination Wedding — indische Zeremonie unter dem Mandap in Abu Dhabi" data-i18n-attr="alt:guide.carousel.alt2">
           <span class="guide-carousel__caption" data-cms-id="carousel.caption2" data-i18n="guide.carousel.caption2">Destination Wedding</span>
         </div>
         <div class="guide-carousel__slide">
-          <img data-cms-id="carousel.image3" src="assets/images/portfolio/carousel-extra.webp" alt="Brautpaar im Licht" data-i18n-attr="alt:guide.carousel.alt3">
+          <img loading="lazy" decoding="async" data-cms-id="carousel.image3" src="assets/images/portfolio/carousel-extra.webp" alt="Brautpaar im Licht" data-i18n-attr="alt:guide.carousel.alt3">
           <span class="guide-carousel__caption" data-cms-id="carousel.caption3" data-i18n="guide.carousel.caption3">Licht & Liebe</span>
         </div>
       </div>
