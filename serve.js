@@ -115,9 +115,15 @@ function load404() {
 //
 // The path is absolute so it resolves identically from /, /blog/x.html and
 // the /en/ mirror; addCacheBusters() appends ?v=<hash> afterwards.
+//
+// signals.js hängt direkt daran: Es meldet die Zwischensignale (ViewContent auf
+// den Absichtsseiten, Formularbeginn) und ruft dafür wwConsent.track() auf —
+// muss also nach consent.js stehen. Es prüft die Einwilligung nicht selbst,
+// sondern verlässt sich auf dieselbe Sperre.
 const CONSENT_TAG =
   '  <!-- Cookie-Consent + Meta Pixel (loads only after marketing consent) -->\n' +
-  '  <script src="/assets/js/consent.js"></script>\n';
+  '  <script src="/assets/js/consent.js"></script>\n' +
+  '  <script src="/assets/js/signals.js" defer></script>\n';
 
 function injectConsentScript(html) {
   if (!html || html.includes('/assets/js/consent.js')) return html;

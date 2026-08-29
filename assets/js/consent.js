@@ -195,11 +195,26 @@
   // ENTSCHEIDUNGEN
   // ========================================
 
+  // Wer nach der Einwilligung noch etwas melden will, traegt sich hier ein.
+  // Ohne diese Liste geht das Signal der Seite verloren, auf der zugestimmt
+  // wurde: Das Pixel laedt erst in diesem Moment, der Seitenaufruf ist da
+  // laengst vorbei.
+  var grantCallbacks = [];
+
+  function notifyGrant() {
+    var list = grantCallbacks.slice();
+    grantCallbacks.length = 0;
+    for (var i = 0; i < list.length; i++) {
+      try { list[i](); } catch (err) { /* ein Zuhoerer darf die anderen nicht mitreissen */ }
+    }
+  }
+
   function accept() {
     writeDecision(ACCEPTED);
     hideBanner();
     loadPixel();
     updateStatusLabels();
+    notifyGrant();
   }
 
   function decline() {
@@ -241,6 +256,14 @@
     accept: accept,
     decline: decline,
     reopen: reopen,
+    // Ruft fn auf, sobald eine Marketing-Einwilligung vorliegt: sofort, wenn
+    // sie schon da ist, sonst beim Zustimmen. Jeder Zuhoerer wird hoechstens
+    // einmal aufgerufen.
+    onGrant: function (fn) {
+      if (typeof fn !== 'function') return;
+      if (readDecision() === ACCEPTED) { fn(); return; }
+      grantCallbacks.push(fn);
+    },
     // Für Event-Tracking an anderen Stellen (z.B. Lead im Kontaktformular):
     // feuert nur, wenn das Pixel tatsächlich mit Einwilligung geladen wurde.
     //
