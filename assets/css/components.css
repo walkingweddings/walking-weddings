@@ -174,6 +174,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  /* "safe" haelt die Zentrierung, solange alles hineinpasst, und richtet bei
+     Ueberlauf am oberen Rand aus. Ohne das schneidet zentrierter Inhalt oben ab
+     und laesst sich nicht mehr erreichen — auch nicht durch Scrollen. Aeltere
+     Browser ignorieren die Zeile und behalten die darueber. */
+  justify-content: safe center;
+  /* Reissleine: Passt die Liste auf einem kurzen Bildschirm trotzdem nicht,
+     laesst sie sich wenigstens scrollen, statt unsichtbar abzuschneiden. */
+  overflow-y: auto;
+  padding: var(--space-md) var(--space-md);
   gap: var(--space-lg);
   opacity: 0;
   visibility: hidden;
@@ -380,6 +389,94 @@
 .lang-switch__sep {
   color: var(--color-secondary);
   opacity: 0.5;
+}
+
+/* Umschalter in der Navigation.
+   Die Fassung im Fussbereich steht auf hellem Grund und erbt die dortigen
+   Farben. In der Navigation liegt er ueber dem Video und muss die Regeln der
+   Leiste uebernehmen: dieselbe Schrift wie .nav__link, dieselbe Helligkeit,
+   und der Blendmodus der Elternleiste traegt ihn ueber Hell wie ueber Dunkel.
+   Deshalb hier kein eigener mix-blend-mode — .nav bzw. .nav__links bringen ihn
+   schon mit, und ein zweiter wuerde einen eigenen Stapelkontext aufmachen. */
+.lang-switch--nav,
+.lang-switch--menu {
+  padding-top: 0;
+  font-size: var(--text-xs);
+  letter-spacing: 0.18em;
+}
+
+.lang-switch--nav {
+  /* Teil der Pillenleiste: gleiche Zeile, mit dem gewohnten Punkt abgesetzt. */
+  display: inline-flex;
+  padding-left: var(--space-md);
+  position: relative;
+}
+
+.lang-switch--nav::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(247, 247, 245, 0.5);
+  pointer-events: none;
+  line-height: 1;
+}
+
+.lang-switch--nav .lang-switch__btn,
+.lang-switch--menu .lang-switch__btn {
+  color: rgba(247, 247, 245, 0.75);
+}
+
+.lang-switch--nav .lang-switch__btn:hover,
+.lang-switch--menu .lang-switch__btn:hover {
+  color: var(--color-accent);
+}
+
+.lang-switch--nav .lang-switch__btn.is-active,
+.lang-switch--menu .lang-switch__btn.is-active {
+  color: var(--color-text-light);
+  font-weight: 700;
+}
+
+.lang-switch--nav .lang-switch__sep,
+.lang-switch--menu .lang-switch__sep {
+  color: rgba(247, 247, 245, 0.4);
+}
+
+/* Im Hamburger-Menue steht der Umschalter unter den sechs Links, mit etwas
+   Abstand — er ist eine Einstellung, kein siebter Menuepunkt. */
+.lang-switch--menu {
+  margin-top: var(--space-md);
+}
+
+/* Auf kurzen Bildschirmen wird es eng: Mit den sechs Links und dem Umschalter
+   braucht die Liste bei 4rem Abstand rund 680 px, ein iPhone SE hat 568.
+   Gemessen ohne diese Regel: -56..624 von 568, also oben UND unten abgeschnitten.
+   Der Abstand schrumpft deshalb mit der Bildschirmhoehe, nicht mit der Breite —
+   das Problem ist die Hoehe. */
+@media (max-height: 700px) {
+  .mobile-menu {
+    gap: var(--space-md);
+  }
+
+  .mobile-menu__link {
+    font-size: var(--text-xl);
+  }
+
+  .lang-switch--menu {
+    margin-top: var(--space-xs);
+  }
+}
+
+/* Ueber 768 px uebernimmt die Pillenleiste, darunter das Menue. Der jeweils
+   andere bleibt verborgen, damit nie beide gleichzeitig zu sehen sind. */
+@media (max-width: 767px) {
+  .lang-switch--nav { display: none; }
+}
+
+@media (min-width: 768px) {
+  .lang-switch--menu { display: none; }
 }
 
 /* ========================================

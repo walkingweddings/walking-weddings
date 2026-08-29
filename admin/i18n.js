@@ -327,10 +327,50 @@ function renderLangSwitch(html, { logicalPath, locale }) {
     `<a href="${enHref}" class="${cls('en')}" hreflang="en"${cur('en')}>EN</a>` +
     `</div>`;
 
+  // Zusaetzlich in die Navigation: Wer aus einer englischsprachigen Anzeige auf
+  // "/" statt "/en/" landet, sieht sonst eine deutsche Seite und muesste bis
+  // ans Seitenende scrollen, um zu merken, dass es sie auch auf Englisch gibt.
+  // Am Fuss bleibt der Umschalter trotzdem stehen: Dort ist er crawlbar und
+  // wirkt als hreflang-Signal.
+  //
+  // Zwei Stellen, weil die Navigation zwei Zustaende hat: die Leiste unten am
+  // Bildschirm (ab 768 px) und das Hamburger-Menue darunter. Beide bekommen
+  // dieselben Links, nur mit eigener Klasse fuer die Platzierung.
+  const navBlock = (variant) =>
+    `<div class="lang-switch lang-switch--${variant}">` +
+    `<a href="${deHref}" class="${cls('de')}" hreflang="de"${cur('de')}>DE</a>` +
+    `<span class="lang-switch__sep" aria-hidden="true">/</span>` +
+    `<a href="${enHref}" class="${cls('en')}" hreflang="en"${cur('en')}>EN</a>` +
+    `</div>`;
+
+  html = insertBeforeClose(html, '<div class="nav__links">', navBlock('nav'));
+  html = insertBeforeClose(html, '<div class="mobile-menu"', navBlock('menu'));
+
   const idx = html.lastIndexOf('</footer>');
   if (idx !== -1) return html.slice(0, idx) + block + html.slice(idx);
   if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, block + '</body>');
   return html + block;
+}
+
+// Haengt `insert` vor das schliessende </div> des mit `openTag` beginnenden
+// Containers. Zaehlt verschachtelte <div> mit, damit der Block auch dann an der
+// richtigen Stelle landet, wenn die Navigation spaeter verschachtelt wird.
+// Findet sich der Container nicht, bleibt das HTML unveraendert — eine Seite
+// ohne Navigation soll daran nicht scheitern.
+function insertBeforeClose(html, openTag, insert) {
+  const start = html.indexOf(openTag);
+  if (start === -1) return html;
+  let i = html.indexOf('>', start);
+  if (i === -1) return html;
+  let depth = 1;
+  const re = /<(\/?)div\b/gi;
+  re.lastIndex = i + 1;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    depth += m[1] ? -1 : 1;
+    if (depth === 0) return html.slice(0, m.index) + insert + html.slice(m.index);
+  }
+  return html;
 }
 
 module.exports = {
