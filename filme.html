@@ -36,8 +36,12 @@
   <!-- Structured data: VideoObject je Hochzeitsfilm. Der Hero auf der
        Startseite bekommt bewusst keins — Google indexiert keine Videos,
        die als Hintergrund laufen. Hier sind die Filme der Hauptinhalt.
-       uploadDate ist der frueheste in der Repo-Historie belegbare Tag,
-       nicht zwingend der echte Veroeffentlichungstag. -->
+       uploadDate ist der Zeitpunkt, an dem der Film nachweislich auf die
+       Seite kam (Commit cd59cd4), nicht zwingend der echte Drehtermin.
+       Es MUSS vollstaendiges ISO 8601 mit Zeitzone sein: ein blosses
+       "2026-06-24" hat die Search Console als "Ungueltiger Datum/Uhrzeit-
+       Wert" plus "Zeitzone fehlt" gemeldet. Bei neuen Filmen also
+       Datum, Uhrzeit und Offset uebernehmen, nicht nur den Tag. -->
   <script type="application/ld+json" data-i18n-json="0.name:schema.motion.emirates.name; 0.description:schema.motion.emirates.description; 1.name:schema.motion.palais.name; 1.description:schema.motion.palais.description; 2.name:schema.motion.adria.name; 2.description:schema.motion.adria.description">
   [
     {
@@ -46,7 +50,7 @@
       "name": "Farben der Emirate — Simran & Aman",
       "description": "Eine indische Destination-Hochzeit im Fairmont Hotel Abu Dhabi: farbenfrohe Traditionen, opulente Zeremonien und glanzvolle Feiermomente unter der Sonne der Emirate.",
       "thumbnailUrl": "https://www.walkingweddings.com/assets/images/portfolio/indian-wedding.webp",
-      "uploadDate": "2026-06-24",
+      "uploadDate": "2026-06-24T16:40:13+02:00",
       "embedUrl": "https://walkingweddings.pic-time.com/-simranamanswedding/featuredvideo/743484",
       "publisher": {
         "@id": "https://www.walkingweddings.com/#org"
@@ -58,7 +62,7 @@
       "name": "Palais der Emotionen — Jia Min & Anthony",
       "description": "Von den liebevollen Momenten beim Getting Ready über den berührenden First Look bis zur emotionalen Zeremonie im Palais Niederösterreich in Wien.",
       "thumbnailUrl": "https://www.walkingweddings.com/assets/images/portfolio/jiaminente.webp",
-      "uploadDate": "2026-06-24",
+      "uploadDate": "2026-06-24T16:40:13+02:00",
       "embedUrl": "https://walkingweddings.pic-time.com/-jiaminanthonyswedding/featuredvideo/550334",
       "publisher": {
         "@id": "https://www.walkingweddings.com/#org"
@@ -70,7 +74,7 @@
       "name": "Adria-Romanze — Jennise & Florian",
       "description": "Von der christlichen Zeremonie in der Kirche San Bartolomeo in Barcola bis zur Feier am Meer — Romantik an der Adriaküste in Triest, Italien.",
       "thumbnailUrl": "https://www.walkingweddings.com/assets/images/portfolio/jenniseflorian-396.webp",
-      "uploadDate": "2026-06-24",
+      "uploadDate": "2026-06-24T16:40:13+02:00",
       "embedUrl": "https://walkingweddings.pic-time.com/-jenniseflorianswedding/featuredvideo/455308",
       "publisher": {
         "@id": "https://www.walkingweddings.com/#org"
