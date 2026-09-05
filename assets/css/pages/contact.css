@@ -107,7 +107,7 @@
   overflow: hidden;
   opacity: 0;
   transition: max-height var(--transition-medium), opacity var(--transition-medium), margin var(--transition-medium);
-  margin-left: calc(16px + var(--space-sm));
+
 }
 
 .form-referral__detail--open {
@@ -137,6 +137,69 @@
   margin: 0 0 var(--space-xs);
   padding-bottom: 0.25rem;
   border-bottom: 1px solid rgba(42, 47, 48, 0.15);
+}
+
+/* ------- Einklappbare Abschnitte -------
+   Datum, Location und Zusatzprodukte sind freiwillig. Ausgeklappt machten sie
+   das Formular auf dem Handy 2,4 Bildschirme lang, und der Absendeknopf lag
+   bei 2533 px. Wer sie braucht, klappt sie auf.
+
+   <details>/<summary> statt eigener Logik: native Semantik, kein JavaScript,
+   und die Browsersuche oeffnet einen geschlossenen Block von selbst. */
+.form-section--optional > summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  list-style: none;
+  transition: color var(--transition-fast);
+}
+
+/* Das voreingestellte Dreieck weg — wir setzen ein eigenes Zeichen rechts. */
+.form-section--optional > summary::-webkit-details-marker { display: none; }
+.form-section--optional > summary::marker { content: ''; }
+
+.form-section--optional > summary::after {
+  content: '+';
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  line-height: 1;
+  color: var(--color-accent);
+  transition: transform var(--transition-fast);
+}
+
+.form-section--optional[open] > summary::after {
+  content: '−';
+}
+
+.form-section--optional > summary:hover {
+  color: var(--color-accent);
+}
+
+/* Hinweis, dass hier nichts Pflicht ist — nimmt dem geschlossenen Block die
+   Anmutung, man habe etwas uebersehen. */
+.form-section__optional-hint {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: var(--text-sm);
+  color: var(--color-secondary);
+  margin-left: auto;
+  padding-right: var(--space-xs);
+}
+
+/* ------- Auswahlzeilen fuer Budget und Herkunft -------
+   Beide nutzen das vorhandene .form-toggles-Muster. Sie haben mehr Optionen
+   als "Art der Veranstaltung", deshalb hier etwas engere Abstaende, damit sie
+   auf dem Handy in zwei bis drei Zeilen passen statt in fuenf. */
+.form-toggles--budget,
+.form-toggles--referral {
+  gap: var(--space-sm) var(--space-md);
+}
+
+.form-toggles--budget .form-toggle-label,
+.form-toggles--referral .form-toggle-label {
+  font-size: var(--text-base);
 }
 
 /* ------- Inputs ------- */
