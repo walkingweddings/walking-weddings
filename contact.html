@@ -141,19 +141,19 @@
             </div>
 
             <!-- 3. Hochzeitsdatum -->
-            <details class="form-section form-section--optional">
-              <summary class="form-section__title" data-i18n="contact.sec.date">Datum<span class="form-section__optional-hint" data-i18n="contact.sec.optional">freiwillig</span></summary>
-              <div class="form-check">
-                <input type="checkbox" id="noDate" name="noDate">
-                <label for="noDate" data-i18n="contact.field.noDate">Wir haben noch kein fixes Datum</label>
-              </div>
+            <div class="form-section">
+              <h2 class="form-section__title" data-i18n="contact.sec.date">Datum *</h2>
               <div class="form-dynamic-fields" id="dateFields">
                 <div class="form__group">
                   <input class="form__input" type="date" name="date1">
                 </div>
               </div>
               <button type="button" class="form-add-btn" id="addDate" data-i18n="contact.addDate">+ Weiteres Datum</button>
-            </details>
+              <div class="form-check">
+                <input type="checkbox" id="noDate" name="noDate">
+                <label for="noDate" data-i18n="contact.field.noDate">Wir haben noch kein fixes Datum</label>
+              </div>
+            </div>
 
             <!-- 4. Location -->
             <details class="form-section form-section--optional">
@@ -481,6 +481,7 @@
       var isEn = document.documentElement.lang === 'en';
       var MSG = isEn ? {
         required: 'Please fill in all required fields (name, phone, email).',
+        dateRequired: 'Please give us a date \u2014 or tick "We do not have a fixed date yet".',
         company: 'Please enter your company name.',
         eventType: 'Please select the type of event.',
         interest: 'Please select at least one interest.',
@@ -489,6 +490,7 @@
         error: 'There was a problem sending your enquiry. Please try again or email us directly at contact@walkingweddings.com'
       } : {
         required: 'Bitte füllt alle Pflichtfelder aus (Name, Telefon, E-Mail).',
+        dateRequired: 'Bitte gebt uns ein Datum an \u2014 oder setzt das Häkchen „Wir haben noch kein fixes Datum\u201c.',
         company: 'Bitte gebt euren Firmennamen an.',
         eventType: 'Bitte wählt die Art der Veranstaltung aus.',
         interest: 'Bitte wählt mindestens ein Interesse aus.',
@@ -507,6 +509,13 @@
       var eventType = eventTypeEl ? eventTypeEl.value : '';
       var interesse = document.querySelectorAll('input[name="interesse"]:checked');
 
+      // Datum: entweder mindestens ein Termin oder das ausdrueckliche Haekchen.
+      // Stillschweigend leer lassen geht nicht mehr — sonst wisst ihr beim
+      // Lesen der Anfrage nicht, ob der Termin offen ist oder nur vergessen
+      // wurde, und koennt eure Verfuegbarkeit nicht pruefen.
+      var noDate = document.getElementById('noDate').checked;
+      var anyDate = [...document.querySelectorAll('#dateFields input')].some(function(i) { return i.value; });
+
       if (!name || !phone || !email) {
         alert(MSG.required);
         return;
@@ -524,6 +533,17 @@
 
       if (interesse.length === 0) {
         alert(MSG.interest);
+        return;
+      }
+
+      // Ohne Termin laesst sich die Verfuegbarkeit nicht pruefen. Entweder ein
+      // Datum oder das ausdrueckliche "noch kein fixes Datum" — stillschweigend
+      // leer lassen geht nicht, sonst ist beim Lesen der Anfrage nicht
+      // unterscheidbar, ob der Termin offen ist oder nur vergessen wurde.
+      if (!noDate && !anyDate) {
+        alert(MSG.dateRequired);
+        var firstDate = document.querySelector('#dateFields input');
+        if (firstDate) firstDate.focus();
         return;
       }
 

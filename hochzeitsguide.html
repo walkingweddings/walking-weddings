@@ -221,13 +221,17 @@
     }
 
     /* Comparison section */
+    /* Auf 1440 px standen die beiden 16:9-Felder mit 900 px Gesamtbreite
+       verloren in der Flaeche, mit viel Leerraum darum. Dieselbe Breite wie
+       das Mosaik darunter gibt der Seite einen durchgehenden Satzspiegel, und
+       der engere Abstand nimmt das Loch zwischen Ueberschrift und Bildern. */
     .guide-comparison {
-      max-width: 900px;
+      max-width: 1200px;
       margin: 0 auto;
-      padding: var(--space-lg) var(--section-padding);
+      padding: var(--space-md) var(--section-padding);
       display: grid;
       grid-template-columns: 1fr;
-      gap: var(--space-md);
+      gap: 12px;
     }
 
     @media (min-width: 768px) {
@@ -284,109 +288,107 @@
     }
 
     /* Carousel */
-    .guide-carousel {
-      position: relative;
-      max-width: 700px;
+    /* ------- Mosaik -------
+       Vorher stand hier ein Karussell. Es zeigte ein Bild nach dem anderen mit
+       object-fit: contain bei fester Hoehe — ein Hochformat fuellte die 700 px
+       breite Box also nicht, links und rechts blieb Weiss, und die
+       Bildunterschrift klebte am Rand der BOX statt am Bild und ragte sichtbar
+       heraus. Auf 1440 px stand ein 365 px schmales Foto allein in der Mitte.
+
+       Ein Raster loest beides: Die Kacheln fuellen die Breite, jedes Bild wird
+       auf seine Kachel zugeschnitten (cover), und die Beschriftung sitzt immer
+       im Bild. Nebenbei sieht man vier Arbeiten statt einer und muss nichts
+       antippen — auf einer Anzeigen-Landeseite zaehlt jeder erspartes Klick. */
+    .guide-mosaic {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(2, 1fr);
+      max-width: 1200px;
       margin: var(--space-lg) auto;
       padding: 0 var(--section-padding);
-      overflow: hidden;
     }
 
-    .guide-carousel__track {
-      display: flex;
+    .guide-mosaic__tile {
+      position: relative;
+      overflow: hidden;
+      margin: 0;
+      aspect-ratio: 3 / 4;
+    }
+
+    /* Auf dem Handy fuehrt das erste Bild ueber die volle Breite — quer, damit
+       es nicht den halben Bildschirm frisst. Die letzte Kachel tut dasselbe:
+       Vier Bilder gehen in zwei Spalten sonst nicht auf (2 + 1 + 1) und lassen
+       unten rechts ein Loch. So entsteht gross / zwei kleine / gross. */
+    .guide-mosaic__tile--hero,
+    .guide-mosaic__tile:last-child {
+      grid-column: span 2;
+      aspect-ratio: 4 / 3;
+    }
+
+    .guide-mosaic__tile img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
       transition: transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
     }
 
-    .guide-carousel__slide {
-      min-width: 100%;
-      position: relative;
+    .guide-mosaic__tile:hover img {
+      transform: scale(1.03);
     }
 
-    .guide-carousel__slide img {
-      width: 100%;
-      height: 550px;
-      object-fit: contain;
-      display: block;
-    }
-
-    @media (max-width: 600px) {
-      .guide-carousel__slide img {
-        height: 400px;
-      }
-    }
-
-    .guide-carousel__caption {
+    .guide-mosaic__caption {
       position: absolute;
-      bottom: 16px;
-      left: 16px;
+      bottom: 12px;
+      left: 12px;
+      font-family: var(--font-body);
       font-size: var(--text-xs);
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: white;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.45);
       backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       padding: 0.4rem 0.8rem;
     }
 
-    .guide-carousel__arrows {
-      position: absolute;
-      top: 0;
-      left: var(--section-padding);
-      right: var(--section-padding);
-      height: 550px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      pointer-events: none;
-      z-index: 2;
+    /* Ab 768 px vier Spalten mit fester Zeilenhoehe. Die vier Kacheln fuellen
+       das 4x2-Raster exakt: gross 2x2, hoch 1x2, dazu zwei 1x1 uebereinander —
+       kein Loch, keine haengende Reihe. aspect-ratio muss dafuer weichen, sonst
+       stritte es mit den Zeilenspannen. */
+    @media (min-width: 768px) {
+      .guide-mosaic {
+        grid-template-columns: repeat(4, 1fr);
+        grid-auto-rows: 210px;
+      }
+
+      .guide-mosaic__tile,
+      .guide-mosaic__tile--hero,
+      .guide-mosaic__tile:last-child {
+        aspect-ratio: auto;
+        grid-column: auto;
+      }
+
+      .guide-mosaic__tile--hero {
+        grid-column: span 2;
+        grid-row: span 2;
+      }
+
+      .guide-mosaic__tile--tall {
+        grid-row: span 2;
+      }
     }
 
-    @media (max-width: 600px) {
-      .guide-carousel__arrows { height: 400px; }
+    @media (min-width: 1100px) {
+      .guide-mosaic { grid-auto-rows: 250px; }
     }
 
-    .guide-carousel__arrow {
-      pointer-events: auto;
-      background: rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(6px);
-      border: none;
-      color: white;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      font-size: 18px;
-      cursor: pointer;
-      transition: background var(--transition-fast);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    /* Wer Bewegung reduziert haben moechte, bekommt keine Zoomfahrt. */
+    @media (prefers-reduced-motion: reduce) {
+      .guide-mosaic__tile img { transition: none; }
+      .guide-mosaic__tile:hover img { transform: none; }
     }
 
-    .guide-carousel__arrow:hover {
-      background: rgba(0, 0, 0, 0.6);
-    }
-
-    .guide-carousel__dots {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: var(--space-sm);
-    }
-
-    .guide-carousel__dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      border: 1px solid var(--color-accent);
-      background: transparent;
-      cursor: pointer;
-      padding: 0;
-      transition: background var(--transition-fast);
-    }
-
-    .guide-carousel__dot.active {
-      background: var(--color-accent);
-    }
   </style>
   <meta name="theme-color" content="#131B1B">
   <link rel="apple-touch-icon" href="assets/images/logo/ww_brandmarkWhite.png">
@@ -527,26 +529,23 @@
 
   <!-- CAROUSEL -->
   <section class="section section--light">
-    <div class="guide-carousel" id="carousel">
-      <div class="guide-carousel__track" id="carouselTrack">
-        <div class="guide-carousel__slide">
-          <img loading="lazy" decoding="async" data-cms-id="carousel.image1" src="assets/images/portfolio/golden-hour.webp" alt="Golden Hour — Paarfoto am Strand von Phuket, Thailand" data-i18n-attr="alt:guide.carousel.alt1">
-          <span class="guide-carousel__caption" data-cms-id="carousel.caption1" data-i18n="guide.carousel.caption1">Golden Hour</span>
-        </div>
-        <div class="guide-carousel__slide">
-          <img loading="lazy" decoding="async" data-cms-id="carousel.image2" src="assets/images/portfolio/indian-wedding.webp" alt="Destination Wedding — indische Zeremonie unter dem Mandap in Abu Dhabi" data-i18n-attr="alt:guide.carousel.alt2">
-          <span class="guide-carousel__caption" data-cms-id="carousel.caption2" data-i18n="guide.carousel.caption2">Destination Wedding</span>
-        </div>
-        <div class="guide-carousel__slide">
-          <img loading="lazy" decoding="async" data-cms-id="carousel.image3" src="assets/images/portfolio/carousel-extra.webp" alt="Brautpaar im Licht" data-i18n-attr="alt:guide.carousel.alt3">
-          <span class="guide-carousel__caption" data-cms-id="carousel.caption3" data-i18n="guide.carousel.caption3">Licht & Liebe</span>
-        </div>
-      </div>
-      <div class="guide-carousel__arrows">
-        <button class="guide-carousel__arrow" onclick="moveSlide(-1)">&#8249;</button>
-        <button class="guide-carousel__arrow" onclick="moveSlide(1)">&#8250;</button>
-      </div>
-      <div class="guide-carousel__dots" id="carouselDots"></div>
+    <div class="guide-mosaic">
+      <figure class="guide-mosaic__tile guide-mosaic__tile--hero">
+        <img loading="lazy" decoding="async" data-cms-id="carousel.image1" src="assets/images/portfolio/golden-hour.webp" alt="Golden Hour — Paarfoto am Strand von Phuket, Thailand" data-i18n-attr="alt:guide.carousel.alt1">
+        <figcaption class="guide-mosaic__caption" data-cms-id="carousel.caption1" data-i18n="guide.carousel.caption1">Golden Hour</figcaption>
+      </figure>
+      <figure class="guide-mosaic__tile guide-mosaic__tile--tall">
+        <img loading="lazy" decoding="async" data-cms-id="carousel.image2" src="assets/images/portfolio/indian-wedding.webp" alt="Destination Wedding — indische Zeremonie unter dem Mandap in Abu Dhabi" data-i18n-attr="alt:guide.carousel.alt2">
+        <figcaption class="guide-mosaic__caption" data-cms-id="carousel.caption2" data-i18n="guide.carousel.caption2">Destination Wedding</figcaption>
+      </figure>
+      <figure class="guide-mosaic__tile">
+        <img loading="lazy" decoding="async" data-cms-id="carousel.image3" src="assets/images/portfolio/carousel-extra.webp" alt="Brautpaar im Licht" data-i18n-attr="alt:guide.carousel.alt3">
+        <figcaption class="guide-mosaic__caption" data-cms-id="carousel.caption3" data-i18n="guide.carousel.caption3">Licht &amp; Liebe</figcaption>
+      </figure>
+      <figure class="guide-mosaic__tile">
+        <img loading="lazy" decoding="async" data-cms-id="carousel.image4" src="assets/images/portfolio/bw-zeremonie.webp" alt="Zeremonie in Schwarzweiß — der Moment des Jaworts" data-i18n-attr="alt:guide.carousel.alt4">
+        <figcaption class="guide-mosaic__caption" data-cms-id="carousel.caption4" data-i18n="guide.carousel.caption4">Der Moment</figcaption>
+      </figure>
     </div>
   </section>
 
@@ -612,44 +611,7 @@
   <script src="assets/js/main.js"></script>
   <script src="assets/js/animations.js"></script>
   <script>
-    // Carousel
-    var currentSlide = 0;
-    var track = document.getElementById('carouselTrack');
-    var slides = track.querySelectorAll('.guide-carousel__slide');
-    var dots = document.getElementById('carouselDots');
-
-    slides.forEach(function(_, i) {
-      var dot = document.createElement('button');
-      dot.className = 'guide-carousel__dot' + (i === 0 ? ' active' : '');
-      dot.onclick = function() { goToSlide(i); };
-      dots.appendChild(dot);
-    });
-
-    function goToSlide(n) {
-      currentSlide = n;
-      track.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
-      document.querySelectorAll('.guide-carousel__dot').forEach(function(d, i) {
-        d.classList.toggle('active', i === currentSlide);
-      });
-    }
-
-    function moveSlide(dir) {
-      var next = currentSlide + dir;
-      if (next < 0) next = slides.length - 1;
-      if (next >= slides.length) next = 0;
-      goToSlide(next);
-    }
-
-    setInterval(function() { moveSlide(1); }, 5000);
-
-    // Touch/swipe
-    var touchStartX = 0;
-    var carousel = document.getElementById('carousel');
-    carousel.addEventListener('touchstart', function(e) { touchStartX = e.touches[0].clientX; });
-    carousel.addEventListener('touchend', function(e) {
-      var diff = touchStartX - e.changedTouches[0].clientX;
-      if (Math.abs(diff) > 50) moveSlide(diff > 0 ? 1 : -1);
-    });
+    // Das Mosaik kommt ohne JavaScript aus — es ist ein Raster, kein Karussell.
   </script>
 </body>
 </html>
