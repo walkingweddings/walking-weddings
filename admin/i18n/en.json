@@ -398,5 +398,9 @@
   "schema.motion.palais.name": "Palais of Emotions — Jia Min & Anthony",
   "schema.motion.palais.description": "From the tender moments of getting ready, through the moving first look, to the emotional ceremony at Palais Niederösterreich in Vienna.",
   "schema.motion.adria.name": "Adriatic Romance — Jennise & Florian",
-  "schema.motion.adria.description": "From the Christian ceremony at the Church of San Bartolomeo in Barcola to the celebration by the sea — romance on the Adriatic coast in Trieste, Italy."
+  "schema.motion.adria.description": "From the Christian ceremony at the Church of San Bartolomeo in Barcola to the celebration by the sea — romance on the Adriatic coast in Trieste, Italy.",
+  "contact.sec.optional": "optional",
+  "contact.opt.budget1": "up to 5,000",
+  "contact.opt.budget4": "over 10,000",
+  "contact.opt.budgetOpen": "not sure yet"
 }
