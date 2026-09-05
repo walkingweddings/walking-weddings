@@ -320,9 +320,24 @@
        Vier Bilder gehen in zwei Spalten sonst nicht auf (2 + 1 + 1) und lassen
        unten rechts ein Loch. So entsteht gross / zwei kleine / gross. */
     .guide-mosaic__tile--hero,
-    .guide-mosaic__tile:last-child {
+    .guide-mosaic__tile--wide {
       grid-column: span 2;
       aspect-ratio: 4 / 3;
+    }
+
+    /* Die beiden Querformate am Ende sind flacher als das Aufmacherbild —
+       sonst nimmt das Mosaik auf dem Handy zu viel Hoehe ein. */
+    .guide-mosaic__tile--wide {
+      aspect-ratio: 16 / 9;
+    }
+
+    /* Sechs Kacheln gehen in zwei Spalten nur auf, wenn eine der drei
+       mittleren mitspannt — sonst bleibt eine allein in ihrer Reihe stehen und
+       daneben ein Loch. Es trifft die Zeremonie-Aufnahme, weil sie als
+       einzige davon Querformat ist. Auf dem Desktop bleibt sie eine 1x1-Kachel. */
+    .guide-mosaic__tile--wide-phone {
+      grid-column: span 2;
+      aspect-ratio: 16 / 9;
     }
 
     .guide-mosaic__tile img {
@@ -364,7 +379,8 @@
 
       .guide-mosaic__tile,
       .guide-mosaic__tile--hero,
-      .guide-mosaic__tile:last-child {
+      .guide-mosaic__tile--wide,
+      .guide-mosaic__tile--wide-phone {
         aspect-ratio: auto;
         grid-column: auto;
       }
@@ -376,6 +392,13 @@
 
       .guide-mosaic__tile--tall {
         grid-row: span 2;
+      }
+
+      /* Dritte Zeile: zwei Querformate nebeneinander, je zwei Spalten breit.
+         Damit fuellen sechs Kacheln ein 4x3-Raster exakt aus — 4 + 2 + 1 + 1
+         in den ersten beiden Zeilen, 2 + 2 in der dritten. */
+      .guide-mosaic__tile--wide {
+        grid-column: span 2;
       }
     }
 
@@ -535,16 +558,24 @@
         <figcaption class="guide-mosaic__caption" data-cms-id="carousel.caption1" data-i18n="guide.carousel.caption1">Golden Hour</figcaption>
       </figure>
       <figure class="guide-mosaic__tile guide-mosaic__tile--tall">
-        <img loading="lazy" decoding="async" data-cms-id="carousel.image2" src="assets/images/portfolio/indian-wedding.webp" alt="Destination Wedding — indische Zeremonie unter dem Mandap in Abu Dhabi" data-i18n-attr="alt:guide.carousel.alt2">
+        <img loading="lazy" decoding="async" data-cms-id="carousel.image2" src="assets/images/portfolio/jenniseflorian-396.webp" alt="Destination Wedding — Auszug aus der Kirche San Bartolomeo in Triest, Italien" data-i18n-attr="alt:guide.carousel.alt2">
         <figcaption class="guide-mosaic__caption" data-cms-id="carousel.caption2" data-i18n="guide.carousel.caption2">Destination Wedding</figcaption>
       </figure>
       <figure class="guide-mosaic__tile">
         <img loading="lazy" decoding="async" data-cms-id="carousel.image3" src="assets/images/portfolio/carousel-extra.webp" alt="Brautpaar im Licht" data-i18n-attr="alt:guide.carousel.alt3">
         <figcaption class="guide-mosaic__caption" data-cms-id="carousel.caption3" data-i18n="guide.carousel.caption3">Licht &amp; Liebe</figcaption>
       </figure>
-      <figure class="guide-mosaic__tile">
+      <figure class="guide-mosaic__tile guide-mosaic__tile--wide-phone">
         <img loading="lazy" decoding="async" data-cms-id="carousel.image4" src="assets/images/portfolio/bw-zeremonie.webp" alt="Zeremonie in Schwarzweiß — der Moment des Jaworts" data-i18n-attr="alt:guide.carousel.alt4">
         <figcaption class="guide-mosaic__caption" data-cms-id="carousel.caption4" data-i18n="guide.carousel.caption4">Der Moment</figcaption>
+      </figure>
+      <figure class="guide-mosaic__tile guide-mosaic__tile--wide">
+        <img loading="lazy" decoding="async" data-cms-id="carousel.image5" src="assets/images/portfolio/jiaminanthony-424.webp" alt="Auszug des Brautpaars durch das Spalier der Gäste" data-i18n-attr="alt:guide.carousel.alt5">
+        <figcaption class="guide-mosaic__caption" data-cms-id="carousel.caption5" data-i18n="guide.carousel.caption5">Der große Auftritt</figcaption>
+      </figure>
+      <figure class="guide-mosaic__tile guide-mosaic__tile--wide">
+        <img loading="lazy" decoding="async" data-cms-id="carousel.image6" src="assets/images/portfolio/karinjinwedding-165.webp" alt="Braut am Fenster kurz vor der Trauung" data-i18n-attr="alt:guide.carousel.alt6">
+        <figcaption class="guide-mosaic__caption" data-cms-id="carousel.caption6" data-i18n="guide.carousel.caption6">Vor der Trauung</figcaption>
       </figure>
     </div>
   </section>
